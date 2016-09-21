@@ -2,20 +2,27 @@ package application;
 
 public class Preferences
 {
-	private int preferencesId;
-	private int numberOfDecimalPlaces;
-	private int defaultUnitTypeId;
-	private int defaultFirstUnitId;
-	private int defaultSecondUnitId;
+	private final int preferencesId;
+	private final int numberOfDecimalPlaces;
+	private final int defaultUnitTypeId;
+	private final int defaultFirstUnitId;
+	private final int defaultSecondUnitId;
+	private final String defaultSkinName;
+
+	public Preferences(int preferencesId, int numberOfDecimalPlaces, int defaultUnitTypeId, int defaultFirstUnitId,
+			int defaultSecondUnitId, String defaultSkinName)
+	{
+		this.preferencesId = preferencesId;
+		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
+		this.defaultUnitTypeId = defaultUnitTypeId;
+		this.defaultFirstUnitId = defaultFirstUnitId;
+		this.defaultSecondUnitId = defaultSecondUnitId;
+		this.defaultSkinName = defaultSkinName;
+	}
 
 	public int getPreferencesId()
 	{
 		return preferencesId;
-	}
-
-	public void setPreferencesId(int preferencesId)
-	{
-		this.preferencesId = preferencesId;
 	}
 
 	public int getNumberOfDecimalPlaces()
@@ -23,19 +30,9 @@ public class Preferences
 		return numberOfDecimalPlaces;
 	}
 
-	public void setNumberOfDecimalPlaces(int numberOfDecimalPlaces)
-	{
-		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
-	}
-
 	public int getDefaultUnitTypeId()
 	{
 		return defaultUnitTypeId;
-	}
-
-	public void setDefaultUnitTypeId(int defaultUnitTypeId)
-	{
-		this.defaultUnitTypeId = defaultUnitTypeId;
 	}
 
 	public int getDefaultFirstUnitId()
@@ -43,18 +40,13 @@ public class Preferences
 		return defaultFirstUnitId;
 	}
 
-	public void setDefaultFirstUnitId(int defaultFirstUnitId)
-	{
-		this.defaultFirstUnitId = defaultFirstUnitId;
-	}
-
 	public int getDefaultSecondUnitId()
 	{
 		return defaultSecondUnitId;
 	}
 
-	public void setDefaultSecondUnitId(int defaultSecondUnitId)
+	public String getDefaultSkinName()
 	{
-		this.defaultSecondUnitId = defaultSecondUnitId;
+		return defaultSkinName;
 	}
 }

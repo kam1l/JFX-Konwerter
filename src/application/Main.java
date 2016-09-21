@@ -21,7 +21,6 @@ public class Main extends Application
 
 			Scene scene = new Scene(root);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			setUserAgentStylesheet(STYLESHEET_CASPIAN);
 
 			primaryStage.setTitle("JFX Konwerter");
 			primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("icon.png")));

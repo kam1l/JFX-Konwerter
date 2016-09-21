@@ -13,68 +13,67 @@
 	maxWidth="-Infinity"
 	minHeight="-Infinity"
 	minWidth="-Infinity"
-	prefHeight="245.0"
+	prefHeight="341.0"
 	prefWidth="486.0"
-	style="-fx-background-color: #B2C3D1;"
 	xmlns="http://javafx.com/javafx/8.0.60"
 	xmlns:fx="http://javafx.com/fxml/1"
 	fx:controller="application.PreferencesController">
 	<children>
 		<Button
 			layoutX="213.0"
-			layoutY="202.0"
+			layoutY="295.0"
 			mnemonicParsing="false"
 			onAction="#savePreferences"
 			prefHeight="25.0"
 			prefWidth="60.0"
 			text="Zapisz" />
 		<Label
-			layoutX="77.0"
-			layoutY="18.0"
+			layoutX="79.0"
+			layoutY="20.0"
 			text="Liczba miejsc po przecinku:" />
 		<Label
-			layoutX="144.0"
-			layoutY="68.0"
+			layoutX="148.0"
+			layoutY="70.0"
 			text="Domyślny typ:" />
 		<Label
-			layoutX="101.0"
-			layoutY="110.0"
+			layoutX="103.0"
+			layoutY="112.0"
 			text="Domyślna jednostka 1:" />
 		<Label
-			layoutX="101.0"
-			layoutY="152.0"
+			layoutX="103.0"
+			layoutY="154.0"
 			text="Domyślna jednostka 2:" />
 		<Separator
-			layoutX="11.0"
-			layoutY="50.0"
+			layoutX="13.0"
+			layoutY="52.0"
 			prefHeight="3.0"
 			prefWidth="459.0" />
 		<Separator
-			layoutX="11.0"
-			layoutY="186.0"
+			layoutX="13.0"
+			layoutY="188.0"
 			prefWidth="459.0" />
 		<ComboBox
 			fx:id="defaultUnitTypeComboBox"
-			layoutX="230.0"
-			layoutY="64.0"
+			layoutX="232.0"
+			layoutY="66.0"
 			onAction="#changeUnitSet"
 			prefHeight="25.0"
 			prefWidth="241.0" />
 		<ComboBox
 			fx:id="defaultFirstUnitComboBox"
-			layoutX="230.0"
-			layoutY="106.0"
+			layoutX="232.0"
+			layoutY="108.0"
 			prefHeight="25.0"
 			prefWidth="241.0" />
 		<ComboBox
 			fx:id="defaultSecondUnitComboBox"
-			layoutX="230.0"
-			layoutY="148.0"
+			layoutX="232.0"
+			layoutY="150.0"
 			prefHeight="25.0"
 			prefWidth="241.0" />
 		<ComboBox
 			fx:id="defaultNumberOfDecimalPlacesComboBox"
-			layoutX="230.0"
+			layoutX="232.0"
 			layoutY="14.0"
 			prefHeight="25.0"
 			prefWidth="26.0">
@@ -89,6 +88,49 @@
 					<String fx:value="8" />
 				</FXCollections>
 			</items>
+		</ComboBox>
+		<Separator
+			layoutX="13.0"
+			layoutY="281.0"
+			prefHeight="3.0"
+			prefWidth="459.0" />
+		<Label
+			layoutX="184.0"
+			layoutY="248.0"
+			prefHeight="17.0"
+			prefWidth="41.0"
+			text="Skórka:" />
+		<ComboBox
+		fx:id = "defaultSkinNameComboBox"
+			layoutX="231.0"
+			layoutY="244.0"
+			prefHeight="25.0"
+			prefWidth="241.0">
+			<items>
+				<FXCollections fx:factory="observableArrayList">
+					<String fx:value="Blue Caspian" />
+					<String fx:value="Modena" />
+				</FXCollections>
+			</items>
+		</ComboBox>
+		<Label
+			layoutX="191.0"
+			layoutY="206.0"
+			text="Język:" />
+		<ComboBox
+			layoutX="231.0"
+			layoutY="202.0"
+			prefHeight="25.0"
+			prefWidth="241.0">
+			<items>
+				<FXCollections fx:factory="observableArrayList">
+					<String fx:value="Polski" />
+					<String fx:value="Angielski" />
+				</FXCollections>
+			</items>
+			<value>
+				<String fx:value="Polski" />
+			</value>
 		</ComboBox>
 	</children>
 </AnchorPane>

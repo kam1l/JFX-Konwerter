@@ -8,19 +8,19 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
-import javafx.scene.control.Alert.AlertType;
 
 public class PreferencesController implements Initializable
 {
 	private Model model = new Model();
-	private Preferences newPreferences = new Preferences();
+	private Message message = new Message();
+
+	private boolean wasNumberOfDecimalPlacesChanged, wasDefaultSkinNameChanged;
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
-			defaultSecondUnitComboBox;
+			defaultSecondUnitComboBox, defaultSkinNameComboBox;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
@@ -50,6 +50,11 @@ public class PreferencesController implements Initializable
 
 		defaultSecondUnitComboBox.setItems(unitNames);
 		defaultSecondUnitSel.select(defaultSecondUnitName);
+
+		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
+		String defaultSkinName = Model.getPreferences().getDefaultSkinName();
+
+		defaultSkinNameSel.select(defaultSkinName);
 	}
 
 	public void changeUnitSet(ActionEvent event)
@@ -83,19 +88,18 @@ public class PreferencesController implements Initializable
 				@Override
 				public void run()
 				{
-
-					getNewValues();
-					boolean taskSucceeded = model.updatePreferencesInDB(newPreferences);
+					Preferences prefs = getNewValues();
+					boolean taskSucceeded = model.updatePreferencesInDB(prefs);
 
 					Platform.runLater(() ->
 					{
 						if (taskSucceeded == false)
 						{
-							showSavingPreferencesErrorMessage();
+							message.showMessage(Message.ERROR_TITLE, Message.SAVING_PREFERENCES_ERROR_MESSAGE);
 						}
 						else
 						{
-							updatePreferencesRamDataStructures();
+							updatePreferencesRamDataStructures(prefs);
 						}
 					});
 				}
@@ -122,34 +126,48 @@ public class PreferencesController implements Initializable
 		String currentDefaultSecondUnitName = Model.getDefaultFirstUnitDisplayName();
 		String selectedDefaultSecondUnitName = defaultSecondUnitSel.getSelectedItem().toString();
 
-		return !(selectedNumberOfDecPlaces.equals(currentNumberOfDecPlaces)
-				&& selectedDefaultFirstUnitName.equals(currentDefaultFirstUnitName)
-				&& selectedDefaultSecondUnitName.equals(currentDefaultSecondUnitName));
+		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
+		String currentDefaultSkinName = Model.getPreferences().getDefaultSkinName();
+		String selectedDefaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
+
+		wasNumberOfDecimalPlacesChanged = !selectedNumberOfDecPlaces.equals(currentNumberOfDecPlaces);
+		wasDefaultSkinNameChanged = !selectedDefaultSkinName.equals(currentDefaultSkinName);
+
+		return !(wasNumberOfDecimalPlacesChanged && selectedDefaultFirstUnitName.equals(currentDefaultFirstUnitName)
+				&& selectedDefaultSecondUnitName.equals(currentDefaultSecondUnitName) && wasDefaultSkinNameChanged);
 	}
 
-	private void getNewValues()
+	private Preferences getNewValues()
 	{
 		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
 				.getSelectionModel();
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
+		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
 
 		int defaultNumberOfDecimalPlaces = Integer
 				.valueOf(defaultNumberOfDecimalPlacesSel.getSelectedItem().toString());
 		int defaultUnitTypeIndex = defaultUnitTypeSel.getSelectedIndex();
 		int defaultFirstUnitIndex = defaultFirstUnitSel.getSelectedIndex();
 		int defaultSecondUnitIndex = defaultSecondUnitSel.getSelectedIndex();
+		String defaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
 
-		newPreferences.setPreferencesId(Model.getPreferencesId());
-		newPreferences.setNumberOfDecimalPlaces(defaultNumberOfDecimalPlaces);
-		newPreferences.setDefaultUnitTypeId(Model.getUnitType(defaultUnitTypeIndex).getUnitTypeId());
-		newPreferences.setDefaultFirstUnitId(Model.getPreferencesUnit(defaultFirstUnitIndex).getUnitId());
-		newPreferences.setDefaultSecondUnitId(Model.getPreferencesUnit(defaultSecondUnitIndex).getUnitId());
+		int preferencesId = Model.getPreferencesId();
+		int defaultUnitTypeId = Model.getUnitType(defaultUnitTypeIndex).getUnitTypeId();
+		int defaultFirstUnitId = Model.getPreferencesUnit(defaultFirstUnitIndex).getUnitId();
+		int defaultSecondUnitId = Model.getPreferencesUnit(defaultSecondUnitIndex).getUnitId();
+
+		Preferences prefs = new Preferences(preferencesId, defaultNumberOfDecimalPlaces, defaultUnitTypeId,
+				defaultFirstUnitId, defaultSecondUnitId, defaultSkinName);
+
+		return prefs;
 	}
 
-	private void updatePreferencesRamDataStructures()
+	private void updatePreferencesRamDataStructures(Preferences prefs)
 	{
+		Model.setPreferences(prefs);
+
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
@@ -161,18 +179,8 @@ public class PreferencesController implements Initializable
 		model.setDefaultUnitType(defaultUnitTypeIndex);
 		model.setDefaultFirstUnit(defaultFirstUnitIndex);
 		model.setDefaultSecondUnit(defaultSecondUnitIndex);
-		model.setNumberOfDecimalPlaces(newPreferences.getNumberOfDecimalPlaces());
 
-		MainController.preferencesSaved.setValue(!MainController.preferencesSaved.getValue());
-	}
-
-	private void showSavingPreferencesErrorMessage()
-	{
-		Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle(Message.ERROR_TITLE);
-		alert.setHeaderText(null);
-		alert.setContentText(Message.SAVING_PREFERENCES_ERROR_MESSAGE);
-
-		alert.showAndWait();
+		MainController.wasNumberOfDecimalPlacesChanged.setValue(wasNumberOfDecimalPlacesChanged);
+		MainController.wasDefaultSkinNameChanged.setValue(wasDefaultSkinNameChanged);
 	}
 }

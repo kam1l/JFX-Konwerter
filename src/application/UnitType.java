@@ -2,12 +2,15 @@ package application;
 
 public class UnitType
 {
-	private int unitTypeId;
-	private String unitTypeName;
-	private String classifier;
+	private final int unitTypeId;
+	private final String unitTypeName;
+	private final String classifier;
 
-	public UnitType()
+	public UnitType(int unitTypeId, String unitTypeName, String classifier)
 	{
+		this.unitTypeId = unitTypeId;
+		this.unitTypeName = unitTypeName;
+		this.classifier = classifier;
 	}
 
 	public UnitType(UnitType another)
@@ -22,28 +25,13 @@ public class UnitType
 		return unitTypeId;
 	}
 
-	public void setUnitTypeId(int unitTypeId)
-	{
-		this.unitTypeId = unitTypeId;
-	}
-
 	public String getUnitTypeName()
 	{
 		return unitTypeName;
 	}
 
-	public void setUnitTypeName(String unitTypeName)
-	{
-		this.unitTypeName = unitTypeName;
-	}
-
 	public String getUnitTypeClassifier()
 	{
 		return classifier;
-	}
-
-	public void setUnitTypeClassifier(String classfier)
-	{
-		this.classifier = classfier;
 	}
 }

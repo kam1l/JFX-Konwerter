@@ -14,6 +14,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -28,8 +29,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
@@ -43,11 +42,14 @@ import javafx.stage.Stage;
 public class MainController implements Initializable
 {
 	private Model model = new Model();
+	private Message message = new Message();
 	private static Stage stage;
-	private Map<String, Double> updatedRates;
-	public static BooleanProperty preferencesSaved = new SimpleBooleanProperty(true);
-
 	private HostServices hostServices;
+
+	private String userInput;
+	private Map<String, Double> exchangeRatesAfterUpdate;
+	public static BooleanProperty wasNumberOfDecimalPlacesChanged = new SimpleBooleanProperty();
+	public static BooleanProperty wasDefaultSkinNameChanged = new SimpleBooleanProperty();
 
 	@FXML
 	private TextField valueTextField, resultTextField;
@@ -58,38 +60,13 @@ public class MainController implements Initializable
 	@FXML
 	private ComboBox<String> unitTypeComboBox, firstUnitComboBox, secondUnitComboBox;
 
-	private EventHandler<ActionEvent> firstUnitComboBoxHandler = new EventHandler<ActionEvent>()
-	{
-		@Override
-		public void handle(ActionEvent event)
-		{
-			SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
-			int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
-
-			model.changeFirstCurrentUnit(firstUnitSelectedIndex);
-
-			setResult();
-		}
-	};
-
-	private EventHandler<ActionEvent> secondUnitComboBoxHandler = new EventHandler<ActionEvent>()
-	{
-		@Override
-		public void handle(ActionEvent event)
-		{
-			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
-
-			model.changeSecondCurrentUnit(secondUnitSelectedIndex);
-
-			setResult();
-		}
-	};
+	private EventHandler<ActionEvent> firstUnitComboBoxHandler, secondUnitComboBoxHandler;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
 	{
 		model.initializeRamDataStructures();
+		setAppSkin();
 
 		ObservableList<String> unitTypeNames = model.getAllUnitTypeNames();
 		String currentUnitTypeName = Model.getCurrentUnitTypeName();
@@ -112,33 +89,88 @@ public class MainController implements Initializable
 		valueTextField.setText("0");
 		setResult();
 
-		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
-		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+		addEventHandlersToComboBoxes();
+		addListenersToBooleanProperties();
+	}
 
-		preferencesSaved.addListener(new ChangeListener<Boolean>()
+	private void addListenersToBooleanProperties()
+	{
+		wasNumberOfDecimalPlacesChanged.addListener(new ChangeListener<Boolean>()
 		{
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
 			{
-				setResult();
+				if (newValue == true)
+				{
+					setResult();
+					wasNumberOfDecimalPlacesChanged.set(false);
+				}
+			}
+		});
+
+		wasDefaultSkinNameChanged.addListener(new ChangeListener<Boolean>()
+		{
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
+			{
+				if (newValue == true)
+				{
+					setAppSkin();
+					wasDefaultSkinNameChanged.set(false);
+				}
 			}
 		});
 	}
 
+	private void addEventHandlersToComboBoxes()
+	{
+		firstUnitComboBoxHandler = new EventHandler<ActionEvent>()
+		{
+			@Override
+			public void handle(ActionEvent event)
+			{
+				SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
+				int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
+
+				model.changeFirstCurrentUnit(firstUnitSelectedIndex);
+
+				setResult();
+			}
+		};
+
+		secondUnitComboBoxHandler = new EventHandler<ActionEvent>()
+		{
+			@Override
+			public void handle(ActionEvent event)
+			{
+				SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
+				int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
+
+				model.changeSecondCurrentUnit(secondUnitSelectedIndex);
+
+				setResult();
+			}
+		};
+
+		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+	}
+
 	public void processDigitAndSetResult(ActionEvent event)
 	{
-		String value = valueTextField.getText();
+		getUserInputFromValueTextField();
+
 		Object eventSource = event.getSource();
 		Button eventSourceButton = (Button) eventSource;
 		String clickedButtonValue = eventSourceButton.getText();
 
-		if (value.equals("0"))
+		if (userInput.equals("0"))
 		{
 			valueTextField.setText(clickedButtonValue);
 		}
 		else
 		{
-			valueTextField.setText(value + clickedButtonValue);
+			valueTextField.setText(userInput + clickedButtonValue);
 		}
 
 		setResult();
@@ -146,27 +178,27 @@ public class MainController implements Initializable
 
 	public void processDecimalMark(ActionEvent event)
 	{
-		String value = valueTextField.getText();
+		getUserInputFromValueTextField();
 
-		if (!value.contains(".") && value.length() > 0)
+		if (!userInput.contains(".") && userInput.length() > 0)
 		{
-			valueTextField.setText(value + ".");
+			valueTextField.setText(userInput + ".");
 		}
 	}
 
 	public void processSignAndSetResult(ActionEvent event)
 	{
-		String value = valueTextField.getText();
+		getUserInputFromValueTextField();
 
-		if (value.length() > 0)
+		if (userInput.length() > 0)
 		{
-			if (value.charAt(0) == '-')
+			if (userInput.charAt(0) == '-')
 			{
-				valueTextField.setText(value.substring(1));
+				valueTextField.setText(userInput.substring(1));
 			}
-			else if (value.length() > 1 || value.charAt(0) != '0')
+			else if (userInput.length() > 1 || userInput.charAt(0) != '0')
 			{
-				valueTextField.setText("-" + value);
+				valueTextField.setText("-" + userInput);
 			}
 
 			setResult();
@@ -175,7 +207,8 @@ public class MainController implements Initializable
 
 	public void processDeletionKeyAndSetResult(ActionEvent event)
 	{
-		String value = valueTextField.getText();
+		getUserInputFromValueTextField();
+
 		Object eventSource = event.getSource();
 		Button eventSourceButton = (Button) eventSource;
 		String clickedButtonValue = eventSourceButton.getText();
@@ -186,13 +219,13 @@ public class MainController implements Initializable
 		}
 		else
 		{
-			if (value.matches("-?[0-9]?|(-0\\.)"))
+			if (userInput.matches("-?[0-9]?|(-0\\.)"))
 			{
 				valueTextField.setText("0");
 			}
 			else
 			{
-				valueTextField.setText(value.substring(0, value.length() - 1));
+				valueTextField.setText(userInput.substring(0, userInput.length() - 1));
 			}
 		}
 
@@ -240,12 +273,12 @@ public class MainController implements Initializable
 				{
 					if (taskSucceeded == false)
 					{
-						showUpdateErrorMessage();
+						message.showMessage(Message.ERROR_TITLE, Message.UPDATE_ERROR_MESSAGE);
 					}
 					else
 					{
-						model.updateRamDataStructures(updatedRates);
-						showUpdateSucceessMessage();
+						model.updateExchangeRatesInRam(exchangeRatesAfterUpdate);
+						message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
 
 						setResult();
 					}
@@ -268,7 +301,7 @@ public class MainController implements Initializable
 					.parse(new URL("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml").openStream());
 			doc.getDocumentElement().normalize();
 			NodeList nList = doc.getElementsByTagName("Cube");
-			updatedRates = new HashMap<String, Double>();
+			exchangeRatesAfterUpdate = new HashMap<String, Double>();
 
 			for (int tmp = 2; tmp < nList.getLength(); tmp++)
 			{
@@ -280,7 +313,7 @@ public class MainController implements Initializable
 					String currentCurrency = eElement.getAttribute("currency");
 					double currentRate = 1.0 / Double.parseDouble(eElement.getAttribute("rate"));
 
-					updatedRates.put(currentCurrency, currentRate);
+					exchangeRatesAfterUpdate.put(currentCurrency, currentRate);
 
 					if (!model.updateRateInDB(currentCurrency, currentRate))
 					{
@@ -300,7 +333,7 @@ public class MainController implements Initializable
 	public void showPreferences(ActionEvent event) throws IOException
 	{
 		stage = new Stage();
-		stage.setMaxHeight(275);
+		stage.setMaxHeight(368);
 		stage.setResizable(false);
 		Parent root = FXMLLoader.load(getClass().getResource("/application/Preferences.fxml"));
 		Scene scene = new Scene(root);
@@ -349,31 +382,12 @@ public class MainController implements Initializable
 
 	public void setResult()
 	{
-		String stringInputValue = valueTextField.getText();
-		Value inputValue = new Value(stringInputValue);
+		getUserInputFromValueTextField();
+
+		Value inputValue = new Value(userInput);
 		String result = model.convertValue(inputValue);
 
 		resultTextField.setText(result);
-	}
-
-	private void showUpdateErrorMessage()
-	{
-		Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle(Message.ERROR_TITLE);
-		alert.setHeaderText(null);
-		alert.setContentText(Message.UPDATE_ERROR_MESSAGE);
-
-		alert.showAndWait();
-	}
-
-	private void showUpdateSucceessMessage()
-	{
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle(Message.INFORMATION_TITLE);
-		alert.setHeaderText(null);
-		alert.setContentText(Message.UPDATE_SUCCESS_MESSAGE);
-
-		alert.showAndWait();
 	}
 
 	public void closeApp(ActionEvent event)
@@ -402,28 +416,32 @@ public class MainController implements Initializable
 		hostServices.showDocument("https://github.com/kam1l/JFX-Konwerter");
 	}
 
+	public void setAppSkin()
+	{
+		String skinName = Model.getPreferences().getDefaultSkinName();
+
+		if (skinName.equals("Modena"))
+		{
+			Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA);
+		}
+		else
+		{
+			Application.setUserAgentStylesheet("/application/caspian.css");
+		}
+	}
+
+	private void getUserInputFromValueTextField()
+	{
+		userInput = valueTextField.getText();
+	}
+
 	public static Stage getStage()
 	{
 		return stage;
 	}
 
-	public static void setStage(Stage stage)
-	{
-		MainController.stage = stage;
-	}
-
-	public HostServices getHostServices()
-	{
-		return hostServices;
-	}
-
 	public void setHostServices(HostServices hostServices)
 	{
 		this.hostServices = hostServices;
-	}
-
-	public TextField getValueTextField()
-	{
-		return valueTextField;
 	}
 }

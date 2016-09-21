@@ -173,39 +173,9 @@ public class Value
 		return isValidDoubleValue;
 	}
 
-	public String getStringValue()
-	{
-		return stringValue;
-	}
-
-	public String getStringDecPart()
-	{
-		return stringDecPart;
-	}
-
-	public void setStringDecPart(String stringDecPart)
-	{
-		this.stringDecPart = stringDecPart;
-	}
-
-	public String getStringIntPart()
-	{
-		return stringIntPart;
-	}
-
-	public void setStringIntPart(String stringIntPart)
-	{
-		this.stringIntPart = stringIntPart;
-	}
-
 	public double getDecPart()
 	{
 		return decPart;
-	}
-
-	public void setDecPart(double decPart)
-	{
-		this.decPart = decPart;
 	}
 
 	public long getIntPart()
@@ -213,48 +183,8 @@ public class Value
 		return intPart;
 	}
 
-	public void setIntPart(long intPart)
-	{
-		this.intPart = intPart;
-	}
-
-	public void setStringValue(String stringValue)
-	{
-		this.stringValue = stringValue;
-	}
-
-	public int getDotIndex()
-	{
-		return dotIndex;
-	}
-
-	public void setDotIndex(int dotIndex)
-	{
-		this.dotIndex = dotIndex;
-	}
-
 	public double getDoubleValue()
 	{
 		return doubleValue;
-	}
-
-	public List<Double> getValuesOfEachCharOfIntPart()
-	{
-		return valuesOfEachCharOfIntPart;
-	}
-
-	public void setValuesOfEachCharOfIntPart(List<Double> intPartValuesOfCharacters)
-	{
-		this.valuesOfEachCharOfIntPart = intPartValuesOfCharacters;
-	}
-
-	public List<Double> getDoubleValuesOfCharacters_decPart()
-	{
-		return valuesOfEachCharOfDecPart;
-	}
-
-	public void setDoubleValuesOfCharacters_decPart(List<Double> decPartValuesOfCharacters)
-	{
-		this.valuesOfEachCharOfDecPart = decPartValuesOfCharacters;
 	}
 }

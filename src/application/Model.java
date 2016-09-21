@@ -12,12 +12,11 @@ import java.util.Map;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 
 public class Model
 {
 	private Connection connection;
+	private Message message = new Message();
 
 	private static List<UnitType> allUnitTypes = new ArrayList<UnitType>();
 	private static List<Unit> allUnits = new ArrayList<Unit>();
@@ -43,12 +42,8 @@ public class Model
 
 		if (connection == null)
 		{
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle(Message.ERROR_TITLE);
-			alert.setHeaderText(null);
-			alert.setContentText(Message.CRITICAL_ERROR_MESSAGE);
+			message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
 
-			alert.showAndWait();
 			Platform.exit();
 			System.exit(-1);
 		}
@@ -87,8 +82,8 @@ public class Model
 
 	private String doTemperatureConversion(double value)
 	{
-		String firstUnitAbbreviation = Model.getCurrentFirstUnitAbbreviation();
-		String secondUnitAbbreviation = Model.getCurrentSecondUnitAbbreviation();
+		String firstUnitAbbreviation = getCurrentFirstUnitAbbreviation();
+		String secondUnitAbbreviation = getCurrentSecondUnitAbbreviation();
 		String resultString;
 		String formattingString = getFormattingString();
 		double result;
@@ -294,13 +289,10 @@ public class Model
 			int defaultUnitTypeId = resultSet.getInt("defaultUnitTypeId");
 			int defaultFirstUnitId = resultSet.getInt("defaultFirstUnitId");
 			int defaultSecondUnitId = resultSet.getInt("defaultSecondUnitId");
+			String defaultSkinName = resultSet.getString("defaultSkinName");
 
-			preferences = new Preferences();
-			preferences.setPreferencesId(preferencesId);
-			preferences.setNumberOfDecimalPlaces(numberOfDecimalPlaces);
-			preferences.setDefaultUnitTypeId(defaultUnitTypeId);
-			preferences.setDefaultFirstUnitId(defaultFirstUnitId);
-			preferences.setDefaultSecondUnitId(defaultSecondUnitId);
+			preferences = new Preferences(preferencesId, numberOfDecimalPlaces, defaultUnitTypeId, defaultFirstUnitId,
+					defaultSecondUnitId, defaultSkinName);
 		}
 		catch (SQLException e)
 		{
@@ -318,14 +310,10 @@ public class Model
 
 			while (resultSet.next())
 			{
-				UnitType unitType = new UnitType();
 				int unitTypeId = resultSet.getInt("unitTypeId");
 				String unitTypeName = resultSet.getString("unitTypeName");
 				String classifier = resultSet.getString("classifier");
-
-				unitType.setUnitTypeId(unitTypeId);
-				unitType.setUnitTypeName(unitTypeName);
-				unitType.setUnitTypeClassifier(classifier);
+				UnitType unitType = new UnitType(unitTypeId, unitTypeName, classifier);
 
 				allUnitTypes.add(unitType);
 				setOfUnitTypeNames.add(unitTypeName);
@@ -350,20 +338,13 @@ public class Model
 		{
 			while (resultSet.next())
 			{
-				Unit unit = new Unit();
 				int unitId = resultSet.getInt("unitId");
 				String unitName = resultSet.getString("unitName");
 				String unitAbbreviation = resultSet.getString("unitAbbreviation");
 				String displayName = getDisplayName(unitName, unitAbbreviation);
 				double unitRatio = resultSet.getDouble("unitRatio");
 				int unitType_unitTypeId = resultSet.getInt("unitType_unitTypeId");
-
-				unit.setUnitId(unitId);
-				unit.setUnitName(unitName);
-				unit.setUnitAbbreviation(unitAbbreviation);
-				unit.setUnitDisplayName(displayName);
-				unit.setUnitRatio(unitRatio);
-				unit.setUnitType_unitTypeId(unitType_unitTypeId);
+				Unit unit = new Unit(unitId, unitName, unitAbbreviation, displayName, unitRatio, unitType_unitTypeId);
 
 				allUnits.add(unit);
 
@@ -412,14 +393,8 @@ public class Model
 
 	private void showCriticalErrorMessageAndExitApp()
 	{
-		Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle(Message.ERROR_TITLE);
-		alert.setHeaderText(null);
-		alert.setContentText(Message.CRITICAL_ERROR_MESSAGE);
+		message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
 
-		alert.showAndWait();
-
-		Platform.exit();
 		Platform.exit();
 		System.exit(-1);
 	}
@@ -446,13 +421,14 @@ public class Model
 	{
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Preferences set numberOfDecimalPlaces = ?, defaultUnitTypeId = ?, defaultFirstUnitId = ?, "
-						+ "defaultSecondUnitId = ? where preferencesId = ?"))
+						+ "defaultSecondUnitId = ?, defaultSkinName = ? where preferencesId = ?"))
 		{
 			preparedStatement.setInt(1, newPreferences.getNumberOfDecimalPlaces());
 			preparedStatement.setInt(2, newPreferences.getDefaultUnitTypeId());
 			preparedStatement.setInt(3, newPreferences.getDefaultFirstUnitId());
 			preparedStatement.setInt(4, newPreferences.getDefaultSecondUnitId());
-			preparedStatement.setInt(5, newPreferences.getPreferencesId());
+			preparedStatement.setString(5, newPreferences.getDefaultSkinName());
+			preparedStatement.setInt(6, newPreferences.getPreferencesId());
 
 			preparedStatement.executeUpdate();
 
@@ -464,7 +440,7 @@ public class Model
 		}
 	}
 
-	public void updateRamDataStructures(Map<String, Double> updatedRates)
+	public void updateExchangeRatesInRam(Map<String, Double> updatedRates)
 	{
 		String currenFirstUnitAbbreviation = currentFirstUnit.getUnitAbbreviation();
 		String currentSecondUnitAbbreviation = currentSecondUnit.getUnitAbbreviation();
@@ -670,9 +646,9 @@ public class Model
 		return preferences.getNumberOfDecimalPlaces();
 	}
 
-	public void setNumberOfDecimalPlaces(int newNumberOfDecPlaces)
+	public static void setPreferences(Preferences prefs)
 	{
-		preferences.setNumberOfDecimalPlaces(newNumberOfDecPlaces);
+		preferences = prefs;
 	}
 
 	public String getFormattingString()
@@ -685,11 +661,6 @@ public class Model
 	public static String getCurrentUnitTypeClassifier()
 	{
 		return currentUnitTypeClassifier;
-	}
-
-	public static void setCurrentUnitTypeClassifier(String currentUnitTypeClassfier)
-	{
-		Model.currentUnitTypeClassifier = currentUnitTypeClassfier;
 	}
 
 	public boolean isDbConnected()
@@ -717,6 +688,11 @@ public class Model
 	public static String getCurrentUnitTypeName()
 	{
 		return currentUnitType.getUnitTypeName();
+	}
+
+	public static Preferences getPreferences()
+	{
+		return preferences;
 	}
 
 	public ObservableList<String> getCurrentMainWindowSetOfUnitNames()
