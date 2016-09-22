@@ -1,5 +1,6 @@
 package application;
 
+import application.controllers.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,16 +15,18 @@ public class Main extends Application
 	{
 		try
 		{
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/application/Main.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/application/resources/view/Main.fxml"));
 			Parent root = loader.load();
 			MainController controller = loader.getController();
 			controller.setHostServices(getHostServices());
 
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			scene.getStylesheets()
+					.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 
 			primaryStage.setTitle("JFX Konwerter");
-			primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("icon.png")));
+			primaryStage.getIcons()
+					.add(new Image(Main.class.getResourceAsStream("/application/resources/images/icon.png")));
 			primaryStage.setMaxWidth(595);
 			primaryStage.setResizable(false);
 			primaryStage.setScene(scene);
