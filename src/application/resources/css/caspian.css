@@ -4258,11 +4258,11 @@ to the top and bottom -fx-padding values of the parent toolbar. */
 }
 
 .alert.information.dialog-pane {
-    -fx-graphic: url("dialog-information.png");
+    -fx-graphic: url("../images/dialog-information.png");
 }
 
 .alert.error.dialog-pane {
-    -fx-graphic: url("dialog-error.png");
+    -fx-graphic: url("../images/dialog-error.png");
 }
 
 .alert.warning.dialog-pane {
