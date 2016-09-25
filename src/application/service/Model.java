@@ -34,25 +34,37 @@ public class Model
 {
 	private Connection connection;
 	private Message message = new Message();
+	private static Preferences preferences;
+	private static String currentUnitTypeClassifier;
 
 	private static List<UnitType> allUnitTypes = new ArrayList<UnitType>();
 	private static List<Unit> allUnits = new ArrayList<Unit>();
 	private static Map<String, Double> updatedExchangeRates;
 
-	private static List<Unit> currentMainWindowSetOfUnits = new ArrayList<Unit>();
-	private static List<Unit> currentPreferencesSetOfUnits = new ArrayList<Unit>();
+	private static List<Unit> mainWindowUnits = new ArrayList<Unit>();
+	private static List<Unit> preferencesUnits = new ArrayList<Unit>();
 
-	private static ObservableList<String> setOfAllUnitTypeNames = FXCollections.observableArrayList();
-	private static ObservableList<String> currentMainWindowSetOfUnitNames = FXCollections.observableArrayList();
-	private static ObservableList<String> currentPreferencesSetOfUnitNames = FXCollections.observableArrayList();
+	private static Map<String, UnitType> unitTypes;
+	private static Map<String, Unit> units;
+	private static Map<String, ObservableList<String>> names;
 
-	private static UnitType currentUnitType, defaultUnitType;
+	static
+	{
+		unitTypes = new HashMap<String, UnitType>();
+		unitTypes.put("currentUnitType", null);
+		unitTypes.put("defaultUnitType", null);
 
-	private static Unit currentFirstUnit, currentSecondUnit, defaultFirstUnit, defaultSecondUnit;
+		units = new HashMap<String, Unit>();
+		units.put("currentFirstUnit", null);
+		units.put("currentSecondUnit", null);
+		units.put("defaultFirstUnit", null);
+		units.put("defaultSecondUnit", null);
 
-	private static Preferences preferences;
-
-	private static String currentUnitTypeClassifier;
+		names = new HashMap<String, ObservableList<String>>();
+		names.put("allUnitTypeNames", FXCollections.observableArrayList());
+		names.put("mainWindowUnitNames", FXCollections.observableArrayList());
+		names.put("preferencesUnitNames", FXCollections.observableArrayList());
+	}
 
 	public Model()
 	{
@@ -73,27 +85,27 @@ public class Model
 
 		if (currentUnitsAreBasic())
 		{
-			double firstUnitRatio = currentFirstUnit.getUnitRatio();
-			double secondUnitRatio = currentSecondUnit.getUnitRatio();
+			double firstUnitRatio = units.get("currentFirstUnit").getUnitRatio();
+			double secondUnitRatio = units.get("currentSecondUnit").getUnitRatio();
 
 			converter = new BasicConverter(userInput, firstUnitRatio, secondUnitRatio);
 		}
 		else if (currentUnitsAreNumberBases())
 		{
-			int firstNumberBase = (int) currentFirstUnit.getUnitRatio();
-			int secondNumberBase = (int) currentSecondUnit.getUnitRatio();
+			int firstNumberBase = (int) units.get("currentFirstUnit").getUnitRatio();
+			int secondNumberBase = (int) units.get("currentSecondUnit").getUnitRatio();
 
 			converter = new NumberBaseConverter(userInput, firstNumberBase, secondNumberBase);
 		}
 		else
 		{
-			String firstScaleAbbreviation = getCurrentFirstUnitAbbreviation();
-			String secondScaleAbbreviation = getCurrentSecondUnitAbbreviation();
+			String firstScaleAbbreviation = getUnitAbbreviation("currentFirstUnit");
+			String secondScaleAbbreviation = getUnitAbbreviation("currentSecondUnit");
 
 			converter = new TemperatureConverter(userInput, firstScaleAbbreviation, secondScaleAbbreviation);
 		}
 
-		return converter.doValueConvesion();
+		return converter.doValueConversion();
 	}
 
 	private boolean currentUnitsAreBasic()
@@ -152,7 +164,10 @@ public class Model
 				UnitType unitType = new UnitType(unitTypeId, unitTypeName, classifier);
 
 				allUnitTypes.add(unitType);
-				setOfAllUnitTypeNames.add(unitTypeName);
+
+				ObservableList<String> namList = names.get("allUnitTypeNames");
+				namList.add(unitTypeName);
+				names.put("allUnitTypeNames", namList);
 
 				if (unitTypeId == defaultUnitTypeId)
 				{
@@ -184,7 +199,7 @@ public class Model
 
 				allUnits.add(unit);
 
-				if (unitType_unitTypeId == currentUnitType.getUnitTypeId())
+				if (unitType_unitTypeId == unitTypes.get("currentUnitType").getUnitTypeId())
 				{
 					initializeUnitClassObjects(unit);
 				}
@@ -198,8 +213,8 @@ public class Model
 
 	private void initializeUnitTypeClassObjects(UnitType unitType)
 	{
-		currentUnitType = new UnitType(unitType);
-		defaultUnitType = new UnitType(unitType);
+		unitTypes.put("currentUnitType", new UnitType(unitType));
+		unitTypes.put("defaultUnitType", new UnitType(unitType));
 		currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
 	}
 
@@ -208,22 +223,22 @@ public class Model
 		int defaultFirstUnitId = preferences.getDefaultFirstUnitId();
 		int defaultSecondUnitId = preferences.getDefaultSecondUnitId();
 
-		addNameToCurrentMainWindowSetOfUnitNames(unit);
-		addNameToCurrentPreferencesSetOfUnitNames(unit);
-		currentMainWindowSetOfUnits.add(unit);
-		currentPreferencesSetOfUnits.add(unit);
+		addItemToUnitNames(unit, "mainWindowUnitNames");
+		addItemToUnitNames(unit, "preferencesUnitNames");
+		mainWindowUnits.add(unit);
+		preferencesUnits.add(unit);
 
 		int unitId = unit.getUnitId();
 
 		if (unitId == defaultFirstUnitId)
 		{
-			setCurrentFirstUnit(unit);
-			setDefaultFirstUnit(unit);
+			setUnit(unit, "currentFirstUnit");
+			setUnit(unit, "defaultFirstUnit");
 		}
 		if (unitId == defaultSecondUnitId)
 		{
-			setCurrentSecondUnit(unit);
-			setDefaultSecondUnit(unit);
+			setUnit(unit, "currentSecondUnit");
+			setUnit(unit, "defaultSecondUnit");
 		}
 	}
 
@@ -298,8 +313,8 @@ public class Model
 
 	public void updateExchangeRatesInRam()
 	{
-		String currenFirstUnitAbbreviation = currentFirstUnit.getUnitAbbreviation();
-		String currentSecondUnitAbbreviation = currentSecondUnit.getUnitAbbreviation();
+		String currenFirstUnitAbbreviation = units.get("currentFirstUnit").getUnitAbbreviation();
+		String currentSecondUnitAbbreviation = units.get("currentSecondUnit").getUnitAbbreviation();
 		String unitAbbreviation;
 		double newValue;
 
@@ -317,12 +332,18 @@ public class Model
 		if (updatedExchangeRates.get(currenFirstUnitAbbreviation) != null)
 		{
 			newValue = updatedExchangeRates.get(currenFirstUnitAbbreviation);
-			currentFirstUnit.setUnitRatio(newValue);
+			Unit unit = units.get("currentFirstUnit");
+			unit.setUnitRatio(newValue);
+
+			units.put("currentFirstUnit", unit);
 		}
 		if (updatedExchangeRates.get(currentSecondUnitAbbreviation) != null)
 		{
 			newValue = updatedExchangeRates.get(currentSecondUnitAbbreviation);
-			currentSecondUnit.setUnitRatio(newValue);
+			Unit unit = units.get("currentSecondUnit");
+			unit.setUnitRatio(newValue);
+
+			units.put("currentSecondUnit", unit);
 		}
 	}
 
@@ -349,57 +370,55 @@ public class Model
 		}
 	}
 
-	public void changeCurrentPreferencesSetOfUnits(int index)
+	public void changePreferencesSetOfUnits(int index)
 	{
-		currentPreferencesSetOfUnitNames.clear();
-		currentPreferencesSetOfUnits.clear();
+		names.put("preferencesUnitNames", FXCollections.observableArrayList());
+		preferencesUnits.clear();
 
 		UnitType unitType = allUnitTypes.get(index);
 		int typeId = unitType.getUnitTypeId();
+
+		preferencesUnits = getUnitLists("preferencesUnitNames", typeId);
+	}
+
+	public void changeMainWindowSetOfUnits(int index)
+	{
+		UnitType unitType = allUnitTypes.get(index);
+
+		names.put("mainWindowUnitNames", FXCollections.observableArrayList());
+		mainWindowUnits.clear();
+
+		unitTypes.put("currentUnitType", new UnitType(unitType));
+		currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
+
+		int currentUnitTypeId = unitTypes.get("currentUnitType").getUnitTypeId();
+
+		mainWindowUnits = getUnitLists("mainWindowUnitNames", currentUnitTypeId);
+	}
+
+	private List<Unit> getUnitLists(String key, int typeId)
+	{
+		List<Unit> unitsL = new ArrayList<Unit>();
 
 		for (Unit unit : allUnits)
 		{
 			if (unit.getUnitType_unitTypeId() == typeId)
 			{
-				addNameToCurrentPreferencesSetOfUnitNames(unit);
-				currentPreferencesSetOfUnits.add(unit);
+				addItemToUnitNames(unit, key);
+				unitsL.add(unit);
 			}
 		}
+
+		return unitsL;
 	}
 
-	public void changeCurrentMainWindowSetOfUnits(int index)
-	{
-		UnitType unitType = allUnitTypes.get(index);
-
-		currentUnitType = new UnitType(unitType);
-		currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
-		currentMainWindowSetOfUnitNames.clear();
-		currentMainWindowSetOfUnits.clear();
-
-		int currentUnitTypeId = currentUnitType.getUnitTypeId();
-
-		for (Unit unit : allUnits)
-		{
-			if (unit.getUnitType_unitTypeId() == currentUnitTypeId)
-			{
-				addNameToCurrentMainWindowSetOfUnitNames(unit);
-				currentMainWindowSetOfUnits.add(unit);
-			}
-		}
-	}
-
-	public void addNameToCurrentPreferencesSetOfUnitNames(Unit unit)
+	private void addItemToUnitNames(Unit unit, String key)
 	{
 		String displayName = unit.getUnitDisplayName();
+		ObservableList<String> namList = names.get(key);
+		namList.add(displayName);
 
-		currentPreferencesSetOfUnitNames.add(displayName);
-	}
-
-	public void addNameToCurrentMainWindowSetOfUnitNames(Unit unit)
-	{
-		String displayName = unit.getUnitDisplayName();
-
-		currentMainWindowSetOfUnitNames.add(displayName);
+		names.put(key, namList);
 	}
 
 	private String getDisplayName(String unitName, String unitAbbreviation)
@@ -417,102 +436,53 @@ public class Model
 	public void setDefaultUnitType(int index)
 	{
 		UnitType unitType = allUnitTypes.get(index);
-		defaultUnitType = new UnitType(unitType);
+		unitTypes.put("defaultUnitType", new UnitType(unitType));
 	}
 
-	public void changeFirstCurrentUnit(int index)
+	public void setUnit(int index, String key)
 	{
-		if (index >= 0)
+		Unit unit;
+
+		if (key.matches("^default.+"))
 		{
-			Unit unit = currentMainWindowSetOfUnits.get(index);
-			setCurrentFirstUnit(unit);
+			unit = preferencesUnits.get(index);
 		}
-	}
-
-	public void changeSecondCurrentUnit(int index)
-	{
-		if (index >= 0)
+		else
 		{
-			Unit unit = currentMainWindowSetOfUnits.get(index);
-			setCurrentSecondUnit(unit);
+			unit = mainWindowUnits.get(index);
 		}
+
+		setUnit(unit, key);
 	}
 
-	public void setDefaultFirstUnit(int index)
+	private void setUnit(Unit unit, String key)
 	{
-		Unit unit = currentPreferencesSetOfUnits.get(index);
-		setDefaultFirstUnit(unit);
+		units.put(key, new Unit(unit));
 	}
 
-	public void setDefaultSecondUnit(int index)
+	public String getUnitDisplayName(String key)
 	{
-		Unit unit = currentPreferencesSetOfUnits.get(index);
-		setDefaultSecondUnit(unit);
+		return units.get(key).getUnitDisplayName();
 	}
 
-	private void setDefaultFirstUnit(Unit unit)
-	{
-		defaultFirstUnit = new Unit(unit);
-	}
-
-	private void setDefaultSecondUnit(Unit unit)
-	{
-		defaultSecondUnit = new Unit(unit);
-	}
-
-	private void setCurrentFirstUnit(Unit unit)
-	{
-		currentFirstUnit = new Unit(unit);
-	}
-
-	private void setCurrentSecondUnit(Unit unit)
-	{
-		currentSecondUnit = new Unit(unit);
-	}
-
-	public static String getDefaultFirstUnitDisplayName()
-	{
-		return defaultFirstUnit.getUnitDisplayName();
-	}
-
-	public static String getDefaultSecondUnitDisplayName()
-	{
-		return defaultSecondUnit.getUnitDisplayName();
-	}
-
-	public static String getFirstCurrentUnitDisplayName()
-	{
-		return currentFirstUnit.getUnitDisplayName();
-	}
-
-	public static String getSecondCurrentUnitDisplayName()
-	{
-		return currentSecondUnit.getUnitDisplayName();
-	}
-
-	public static UnitType getUnitType(int index)
+	public UnitType getUnitType(int index)
 	{
 		return allUnitTypes.get(index);
 	}
 
-	public static Unit getPreferencesUnit(int index)
+	public Unit getPreferencesUnit(int index)
 	{
-		return currentPreferencesSetOfUnits.get(index);
+		return preferencesUnits.get(index);
 	}
 
-	public static int getPreferencesId()
+	public int getPreferencesId()
 	{
 		return preferences.getPreferencesId();
 	}
 
-	private static String getCurrentFirstUnitAbbreviation()
+	private String getUnitAbbreviation(String key)
 	{
-		return currentFirstUnit.getUnitAbbreviation();
-	}
-
-	private static String getCurrentSecondUnitAbbreviation()
-	{
-		return currentSecondUnit.getUnitAbbreviation();
+		return units.get(key).getUnitAbbreviation();
 	}
 
 	public static int getNumberOfDecimalPlaces()
@@ -520,7 +490,7 @@ public class Model
 		return preferences.getNumberOfDecimalPlaces();
 	}
 
-	public static void setPreferences(Preferences prefs)
+	public void setPreferences(Preferences prefs)
 	{
 		preferences = prefs;
 	}
@@ -530,34 +500,19 @@ public class Model
 		return currentUnitTypeClassifier;
 	}
 
-	public ObservableList<String> getAllUnitTypeNames()
+	public ObservableList<String> getNames(String key)
 	{
-		return setOfAllUnitTypeNames;
+		return names.get(key);
 	}
 
-	public String getDefaultUnitTypeName()
+	public String getUnitTypeName(String key)
 	{
-		return defaultUnitType.getUnitTypeName();
+		return unitTypes.get(key).getUnitTypeName();
 	}
 
-	public static String getCurrentUnitTypeName()
-	{
-		return currentUnitType.getUnitTypeName();
-	}
-
-	public static Preferences getPreferences()
+	public Preferences getPreferences()
 	{
 		return preferences;
-	}
-
-	public ObservableList<String> getCurrentMainWindowSetOfUnitNames()
-	{
-		return currentMainWindowSetOfUnitNames;
-	}
-
-	public ObservableList<String> getCurrentPreferencesSetOfUnitNames()
-	{
-		return currentPreferencesSetOfUnitNames;
 	}
 
 	public boolean dbIsConnected()

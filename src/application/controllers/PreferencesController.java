@@ -34,28 +34,28 @@ public class PreferencesController implements Initializable
 
 		defaultNumberOfDecimalPlacesSel.select(String.valueOf(numberOfDecimalPlaces));
 
-		ObservableList<String> unitTypeNames = model.getAllUnitTypeNames();
+		ObservableList<String> unitTypeNames = model.getNames("allUnitTypeNames");
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
-		String defaultUnitTypeName = model.getDefaultUnitTypeName();
+		String defaultUnitTypeName = model.getUnitTypeName("defaultUnitType");
 
 		defaultUnitTypeComboBox.setItems(unitTypeNames);
 		defaultUnitTypeSel.select(defaultUnitTypeName);
 
-		ObservableList<String> unitNames = model.getCurrentPreferencesSetOfUnitNames();
+		ObservableList<String> unitNames = model.getNames("preferencesUnitNames");
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		String defaultFirstUnitName = Model.getDefaultFirstUnitDisplayName();
+		String defaultFirstUnitName = model.getUnitDisplayName("defaultFirstUnit");
 
 		defaultFirstUnitComboBox.setItems(unitNames);
 		defaultFirstUnitSel.select(defaultFirstUnitName);
 
 		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
-		String defaultSecondUnitName = Model.getDefaultSecondUnitDisplayName();
+		String defaultSecondUnitName = model.getUnitDisplayName("defaultSecondUnit");
 
 		defaultSecondUnitComboBox.setItems(unitNames);
 		defaultSecondUnitSel.select(defaultSecondUnitName);
 
 		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
-		String defaultSkinName = Model.getPreferences().getDefaultSkinName();
+		String defaultSkinName = model.getPreferences().getDefaultSkinName();
 
 		defaultSkinNameSel.select(defaultSkinName);
 	}
@@ -68,9 +68,9 @@ public class PreferencesController implements Initializable
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
 		int currentUnitTypeIndex = defaultUnitTypeSel.getSelectedIndex();
 
-		model.changeCurrentPreferencesSetOfUnits(currentUnitTypeIndex);
+		model.changePreferencesSetOfUnits(currentUnitTypeIndex);
 
-		ObservableList<String> unitNames = model.getCurrentPreferencesSetOfUnitNames();
+		ObservableList<String> unitNames = model.getNames("preferencesUnitNames");
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
 
 		defaultFirstUnitComboBox.setItems(unitNames);
@@ -116,15 +116,15 @@ public class PreferencesController implements Initializable
 		String selectedNumberOfDecPlaces = defaultNumberOfDecimalPlacesSel.getSelectedItem().toString();
 
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		String currentDefaultFirstUnitName = Model.getDefaultFirstUnitDisplayName();
+		String currentDefaultFirstUnitName = model.getUnitDisplayName("defaultFirstUnit");
 		String selectedDefaultFirstUnitName = defaultFirstUnitSel.getSelectedItem().toString();
 
 		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
-		String currentDefaultSecondUnitName = Model.getDefaultFirstUnitDisplayName();
+		String currentDefaultSecondUnitName = model.getUnitDisplayName("defaultSecondUnit");
 		String selectedDefaultSecondUnitName = defaultSecondUnitSel.getSelectedItem().toString();
 
 		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
-		String currentDefaultSkinName = Model.getPreferences().getDefaultSkinName();
+		String currentDefaultSkinName = model.getPreferences().getDefaultSkinName();
 		String selectedDefaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
 
 		numberOfDecimalPlacesWasChanged = !selectedNumberOfDecPlaces.equals(currentNumberOfDecPlaces);
@@ -150,10 +150,10 @@ public class PreferencesController implements Initializable
 		int defaultSecondUnitIndex = defaultSecondUnitSel.getSelectedIndex();
 		String defaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
 
-		int preferencesId = Model.getPreferencesId();
-		int defaultUnitTypeId = Model.getUnitType(defaultUnitTypeIndex).getUnitTypeId();
-		int defaultFirstUnitId = Model.getPreferencesUnit(defaultFirstUnitIndex).getUnitId();
-		int defaultSecondUnitId = Model.getPreferencesUnit(defaultSecondUnitIndex).getUnitId();
+		int preferencesId = model.getPreferencesId();
+		int defaultUnitTypeId = model.getUnitType(defaultUnitTypeIndex).getUnitTypeId();
+		int defaultFirstUnitId = model.getPreferencesUnit(defaultFirstUnitIndex).getUnitId();
+		int defaultSecondUnitId = model.getPreferencesUnit(defaultSecondUnitIndex).getUnitId();
 
 		Preferences prefs = new Preferences(preferencesId, defaultNumberOfDecimalPlaces, defaultUnitTypeId,
 				defaultFirstUnitId, defaultSecondUnitId, defaultSkinName);
@@ -163,7 +163,7 @@ public class PreferencesController implements Initializable
 
 	private void updatePreferencesRamDataStructures(Preferences prefs)
 	{
-		Model.setPreferences(prefs);
+		model.setPreferences(prefs);
 
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
@@ -174,8 +174,8 @@ public class PreferencesController implements Initializable
 		int defaultSecondUnitIndex = defaultSecondUnitSel.getSelectedIndex();
 
 		model.setDefaultUnitType(defaultUnitTypeIndex);
-		model.setDefaultFirstUnit(defaultFirstUnitIndex);
-		model.setDefaultSecondUnit(defaultSecondUnitIndex);
+		model.setUnit(defaultFirstUnitIndex, "defaultFirstUnit");
+		model.setUnit(defaultSecondUnitIndex, "defaultSecondUnit");
 
 		MainController.numberOfDecimalPlacesWasChanged.setValue(numberOfDecimalPlacesWasChanged);
 		MainController.defaultSkinNameWasChanged.setValue(defaultSkinNameWasChanged);

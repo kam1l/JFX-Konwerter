@@ -27,7 +27,7 @@ public class TemperatureConverter extends Converter
 	}
 
 	@Override
-	public String doValueConvesion()
+	public String doValueConversion()
 	{
 		if (isValidDouble)
 		{

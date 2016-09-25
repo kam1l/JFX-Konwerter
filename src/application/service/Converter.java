@@ -4,7 +4,7 @@ import java.util.Locale;
 
 public abstract class Converter
 {
-	public abstract String doValueConvesion();
+	public abstract String doValueConversion();
 
 	public String getFormattedResult(double result)
 	{

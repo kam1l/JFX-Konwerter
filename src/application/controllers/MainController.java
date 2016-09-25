@@ -57,18 +57,18 @@ public class MainController implements Initializable
 		model.initializeRamDataStructures();
 		setAppSkin();
 
-		ObservableList<String> unitTypeNames = model.getAllUnitTypeNames();
-		String currentUnitTypeName = Model.getCurrentUnitTypeName();
+		ObservableList<String> unitTypeNames = model.getNames("allUnitTypeNames");
+		String currentUnitTypeName = model.getUnitTypeName("currentUnitType");
 		SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
 
 		unitTypeComboBox.setItems(unitTypeNames);
 		unitTypeSel.select(currentUnitTypeName);
 
-		ObservableList<String> unitNames = model.getCurrentMainWindowSetOfUnitNames();
+		ObservableList<String> unitNames = model.getNames("mainWindowUnitNames");
 		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-		String currentFirstUnitName = Model.getFirstCurrentUnitDisplayName();
-		String currentSecondUnitName = Model.getSecondCurrentUnitDisplayName();
+		String currentFirstUnitName = model.getUnitDisplayName("currentFirstUnit");
+		String currentSecondUnitName = model.getUnitDisplayName("currentSecondUnit");
 
 		firstUnitComboBox.setItems(unitNames);
 		secondUnitComboBox.setItems(unitNames);
@@ -122,7 +122,7 @@ public class MainController implements Initializable
 			SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 			int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
 
-			model.changeFirstCurrentUnit(firstUnitSelectedIndex);
+			model.setUnit(firstUnitSelectedIndex, "currentFirstUnit");
 
 			setResult();
 		};
@@ -132,7 +132,7 @@ public class MainController implements Initializable
 			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
 
-			model.changeSecondCurrentUnit(secondUnitSelectedIndex);
+			model.setUnit(secondUnitSelectedIndex, "currentSecondUnit");
 
 			setResult();
 		};
@@ -252,8 +252,8 @@ public class MainController implements Initializable
 		firstUnitSel.select(secondUnitIndex);
 		secondUnitSel.select(firstUnitIndex);
 
-		model.changeFirstCurrentUnit(secondUnitIndex);
-		model.changeSecondCurrentUnit(firstUnitIndex);
+		model.setUnit(secondUnitIndex, "currentFirstUnit");
+		model.setUnit(firstUnitIndex, "currentSecondUnit");
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
@@ -316,22 +316,22 @@ public class MainController implements Initializable
 		SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
 		int unitTypeIndex = unitTypeSel.getSelectedIndex();
 
-		model.changeCurrentMainWindowSetOfUnits(unitTypeIndex);
+		model.changeMainWindowSetOfUnits(unitTypeIndex);
 
 		firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 
-		ObservableList<String> unitNames = model.getCurrentMainWindowSetOfUnitNames();
+		ObservableList<String> unitNames = model.getNames("mainWindowUnitNames");
 		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 
 		firstUnitComboBox.setItems(unitNames);
 		firstUnitSel.select(0);
-		model.changeFirstCurrentUnit(0);
+		model.setUnit(0, "currentFirstUnit");
 
 		secondUnitComboBox.setItems(unitNames);
 		secondUnitSel.select(0);
-		model.changeSecondCurrentUnit(0);
+		model.setUnit(0, "currentSecondUnit");
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
@@ -372,7 +372,7 @@ public class MainController implements Initializable
 
 	public void setAppSkin()
 	{
-		String skinName = Model.getPreferences().getDefaultSkinName();
+		String skinName = model.getPreferences().getDefaultSkinName();
 
 		if (skinName.equals("Modena"))
 		{

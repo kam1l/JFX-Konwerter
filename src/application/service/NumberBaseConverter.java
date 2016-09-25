@@ -36,7 +36,7 @@ public class NumberBaseConverter extends Converter
 	}
 
 	@Override
-	public String doValueConvesion()
+	public String doValueConversion()
 	{
 		if (isInvalidStringValue)
 		{
@@ -77,7 +77,7 @@ public class NumberBaseConverter extends Converter
 		if (isNegative)
 		{
 			userInput = userInput.substring(1);
-			dotIndex--;
+			dotIndex = dotIndex == -1 ? dotIndex : dotIndex - 1;
 		}
 
 		stringIntPart = isDecimalFraction() ? userInput.substring(0, dotIndex) : userInput;

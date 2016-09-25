@@ -42,6 +42,6 @@ public class NumberTextField extends TextField
 
 	private boolean currentUnitsAreNumberBases()
 	{
-		return Model.getCurrentUnitTypeClassifier().equals("numbers");
+		return Model.getCurrentUnitTypeClassifier().equals("number");
 	}
 }
