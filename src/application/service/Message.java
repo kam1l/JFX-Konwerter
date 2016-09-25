@@ -20,7 +20,7 @@ public class Message
 	{
 		Alert alert;
 
-		if (isAlertTypeError(title))
+		if (alertTypeIsError(title))
 		{
 			alert = new Alert(AlertType.ERROR);
 			alert.setTitle(ERROR_TITLE);
@@ -37,7 +37,7 @@ public class Message
 		alert.showAndWait();
 	}
 
-	private boolean isAlertTypeError(String title)
+	private boolean alertTypeIsError(String title)
 	{
 		return title.equals(ERROR_TITLE);
 	}

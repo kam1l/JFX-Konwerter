@@ -2,27 +2,15 @@ package application.controllers;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import application.service.Message;
 import application.service.Model;
-import application.service.Value;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -37,7 +25,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -50,9 +37,8 @@ public class MainController implements Initializable
 	private HostServices hostServices;
 
 	private String userInput;
-	private Map<String, Double> exchangeRatesAfterUpdate;
-	public static BooleanProperty wasNumberOfDecimalPlacesChanged = new SimpleBooleanProperty();
-	public static BooleanProperty wasDefaultSkinNameChanged = new SimpleBooleanProperty();
+	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
+	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
 
 	@FXML
 	private TextField valueTextField, resultTextField;
@@ -88,6 +74,7 @@ public class MainController implements Initializable
 		secondUnitComboBox.setItems(unitNames);
 		firstUnitSel.select(currentFirstUnitName);
 		secondUnitSel.select(currentSecondUnitName);
+		addListenerToValueTextField();
 
 		valueTextField.setText("0");
 		setResult();
@@ -96,63 +83,58 @@ public class MainController implements Initializable
 		addListenersToBooleanProperties();
 	}
 
+	private void addListenerToValueTextField()
+	{
+		valueTextField.textProperty()
+				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
+				{
+					userInput = valueTextField.getText();
+				});
+	}
+
 	private void addListenersToBooleanProperties()
 	{
-		wasNumberOfDecimalPlacesChanged.addListener(new ChangeListener<Boolean>()
-		{
-			@Override
-			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
-			{
-				if (newValue == true)
+		numberOfDecimalPlacesWasChanged
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
 				{
-					setResult();
-					wasNumberOfDecimalPlacesChanged.set(false);
-				}
-			}
-		});
+					if (newValue == true)
+					{
+						setResult();
+						numberOfDecimalPlacesWasChanged.set(false);
+					}
+				});
 
-		wasDefaultSkinNameChanged.addListener(new ChangeListener<Boolean>()
-		{
-			@Override
-			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
-			{
-				if (newValue == true)
+		defaultSkinNameWasChanged
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
 				{
-					setAppSkin();
-					wasDefaultSkinNameChanged.set(false);
-				}
-			}
-		});
+					if (newValue == true)
+					{
+						setAppSkin();
+						defaultSkinNameWasChanged.set(false);
+					}
+				});
 	}
 
 	private void addEventHandlersToComboBoxes()
 	{
-		firstUnitComboBoxHandler = new EventHandler<ActionEvent>()
+		firstUnitComboBoxHandler = (ActionEvent event) ->
 		{
-			@Override
-			public void handle(ActionEvent event)
-			{
-				SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
-				int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
+			SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
+			int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
 
-				model.changeFirstCurrentUnit(firstUnitSelectedIndex);
+			model.changeFirstCurrentUnit(firstUnitSelectedIndex);
 
-				setResult();
-			}
+			setResult();
 		};
 
-		secondUnitComboBoxHandler = new EventHandler<ActionEvent>()
+		secondUnitComboBoxHandler = (ActionEvent event) ->
 		{
-			@Override
-			public void handle(ActionEvent event)
-			{
-				SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-				int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
+			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
+			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
 
-				model.changeSecondCurrentUnit(secondUnitSelectedIndex);
+			model.changeSecondCurrentUnit(secondUnitSelectedIndex);
 
-				setResult();
-			}
+			setResult();
 		};
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
@@ -161,13 +143,11 @@ public class MainController implements Initializable
 
 	public void processDigitAndSetResult(ActionEvent event)
 	{
-		getUserInputFromValueTextField();
-
 		Object eventSource = event.getSource();
 		Button eventSourceButton = (Button) eventSource;
 		String clickedButtonValue = eventSourceButton.getText();
 
-		if (isCurrentUserInputEqualsZero())
+		if (currentUserInputIsEqualZero())
 		{
 			valueTextField.setText(clickedButtonValue);
 		}
@@ -179,37 +159,33 @@ public class MainController implements Initializable
 		setResult();
 	}
 
-	private boolean isCurrentUserInputEqualsZero()
+	private boolean currentUserInputIsEqualZero()
 	{
 		return userInput.equals("0");
 	}
 
 	public void processDecimalMark(ActionEvent event)
 	{
-		getUserInputFromValueTextField();
-
-		if (doesCurrentUserInputNotContainDecimalMark() && isCurrentUserInputNotEmpty())
+		if (currentUserInputDoesNotContainDecimalMark() && currentUserInputIsNotEmpty())
 		{
 			valueTextField.setText(userInput + ".");
 		}
 	}
 
-	private boolean doesCurrentUserInputNotContainDecimalMark()
+	private boolean currentUserInputDoesNotContainDecimalMark()
 	{
 		return !userInput.contains(".");
 	}
 
 	public void processSignAndSetResult(ActionEvent event)
 	{
-		getUserInputFromValueTextField();
-
-		if (isCurrentUserInputNotEmpty())
+		if (currentUserInputIsNotEmpty())
 		{
-			if (hasCurrentUserInputSign())
+			if (currentUserInputHasSign())
 			{
 				valueTextField.setText(userInput.substring(1));
 			}
-			else if (hasCurrentUserInputValidNegativeAdditiveInverse())
+			else if (currentUserInputHasValidNegativeAdditiveInverse())
 			{
 				valueTextField.setText("-" + userInput);
 			}
@@ -218,25 +194,23 @@ public class MainController implements Initializable
 		}
 	}
 
-	private boolean isCurrentUserInputNotEmpty()
+	private boolean currentUserInputIsNotEmpty()
 	{
 		return userInput.length() > 0;
 	}
 
-	private boolean hasCurrentUserInputSign()
+	private boolean currentUserInputHasSign()
 	{
 		return userInput.charAt(0) == '-';
 	}
 
-	private boolean hasCurrentUserInputValidNegativeAdditiveInverse()
+	private boolean currentUserInputHasValidNegativeAdditiveInverse()
 	{
 		return userInput.length() > 1 || userInput.charAt(0) != '0';
 	}
 
 	public void processDeletionKeyAndSetResult(ActionEvent event)
 	{
-		getUserInputFromValueTextField();
-
 		Object eventSource = event.getSource();
 		Button eventSourceButton = (Button) eventSource;
 		String clickedButtonValue = eventSourceButton.getText();
@@ -247,7 +221,7 @@ public class MainController implements Initializable
 		}
 		else
 		{
-			if (canCurrentUserInputBeShortened())
+			if (currentUserInputCanBeShortened())
 			{
 				valueTextField.setText(userInput.substring(0, userInput.length() - 1));
 			}
@@ -260,14 +234,9 @@ public class MainController implements Initializable
 		setResult();
 	}
 
-	private boolean canCurrentUserInputBeShortened()
+	private boolean currentUserInputCanBeShortened()
 	{
 		return !userInput.matches("-?[0-9]?|(-0\\.)");
-	}
-
-	public void processUserKeys(KeyEvent event)
-	{
-		setResult();
 	}
 
 	public void swapUnits(ActionEvent event)
@@ -296,74 +265,26 @@ public class MainController implements Initializable
 	{
 		updateInfoAnchorPane.setVisible(true);
 
-		Runnable updater = new Runnable()
+		new Thread(() ->
 		{
-			@Override
-			public void run()
+			boolean taskSucceeded = model.updateExchangeRates();
+			Platform.runLater(() ->
 			{
-				boolean taskSucceeded = updateRates();
-				Platform.runLater(() ->
+				if (taskSucceeded)
 				{
-					if (taskSucceeded)
-					{
-						model.updateExchangeRatesInRam(exchangeRatesAfterUpdate);
-						message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
+					model.updateExchangeRatesInRam();
+					message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
 
-						setResult();
-					}
-					else
-					{
-						message.showMessage(Message.ERROR_TITLE, Message.UPDATE_ERROR_MESSAGE);
-					}
-
-					updateInfoAnchorPane.setVisible(false);
-				});
-			}
-		};
-
-		new Thread(updater).start();
-	}
-
-	public boolean updateRates()
-	{
-		try
-		{
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document doc = db
-					.parse(new URL("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml").openStream());
-			doc.getDocumentElement().normalize();
-			NodeList nList = doc.getElementsByTagName("Cube");
-			exchangeRatesAfterUpdate = new HashMap<String, Double>();
-
-			for (int tmp = 2; tmp < nList.getLength(); tmp++)
-			{
-				Node nNode = nList.item(tmp);
-
-				if (nNode.getNodeType() == Node.ELEMENT_NODE)
-				{
-					Element eElement = (Element) nNode;
-					String currentCurrency = eElement.getAttribute("currency");
-					double currentRate = 1.0 / Double.parseDouble(eElement.getAttribute("rate"));
-					boolean rowUpdateFailed = !model.updateRateInDB(currentCurrency, currentRate);
-
-					if (rowUpdateFailed)
-					{
-						return false;
-					}
-					else
-					{
-						exchangeRatesAfterUpdate.put(currentCurrency, currentRate);
-					}
+					setResult();
 				}
-			}
+				else
+				{
+					message.showMessage(Message.ERROR_TITLE, Message.UPDATE_ERROR_MESSAGE);
+				}
 
-			return true;
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
+				updateInfoAnchorPane.setVisible(false);
+			});
+		}).start();
 	}
 
 	public void showPreferences(ActionEvent event) throws IOException
@@ -420,12 +341,7 @@ public class MainController implements Initializable
 
 	public void setResult()
 	{
-		getUserInputFromValueTextField();
-
-		Value inputValue = new Value(userInput);
-		String result = model.convertValue(inputValue);
-
-		resultTextField.setText(result);
+		resultTextField.setText(model.convertValue(userInput));
 	}
 
 	public void closeApp(ActionEvent event)
@@ -466,11 +382,6 @@ public class MainController implements Initializable
 		{
 			Application.setUserAgentStylesheet("/application/resources/css/caspian.css");
 		}
-	}
-
-	private void getUserInputFromValueTextField()
-	{
-		userInput = valueTextField.getText();
 	}
 
 	public static Stage getStage()

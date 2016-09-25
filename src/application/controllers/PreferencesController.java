@@ -19,7 +19,7 @@ public class PreferencesController implements Initializable
 	private Model model = new Model();
 	private Message message = new Message();
 
-	private boolean wasNumberOfDecimalPlacesChanged, wasDefaultSkinNameChanged;
+	private boolean numberOfDecimalPlacesWasChanged, defaultSkinNameWasChanged;
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
@@ -84,37 +84,31 @@ public class PreferencesController implements Initializable
 
 	public void savePreferences(ActionEvent event)
 	{
-		if (whereChangesMade())
+		if (changesWereMade())
 		{
-			Runnable updater = new Runnable()
+			new Thread(() ->
 			{
-				@Override
-				public void run()
+				Preferences prefs = getNewValues();
+				boolean taskSucceeded = model.updatePreferencesInDB(prefs);
+
+				Platform.runLater(() ->
 				{
-					Preferences prefs = getNewValues();
-					boolean taskSucceeded = model.updatePreferencesInDB(prefs);
-
-					Platform.runLater(() ->
+					if (taskSucceeded)
 					{
-						if (taskSucceeded)
-						{
-							updatePreferencesRamDataStructures(prefs);
-						}
-						else
-						{
-							message.showMessage(Message.ERROR_TITLE, Message.SAVING_PREFERENCES_ERROR_MESSAGE);
-						}
-					});
-				}
-			};
-
-			new Thread(updater).start();
+						updatePreferencesRamDataStructures(prefs);
+					}
+					else
+					{
+						message.showMessage(Message.ERROR_TITLE, Message.SAVING_PREFERENCES_ERROR_MESSAGE);
+					}
+				});
+			}).start();
 		}
 
 		MainController.getStage().close();
 	}
 
-	private boolean whereChangesMade()
+	private boolean changesWereMade()
 	{
 		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
 				.getSelectionModel();
@@ -133,11 +127,11 @@ public class PreferencesController implements Initializable
 		String currentDefaultSkinName = Model.getPreferences().getDefaultSkinName();
 		String selectedDefaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
 
-		wasNumberOfDecimalPlacesChanged = !selectedNumberOfDecPlaces.equals(currentNumberOfDecPlaces);
-		wasDefaultSkinNameChanged = !selectedDefaultSkinName.equals(currentDefaultSkinName);
+		numberOfDecimalPlacesWasChanged = !selectedNumberOfDecPlaces.equals(currentNumberOfDecPlaces);
+		defaultSkinNameWasChanged = !selectedDefaultSkinName.equals(currentDefaultSkinName);
 
-		return !(wasNumberOfDecimalPlacesChanged && selectedDefaultFirstUnitName.equals(currentDefaultFirstUnitName)
-				&& selectedDefaultSecondUnitName.equals(currentDefaultSecondUnitName) && wasDefaultSkinNameChanged);
+		return !(numberOfDecimalPlacesWasChanged && selectedDefaultFirstUnitName.equals(currentDefaultFirstUnitName)
+				&& selectedDefaultSecondUnitName.equals(currentDefaultSecondUnitName) && defaultSkinNameWasChanged);
 	}
 
 	private Preferences getNewValues()
@@ -183,7 +177,7 @@ public class PreferencesController implements Initializable
 		model.setDefaultFirstUnit(defaultFirstUnitIndex);
 		model.setDefaultSecondUnit(defaultSecondUnitIndex);
 
-		MainController.wasNumberOfDecimalPlacesChanged.setValue(wasNumberOfDecimalPlacesChanged);
-		MainController.wasDefaultSkinNameChanged.setValue(wasDefaultSkinNameChanged);
+		MainController.numberOfDecimalPlacesWasChanged.setValue(numberOfDecimalPlacesWasChanged);
+		MainController.defaultSkinNameWasChanged.setValue(defaultSkinNameWasChanged);
 	}
 }

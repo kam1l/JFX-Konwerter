@@ -1,13 +1,26 @@
 package application.service;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import application.dao.Preferences;
 import application.dao.SqliteConnection;
@@ -24,11 +37,12 @@ public class Model
 
 	private static List<UnitType> allUnitTypes = new ArrayList<UnitType>();
 	private static List<Unit> allUnits = new ArrayList<Unit>();
+	private static Map<String, Double> updatedExchangeRates;
 
 	private static List<Unit> currentMainWindowSetOfUnits = new ArrayList<Unit>();
 	private static List<Unit> currentPreferencesSetOfUnits = new ArrayList<Unit>();
 
-	private static ObservableList<String> setOfUnitTypeNames = FXCollections.observableArrayList();
+	private static ObservableList<String> setOfAllUnitTypeNames = FXCollections.observableArrayList();
 	private static ObservableList<String> currentMainWindowSetOfUnitNames = FXCollections.observableArrayList();
 	private static ObservableList<String> currentPreferencesSetOfUnitNames = FXCollections.observableArrayList();
 
@@ -53,240 +67,43 @@ public class Model
 		}
 	}
 
-	public String convertValue(Value value)
+	public String convertValue(String userInput)
 	{
-		if (areCurrentUnitsBasicTypes() && value.isValidDoubleValue())
+		Converter converter;
+
+		if (currentUnitsAreBasic())
 		{
-			return doSimpleConversion(value.getDoubleValue());
+			double firstUnitRatio = currentFirstUnit.getUnitRatio();
+			double secondUnitRatio = currentSecondUnit.getUnitRatio();
+
+			converter = new BasicConverter(userInput, firstUnitRatio, secondUnitRatio);
 		}
-		else if (areCurrentUnitsNumberBases() && value.isValidStringValue())
+		else if (currentUnitsAreNumberBases())
 		{
-			return doNumberBaseConversion(value);
-		}
-		else if (areCurrentUnitsTemperatureScales() && value.isValidDoubleValue())
-		{
-			return doTemperatureConversion(value.getDoubleValue());
+			int firstNumberBase = (int) currentFirstUnit.getUnitRatio();
+			int secondNumberBase = (int) currentSecondUnit.getUnitRatio();
+
+			converter = new NumberBaseConverter(userInput, firstNumberBase, secondNumberBase);
 		}
 		else
 		{
-			return Message.INVALID_NUMBER_FORMAT_MESSAGE;
+			String firstScaleAbbreviation = getCurrentFirstUnitAbbreviation();
+			String secondScaleAbbreviation = getCurrentSecondUnitAbbreviation();
+
+			converter = new TemperatureConverter(userInput, firstScaleAbbreviation, secondScaleAbbreviation);
 		}
+
+		return converter.doValueConvesion();
 	}
 
-	private boolean areCurrentUnitsBasicTypes()
+	private boolean currentUnitsAreBasic()
 	{
-		return currentUnitTypeClassifier.equals("simple");
+		return currentUnitTypeClassifier.equals("basic");
 	}
 
-	private boolean areCurrentUnitsTemperatureScales()
+	private boolean currentUnitsAreNumberBases()
 	{
-		return currentUnitTypeClassifier.equals("temperature");
-	}
-
-	private boolean areCurrentUnitsNumberBases()
-	{
-		return currentUnitTypeClassifier.equals("numbers");
-	}
-
-	private String doSimpleConversion(double value)
-	{
-		double currentFirstUnitRatio = currentFirstUnit.getUnitRatio();
-		double currentSecondUnitRatio = currentSecondUnit.getUnitRatio();
-		double result = value * currentFirstUnitRatio / currentSecondUnitRatio;
-		String formattingString = getFormattingString();
-		String resultString = String.format(Locale.ROOT, formattingString, result);
-
-		return Value.removeNegativeAndTrailingZeros(resultString);
-	}
-
-	private String doTemperatureConversion(double value)
-	{
-		String firstUnitAbbreviation = getCurrentFirstUnitAbbreviation();
-		String secondUnitAbbreviation = getCurrentSecondUnitAbbreviation();
-		String resultString;
-		String formattingString = getFormattingString();
-		double result;
-
-		if (firstUnitAbbreviation.matches("°C"))
-		{
-			result = convertFromCelsiusToOther(value, secondUnitAbbreviation);
-		}
-		else
-		{
-			result = convertFromOtherToOther(value, firstUnitAbbreviation, secondUnitAbbreviation);
-		}
-
-		resultString = String.format(Locale.ROOT, formattingString, result);
-
-		return Value.removeNegativeAndTrailingZeros(resultString);
-	}
-
-	private double convertFromOtherToOther(double value, String firstUnitAbbreviation, String secondUnitAbbreviation)
-	{
-		if (firstUnitAbbreviation.matches(secondUnitAbbreviation))
-		{
-			return value;
-		}
-
-		double result;
-
-		switch (firstUnitAbbreviation)
-		{
-		case "°F":
-			result = (value - 32) / 1.8;
-			break;
-
-		case "°K":
-			result = value - 273.15;
-			break;
-
-		case "°R":
-			result = value / 1.8 - 273.15;
-			break;
-
-		case "°Ré":
-			result = 1.25 * value;
-			break;
-
-		case "°Rø":
-			result = (value - 7.5) * 40 / 21;
-			break;
-
-		case "°D":
-			result = 100 - value * 2 / 3;
-			break;
-
-		case "°N":
-			result = value / 0.33;
-			break;
-
-		default:
-			result = 0;
-		}
-
-		if (secondUnitAbbreviation.matches("°C"))
-		{
-			return result;
-		}
-		else
-		{
-			return convertFromCelsiusToOther(result, secondUnitAbbreviation);
-		}
-	}
-
-	private double convertFromCelsiusToOther(double value, String secondUnitAbbreviation)
-	{
-		switch (secondUnitAbbreviation)
-		{
-		case "°C":
-			return value;
-
-		case "°F":
-			return value * 1.8 + 32;
-
-		case "°K":
-			return value + 273.15;
-
-		case "°R":
-			return (value + 273.15) * 1.8;
-
-		case "°Ré":
-			return value / 0.8;
-
-		case "°Rø":
-			return value * 21 / 40 + 7.5;
-
-		case "°D":
-			return (100 - value) * 3 / 2;
-
-		case "°N":
-			return value * 0.33;
-
-		default:
-			return 0;
-		}
-	}
-
-	private String doNumberBaseConversion(Value value)
-	{
-		value.prepareInputValue();
-
-		if (value.hasValidCharacters())
-		{
-			String result;
-			long intPart = value.getIntPart();
-
-			if (value.isDecimalFraction())
-			{
-				double decPart = value.getDecPart();
-				result = convertIntPart(intPart) + "." + convertDecPart(decPart);
-			}
-			else
-			{
-				result = convertIntPart(intPart);
-			}
-
-			result = value.isNegative() ? "-" + result : result;
-
-			return Value.removeNegativeAndTrailingZeros(result);
-		}
-		else
-		{
-			int currentFirstUnitRatio = (int) currentFirstUnit.getUnitRatio();
-
-			return Message.INVALID_NUMBER_BASE_MESSAGE + currentFirstUnitRatio + ".";
-		}
-	}
-
-	private String convertIntPart(long integerPart)
-	{
-		long numberBase = (long) currentSecondUnit.getUnitRatio();
-		long reminder;
-		String result = new String("");
-
-		while (integerPart > 0)
-		{
-			reminder = integerPart % numberBase;
-			result = convertLongToCharacter(reminder) + result;
-			integerPart /= numberBase;
-		}
-
-		return result.isEmpty() ? "0" : result;
-	}
-
-	private String convertDecPart(double decimalFractionPart)
-	{
-		long intP;
-		int counter = 0;
-		double numberBase = currentSecondUnit.getUnitRatio();
-		int numberOfDecimalPlaces = preferences.getNumberOfDecimalPlaces();
-		String result = "";
-
-		do
-		{
-			decimalFractionPart *= numberBase;
-			intP = (long) decimalFractionPart;
-			decimalFractionPart -= intP;
-
-			result += convertLongToCharacter(intP);
-
-			counter++;
-		}
-		while ((decimalFractionPart != 0) && (counter < numberOfDecimalPlaces));
-
-		return result;
-	}
-
-	private static char convertLongToCharacter(long value)
-	{
-		if (value < 10)
-		{
-			return (char) (value + 48);
-		}
-		else
-		{
-			return (char) (value + 55);
-		}
+		return currentUnitTypeClassifier.equals("number");
 	}
 
 	public void initializeRamDataStructures()
@@ -335,7 +152,7 @@ public class Model
 				UnitType unitType = new UnitType(unitTypeId, unitTypeName, classifier);
 
 				allUnitTypes.add(unitType);
-				setOfUnitTypeNames.add(unitTypeName);
+				setOfAllUnitTypeNames.add(unitTypeName);
 
 				if (unitTypeId == defaultUnitTypeId)
 				{
@@ -418,7 +235,56 @@ public class Model
 		System.exit(-1);
 	}
 
-	public boolean updateRateInDB(String symbol, double rate)
+	public boolean updateExchangeRates()
+	{
+		NodeList nList;
+
+		try
+		{
+			nList = getExchangeRatesFromServer();
+			updateExchangeRatesInDB(nList);
+
+			return true;
+		}
+		catch (ParserConfigurationException | SAXException | IOException | SQLException e)
+		{
+			return false;
+		}
+	}
+
+	private NodeList getExchangeRatesFromServer()
+			throws ParserConfigurationException, MalformedURLException, SAXException, IOException
+	{
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db = dbf.newDocumentBuilder();
+		Document doc = db.parse(new URL("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml").openStream());
+		doc.getDocumentElement().normalize();
+		NodeList nList = doc.getElementsByTagName("Cube");
+
+		return nList;
+	}
+
+	private void updateExchangeRatesInDB(NodeList nList) throws SQLException
+	{
+		updatedExchangeRates = new HashMap<String, Double>();
+
+		for (int tmp = 2; tmp < nList.getLength(); tmp++)
+		{
+			Node nNode = nList.item(tmp);
+
+			if (nNode.getNodeType() == Node.ELEMENT_NODE)
+			{
+				Element eElement = (Element) nNode;
+				String currentCurrency = eElement.getAttribute("currency");
+				double currentRate = 1.0 / Double.parseDouble(eElement.getAttribute("rate"));
+
+				updateExRaSingleRowInDB(currentCurrency, currentRate);
+				updatedExchangeRates.put(currentCurrency, currentRate);
+			}
+		}
+	}
+
+	private void updateExRaSingleRowInDB(String symbol, double rate) throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("update Unit set unitRatio = ? where unitAbbreviation = ?"))
@@ -427,12 +293,36 @@ public class Model
 			preparedStatement.setString(2, symbol);
 
 			preparedStatement.executeUpdate();
-
-			return true;
 		}
-		catch (SQLException e)
+	}
+
+	public void updateExchangeRatesInRam()
+	{
+		String currenFirstUnitAbbreviation = currentFirstUnit.getUnitAbbreviation();
+		String currentSecondUnitAbbreviation = currentSecondUnit.getUnitAbbreviation();
+		String unitAbbreviation;
+		double newValue;
+
+		for (Unit unit : allUnits)
 		{
-			return false;
+			unitAbbreviation = unit.getUnitAbbreviation();
+
+			if (updatedExchangeRates.get(unitAbbreviation) != null)
+			{
+				newValue = updatedExchangeRates.get(unitAbbreviation);
+				unit.setUnitRatio(newValue);
+			}
+		}
+
+		if (updatedExchangeRates.get(currenFirstUnitAbbreviation) != null)
+		{
+			newValue = updatedExchangeRates.get(currenFirstUnitAbbreviation);
+			currentFirstUnit.setUnitRatio(newValue);
+		}
+		if (updatedExchangeRates.get(currentSecondUnitAbbreviation) != null)
+		{
+			newValue = updatedExchangeRates.get(currentSecondUnitAbbreviation);
+			currentSecondUnit.setUnitRatio(newValue);
 		}
 	}
 
@@ -456,36 +346,6 @@ public class Model
 		catch (SQLException e)
 		{
 			return false;
-		}
-	}
-
-	public void updateExchangeRatesInRam(Map<String, Double> updatedRates)
-	{
-		String currenFirstUnitAbbreviation = currentFirstUnit.getUnitAbbreviation();
-		String currentSecondUnitAbbreviation = currentSecondUnit.getUnitAbbreviation();
-		String unitAbbreviation;
-		double newValue;
-
-		for (Unit unit : allUnits)
-		{
-			unitAbbreviation = unit.getUnitAbbreviation();
-
-			if (updatedRates.get(unitAbbreviation) != null)
-			{
-				newValue = updatedRates.get(unitAbbreviation);
-				unit.setUnitRatio(newValue);
-			}
-		}
-
-		if (updatedRates.get(currenFirstUnitAbbreviation) != null)
-		{
-			newValue = updatedRates.get(currenFirstUnitAbbreviation);
-			currentFirstUnit.setUnitRatio(newValue);
-		}
-		if (updatedRates.get(currentSecondUnitAbbreviation) != null)
-		{
-			newValue = updatedRates.get(currentSecondUnitAbbreviation);
-			currentSecondUnit.setUnitRatio(newValue);
 		}
 	}
 
@@ -655,11 +515,6 @@ public class Model
 		return currentSecondUnit.getUnitAbbreviation();
 	}
 
-	public static Unit getCurrentFirstUnit()
-	{
-		return currentFirstUnit;
-	}
-
 	public static int getNumberOfDecimalPlaces()
 	{
 		return preferences.getNumberOfDecimalPlaces();
@@ -670,33 +525,14 @@ public class Model
 		preferences = prefs;
 	}
 
-	public String getFormattingString()
-	{
-		int numOfDecimalPlaces = Model.getNumberOfDecimalPlaces();
-
-		return "%1$." + numOfDecimalPlaces + "f";
-	}
-
 	public static String getCurrentUnitTypeClassifier()
 	{
 		return currentUnitTypeClassifier;
 	}
 
-	public boolean isDbConnected()
-	{
-		try
-		{
-			return !connection.isClosed();
-		}
-		catch (SQLException e)
-		{
-			return false;
-		}
-	}
-
 	public ObservableList<String> getAllUnitTypeNames()
 	{
-		return setOfUnitTypeNames;
+		return setOfAllUnitTypeNames;
 	}
 
 	public String getDefaultUnitTypeName()
@@ -722,5 +558,17 @@ public class Model
 	public ObservableList<String> getCurrentPreferencesSetOfUnitNames()
 	{
 		return currentPreferencesSetOfUnitNames;
+	}
+
+	public boolean dbIsConnected()
+	{
+		try
+		{
+			return !connection.isClosed();
+		}
+		catch (SQLException e)
+		{
+			return false;
+		}
 	}
 }

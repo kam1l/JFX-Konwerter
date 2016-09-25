@@ -25,7 +25,7 @@ public class NumberTextField extends TextField
 		String currentText = getCharacters().toString();
 		String newText = getNewText(currentText);
 
-		if (areCurrentUnitsNumberBases())
+		if (currentUnitsAreNumberBases())
 		{
 			return newText.matches("(-)?([0-9A-Fa-f]+(\\.[0-9A-Fa-f]*)?)?");
 		}
@@ -40,7 +40,7 @@ public class NumberTextField extends TextField
 		return currentText.substring(0, start) + typedText + currentText.substring(end);
 	}
 
-	private boolean areCurrentUnitsNumberBases()
+	private boolean currentUnitsAreNumberBases()
 	{
 		return Model.getCurrentUnitTypeClassifier().equals("numbers");
 	}
