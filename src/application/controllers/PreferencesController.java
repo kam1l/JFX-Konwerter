@@ -1,6 +1,7 @@
 package application.controllers;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 import application.dao.Preferences;
@@ -16,18 +17,20 @@ import javafx.scene.control.SingleSelectionModel;
 
 public class PreferencesController implements Initializable
 {
-	private Model model = new Model();
+	private Model model;
 	private Message message = new Message();
 
 	private boolean numberOfDecimalPlacesWasChanged, defaultSkinNameWasChanged;
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
-			defaultSecondUnitComboBox, defaultSkinNameComboBox;
+	defaultSecondUnitComboBox, defaultSkinNameComboBox;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
 	{
+		initializeModel();
+
 		int numberOfDecimalPlaces = Model.getNumberOfDecimalPlaces();
 		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
 				.getSelectionModel();
@@ -58,6 +61,18 @@ public class PreferencesController implements Initializable
 		String defaultSkinName = model.getPreferences().getDefaultSkinName();
 
 		defaultSkinNameSel.select(defaultSkinName);
+	}
+
+	private void initializeModel()
+	{
+		try
+		{
+			model = new Model();
+		}
+		catch (SQLException e)
+		{
+			message.showMessage(Message.ERROR_TITLE, Message.READING_PREFERENCES_ERROR_MESSAGE);
+		}
 	}
 
 	public void changeUnitSet(ActionEvent event)

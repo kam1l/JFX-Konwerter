@@ -1,24 +1,23 @@
-package application.service;
+package application.service.converter;
 
 import java.util.Locale;
 
 public abstract class Converter
 {
-	public abstract String doValueConversion();
+	public abstract String doValueConversion(String userInput, int numberOfDecimalPlaces)
+			throws InvalidNumberFormatException, InvalidNumberBaseException;
 
-	public String getFormattedResult(double result)
+	public String getFormattedResult(double result, int numberOfDecimalPlaces)
 	{
-		String formattingString = getFormattingString();
+		String formattingString = getFormattingString(numberOfDecimalPlaces);
 		String formattedResult = removeNegativeAndTrailingZeros(String.format(Locale.ROOT, formattingString, result));
 
 		return formattedResult;
 	}
 
-	private String getFormattingString()
+	private String getFormattingString(int numberOfDecimalPlaces)
 	{
-		int numOfDecimalPlaces = Model.getNumberOfDecimalPlaces();
-
-		return "%1$." + numOfDecimalPlaces + "f";
+		return "%1$." + numberOfDecimalPlaces + "f";
 	}
 
 	protected String removeNegativeAndTrailingZeros(String value)

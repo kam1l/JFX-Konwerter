@@ -1,4 +1,4 @@
-package application.service;
+package application.service.converter;
 
 public class TemperatureConverter extends Converter
 {
@@ -11,7 +11,14 @@ public class TemperatureConverter extends Converter
 		isValidDouble = true;
 	}
 
-	public TemperatureConverter(String userInput, String firstScaleAbbreviation, String secondScaleAbbreviation)
+	public TemperatureConverter(String firstScaleAbbreviation, String secondScaleAbbreviation)
+	{
+		this.firstScaleAbbreviation = firstScaleAbbreviation;
+		this.secondScaleAbbreviation = secondScaleAbbreviation;
+	}
+
+	@Override
+	public String doValueConversion(String userInput, int numberOfDecimalPlaces) throws InvalidNumberFormatException
 	{
 		try
 		{
@@ -22,13 +29,6 @@ public class TemperatureConverter extends Converter
 			isValidDouble = false;
 		}
 
-		this.firstScaleAbbreviation = firstScaleAbbreviation;
-		this.secondScaleAbbreviation = secondScaleAbbreviation;
-	}
-
-	@Override
-	public String doValueConversion()
-	{
 		if (isValidDouble)
 		{
 			double result;
@@ -43,13 +43,13 @@ public class TemperatureConverter extends Converter
 				result = convertFromOtherToOther(value, firstScaleAbbreviation, secondScaleAbbreviation);
 			}
 
-			formattedResult = getFormattedResult(result);
+			formattedResult = getFormattedResult(result, numberOfDecimalPlaces);
 
 			return formattedResult;
 		}
 		else
 		{
-			return Message.INVALID_NUMBER_FORMAT_MESSAGE;
+			throw new InvalidNumberFormatException();
 		}
 	}
 

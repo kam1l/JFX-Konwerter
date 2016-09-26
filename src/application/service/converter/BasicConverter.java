@@ -1,4 +1,4 @@
-package application.service;
+package application.service.converter;
 
 public class BasicConverter extends Converter
 {
@@ -11,7 +11,14 @@ public class BasicConverter extends Converter
 		isValidDouble = true;
 	}
 
-	public BasicConverter(String userInput, double firstUnitRatio, double secondUnitRatio)
+	public BasicConverter(double firstUnitRatio, double secondUnitRatio)
+	{
+		this.firstUnitRatio = firstUnitRatio;
+		this.secondUnitRatio = secondUnitRatio;
+	}
+
+	@Override
+	public String doValueConversion(String userInput, int numberOfDecimalPlaces) throws InvalidNumberFormatException
 	{
 		try
 		{
@@ -22,23 +29,16 @@ public class BasicConverter extends Converter
 			isValidDouble = false;
 		}
 
-		this.firstUnitRatio = firstUnitRatio;
-		this.secondUnitRatio = secondUnitRatio;
-	}
-
-	@Override
-	public String doValueConversion()
-	{
 		if (isValidDouble)
 		{
 			double result = value * firstUnitRatio / secondUnitRatio;
-			String formattedResult = getFormattedResult(result);
+			String formattedResult = getFormattedResult(result, numberOfDecimalPlaces);
 
 			return formattedResult;
 		}
 		else
 		{
-			return Message.INVALID_NUMBER_FORMAT_MESSAGE;
+			throw new InvalidNumberFormatException();
 		}
 	}
 }

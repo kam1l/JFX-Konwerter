@@ -1,4 +1,4 @@
-package application.service;
+package application.service.converter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +27,22 @@ public class NumberBaseConverter extends Converter
 		hasValidCharacters = true;
 	}
 
-	public NumberBaseConverter(String userInput, int firstNumberBase, int secondNumberBase)
+	public NumberBaseConverter(int firstNumberBase, int secondNumberBase)
 	{
-		this.userInput = userInput;
 		this.firstNumberBase = firstNumberBase;
 		this.secondNumberBase = secondNumberBase;
-		isInvalidStringValue = userInput.matches("^$|^-$") ? true : false;
 	}
 
 	@Override
-	public String doValueConversion()
+	public String doValueConversion(String userInput, int numberOfDecimalPlaces)
+			throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
+		this.userInput = userInput;
+		isInvalidStringValue = userInput.matches("^$|^-$") ? true : false;
+
 		if (isInvalidStringValue)
 		{
-			return Message.INVALID_NUMBER_FORMAT_MESSAGE;
+			throw new InvalidNumberFormatException();
 		}
 
 		prepareInputValue();
@@ -51,7 +53,7 @@ public class NumberBaseConverter extends Converter
 
 			if (isDecimalFraction())
 			{
-				result = convertIntPart() + "." + convertDecPart();
+				result = convertIntPart() + "." + convertDecPart(numberOfDecimalPlaces);
 			}
 			else
 			{
@@ -64,7 +66,7 @@ public class NumberBaseConverter extends Converter
 		}
 		else
 		{
-			return Message.INVALID_NUMBER_BASE_MESSAGE + firstNumberBase + ".";
+			throw new InvalidNumberBaseException(firstNumberBase);
 		}
 	}
 
@@ -109,11 +111,10 @@ public class NumberBaseConverter extends Converter
 		return result.isEmpty() ? "0" : result;
 	}
 
-	private String convertDecPart()
+	private String convertDecPart(int numberOfDecimalPlaces)
 	{
 		long intP;
 		int numberOfDigits = 0;
-		int numberOfDecimalPlaces = Model.getNumberOfDecimalPlaces();
 		String result = "";
 
 		do

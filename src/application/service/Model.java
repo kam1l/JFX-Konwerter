@@ -26,14 +26,18 @@ import application.dao.Preferences;
 import application.dao.SqliteConnection;
 import application.dao.Unit;
 import application.dao.UnitType;
-import javafx.application.Platform;
+import application.service.converter.BasicConverter;
+import application.service.converter.Converter;
+import application.service.converter.InvalidNumberBaseException;
+import application.service.converter.InvalidNumberFormatException;
+import application.service.converter.NumberBaseConverter;
+import application.service.converter.TemperatureConverter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Model
 {
 	private Connection connection;
-	private Message message = new Message();
 	private static Preferences preferences;
 	private static String currentUnitTypeClassifier;
 
@@ -66,46 +70,44 @@ public class Model
 		names.put("preferencesUnitNames", FXCollections.observableArrayList());
 	}
 
-	public Model()
+	public Model() throws SQLException
 	{
 		connection = SqliteConnection.Connector();
 
 		if (connection == null)
 		{
-			message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
-
-			Platform.exit();
-			System.exit(-1);
+			throw new SQLException();
 		}
 	}
 
-	public String convertValue(String userInput)
+	public String convertValue(String userInput) throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
 		Converter converter;
+		int numberOfDecimalPlaces = getNumberOfDecimalPlaces();
 
 		if (currentUnitsAreBasic())
 		{
 			double firstUnitRatio = units.get("currentFirstUnit").getUnitRatio();
 			double secondUnitRatio = units.get("currentSecondUnit").getUnitRatio();
 
-			converter = new BasicConverter(userInput, firstUnitRatio, secondUnitRatio);
+			converter = new BasicConverter(firstUnitRatio, secondUnitRatio);
 		}
 		else if (currentUnitsAreNumberBases())
 		{
 			int firstNumberBase = (int) units.get("currentFirstUnit").getUnitRatio();
 			int secondNumberBase = (int) units.get("currentSecondUnit").getUnitRatio();
 
-			converter = new NumberBaseConverter(userInput, firstNumberBase, secondNumberBase);
+			converter = new NumberBaseConverter(firstNumberBase, secondNumberBase);
 		}
 		else
 		{
 			String firstScaleAbbreviation = getUnitAbbreviation("currentFirstUnit");
 			String secondScaleAbbreviation = getUnitAbbreviation("currentSecondUnit");
 
-			converter = new TemperatureConverter(userInput, firstScaleAbbreviation, secondScaleAbbreviation);
+			converter = new TemperatureConverter(firstScaleAbbreviation, secondScaleAbbreviation);
 		}
 
-		return converter.doValueConversion();
+		return converter.doValueConversion(userInput, numberOfDecimalPlaces);
 	}
 
 	private boolean currentUnitsAreBasic()
@@ -118,14 +120,14 @@ public class Model
 		return currentUnitTypeClassifier.equals("number");
 	}
 
-	public void initializeRamDataStructures()
+	public void initializeRamDataStructures() throws SQLException
 	{
-		getPreferencesFromDB();
-		getUnitTypesFromDB();
+		preferences = getPreferencesFromDB();
+		getUnitTypesFromDB(preferences.getDefaultUnitTypeId());
 		getUnitsFromDB();
 	}
 
-	private void getPreferencesFromDB()
+	private Preferences getPreferencesFromDB() throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection.prepareStatement("select * from Preferences");
 				ResultSet resultSet = preparedStatement.executeQuery())
@@ -139,23 +141,17 @@ public class Model
 			int defaultSecondUnitId = resultSet.getInt("defaultSecondUnitId");
 			String defaultSkinName = resultSet.getString("defaultSkinName");
 
-			preferences = new Preferences(preferencesId, numberOfDecimalPlaces, defaultUnitTypeId, defaultFirstUnitId,
+			return new Preferences(preferencesId, numberOfDecimalPlaces, defaultUnitTypeId, defaultFirstUnitId,
 					defaultSecondUnitId, defaultSkinName);
-		}
-		catch (SQLException e)
-		{
-			showCriticalErrorMessageAndExitApp();
 		}
 	}
 
-	private void getUnitTypesFromDB()
+	private void getUnitTypesFromDB(int defaultUnitTypeId) throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("select * from UnitType order by unitTypeName asc");
 				ResultSet resultSet = preparedStatement.executeQuery())
 		{
-			int defaultUnitTypeId = preferences.getDefaultUnitTypeId();
-
 			while (resultSet.next())
 			{
 				int unitTypeId = resultSet.getInt("unitTypeId");
@@ -175,13 +171,9 @@ public class Model
 				}
 			}
 		}
-		catch (SQLException e)
-		{
-			showCriticalErrorMessageAndExitApp();
-		}
 	}
 
-	private void getUnitsFromDB()
+	private void getUnitsFromDB() throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("select * from Unit order by unitName asc");
@@ -204,10 +196,6 @@ public class Model
 					initializeUnitClassObjects(unit);
 				}
 			}
-		}
-		catch (SQLException e)
-		{
-			showCriticalErrorMessageAndExitApp();
 		}
 	}
 
@@ -240,14 +228,6 @@ public class Model
 			setUnit(unit, "currentSecondUnit");
 			setUnit(unit, "defaultSecondUnit");
 		}
-	}
-
-	private void showCriticalErrorMessageAndExitApp()
-	{
-		message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
-
-		Platform.exit();
-		System.exit(-1);
 	}
 
 	public boolean updateExchangeRates()

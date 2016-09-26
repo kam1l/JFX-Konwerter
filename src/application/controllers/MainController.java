@@ -2,10 +2,13 @@ package application.controllers;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 import application.service.Message;
 import application.service.Model;
+import application.service.converter.InvalidNumberBaseException;
+import application.service.converter.InvalidNumberFormatException;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -31,7 +34,7 @@ import javafx.stage.Stage;
 
 public class MainController implements Initializable
 {
-	private Model model = new Model();
+	private Model model;
 	private Message message = new Message();
 	private static Stage stage;
 	private HostServices hostServices;
@@ -54,8 +57,7 @@ public class MainController implements Initializable
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
 	{
-		model.initializeRamDataStructures();
-		setAppSkin();
+		initializeModel();
 
 		ObservableList<String> unitTypeNames = model.getNames("allUnitTypeNames");
 		String currentUnitTypeName = model.getUnitTypeName("currentUnitType");
@@ -81,38 +83,61 @@ public class MainController implements Initializable
 
 		addEventHandlersToComboBoxes();
 		addListenersToBooleanProperties();
+
+		setAppSkin();
+	}
+
+	private void initializeModel()
+	{
+		try
+		{
+			model = new Model();
+			model.initializeRamDataStructures();
+		}
+		catch (SQLException e)
+		{
+			showCriticalErrorMessageAndExitApp();
+		}
+	}
+
+	private void showCriticalErrorMessageAndExitApp()
+	{
+		message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
+
+		Platform.exit();
+		System.exit(-1);
 	}
 
 	private void addListenerToValueTextField()
 	{
 		valueTextField.textProperty()
-				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
-				{
-					userInput = valueTextField.getText();
-				});
+		.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
+		{
+			userInput = valueTextField.getText();
+		});
 	}
 
 	private void addListenersToBooleanProperties()
 	{
 		numberOfDecimalPlacesWasChanged
-				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-				{
-					if (newValue == true)
-					{
-						setResult();
-						numberOfDecimalPlacesWasChanged.set(false);
-					}
-				});
+		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+		{
+			if (newValue == true)
+			{
+				setResult();
+				numberOfDecimalPlacesWasChanged.set(false);
+			}
+		});
 
 		defaultSkinNameWasChanged
-				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-				{
-					if (newValue == true)
-					{
-						setAppSkin();
-						defaultSkinNameWasChanged.set(false);
-					}
-				});
+		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+		{
+			if (newValue == true)
+			{
+				setAppSkin();
+				defaultSkinNameWasChanged.set(false);
+			}
+		});
 	}
 
 	private void addEventHandlersToComboBoxes()
@@ -295,9 +320,9 @@ public class MainController implements Initializable
 		Parent root = FXMLLoader.load(getClass().getResource("/application/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
 		scene.getStylesheets()
-				.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+		.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 		stage.getIcons()
-				.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
+		.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
@@ -341,7 +366,18 @@ public class MainController implements Initializable
 
 	public void setResult()
 	{
-		resultTextField.setText(model.convertValue(userInput));
+		try
+		{
+			resultTextField.setText(model.convertValue(userInput));
+		}
+		catch (InvalidNumberFormatException e)
+		{
+			resultTextField.setText(Message.INVALID_NUMBER_FORMAT_MESSAGE);
+		}
+		catch (InvalidNumberBaseException e)
+		{
+			resultTextField.setText(Message.INVALID_NUMBER_BASE_MESSAGE + e.getInvalidFirstNumberBase() + ".");
+		}
 	}
 
 	public void closeApp(ActionEvent event)
