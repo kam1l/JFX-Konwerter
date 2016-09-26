@@ -5,8 +5,8 @@ import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 import application.dao.Preferences;
-import application.service.Message;
 import application.service.Model;
+import application.util.Message;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,7 +24,7 @@ public class PreferencesController implements Initializable
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
-	defaultSecondUnitComboBox, defaultSkinNameComboBox;
+			defaultSecondUnitComboBox, defaultSkinNameComboBox;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)

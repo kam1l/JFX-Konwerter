@@ -48,24 +48,12 @@ public class Model
 	private static List<Unit> mainWindowUnits = new ArrayList<Unit>();
 	private static List<Unit> preferencesUnits = new ArrayList<Unit>();
 
-	private static Map<String, UnitType> unitTypes;
-	private static Map<String, Unit> units;
-	private static Map<String, ObservableList<String>> names;
+	private static Map<String, UnitType> unitTypes = new HashMap<String, UnitType>();
+	private static Map<String, Unit> units = new HashMap<String, Unit>();
+	private static Map<String, ObservableList<String>> names = new HashMap<String, ObservableList<String>>();
 
 	static
 	{
-		unitTypes = new HashMap<String, UnitType>();
-		unitTypes.put("currentUnitType", null);
-		unitTypes.put("defaultUnitType", null);
-
-		units = new HashMap<String, Unit>();
-		units.put("currentFirstUnit", null);
-		units.put("currentSecondUnit", null);
-		units.put("defaultFirstUnit", null);
-		units.put("defaultSecondUnit", null);
-
-		names = new HashMap<String, ObservableList<String>>();
-		names.put("allUnitTypeNames", FXCollections.observableArrayList());
 		names.put("mainWindowUnitNames", FXCollections.observableArrayList());
 		names.put("preferencesUnitNames", FXCollections.observableArrayList());
 	}
@@ -123,8 +111,9 @@ public class Model
 	public void initializeRamDataStructures() throws SQLException
 	{
 		preferences = getPreferencesFromDB();
-		getUnitTypesFromDB(preferences.getDefaultUnitTypeId());
-		getUnitsFromDB();
+		unitTypes = getUnitTypesFromDB(preferences.getDefaultUnitTypeId());
+		int currentUnitTypeId = unitTypes.get("currentUnitType").getUnitTypeId();
+		allUnits = getUnitsFromDB(currentUnitTypeId);
 	}
 
 	private Preferences getPreferencesFromDB() throws SQLException
@@ -146,12 +135,15 @@ public class Model
 		}
 	}
 
-	private void getUnitTypesFromDB(int defaultUnitTypeId) throws SQLException
+	private Map<String, UnitType> getUnitTypesFromDB(int defaultUnitTypeId) throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("select * from UnitType order by unitTypeName asc");
 				ResultSet resultSet = preparedStatement.executeQuery())
 		{
+			Map<String, UnitType> uTypes = new HashMap<String, UnitType>();
+			ObservableList<String> nameList = FXCollections.observableArrayList();
+
 			while (resultSet.next())
 			{
 				int unitTypeId = resultSet.getInt("unitTypeId");
@@ -160,25 +152,30 @@ public class Model
 				UnitType unitType = new UnitType(unitTypeId, unitTypeName, classifier);
 
 				allUnitTypes.add(unitType);
-
-				ObservableList<String> namList = names.get("allUnitTypeNames");
-				namList.add(unitTypeName);
-				names.put("allUnitTypeNames", namList);
+				nameList.add(unitTypeName);
 
 				if (unitTypeId == defaultUnitTypeId)
 				{
-					initializeUnitTypeClassObjects(unitType);
+					uTypes.put("currentUnitType", new UnitType(unitType));
+					uTypes.put("defaultUnitType", new UnitType(unitType));
+					currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
 				}
 			}
+
+			names.put("allUnitTypeNames", nameList);
+
+			return uTypes;
 		}
 	}
 
-	private void getUnitsFromDB() throws SQLException
+	private List<Unit> getUnitsFromDB(int currentUnitTypeId) throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("select * from Unit order by unitName asc");
 				ResultSet resultSet = preparedStatement.executeQuery())
 		{
+			List<Unit> aUnits = new ArrayList<Unit>();
+
 			while (resultSet.next())
 			{
 				int unitId = resultSet.getInt("unitId");
@@ -189,30 +186,26 @@ public class Model
 				int unitType_unitTypeId = resultSet.getInt("unitType_unitTypeId");
 				Unit unit = new Unit(unitId, unitName, unitAbbreviation, displayName, unitRatio, unitType_unitTypeId);
 
-				allUnits.add(unit);
+				aUnits.add(unit);
 
-				if (unitType_unitTypeId == unitTypes.get("currentUnitType").getUnitTypeId())
+				if (unitType_unitTypeId == currentUnitTypeId)
 				{
-					initializeUnitClassObjects(unit);
+					initializeStaticUnitObjects(unit);
 				}
 			}
+
+			return aUnits;
 		}
 	}
 
-	private void initializeUnitTypeClassObjects(UnitType unitType)
-	{
-		unitTypes.put("currentUnitType", new UnitType(unitType));
-		unitTypes.put("defaultUnitType", new UnitType(unitType));
-		currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
-	}
-
-	private void initializeUnitClassObjects(Unit unit)
+	private void initializeStaticUnitObjects(Unit unit)
 	{
 		int defaultFirstUnitId = preferences.getDefaultFirstUnitId();
 		int defaultSecondUnitId = preferences.getDefaultSecondUnitId();
 
 		addItemToUnitNames(unit, "mainWindowUnitNames");
 		addItemToUnitNames(unit, "preferencesUnitNames");
+
 		mainWindowUnits.add(unit);
 		preferencesUnits.add(unit);
 
