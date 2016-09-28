@@ -4,8 +4,14 @@ JavaFX-based unit converter
 
 ## Main window
 
+<p>Blue caspian skin:</p>
 <p align="center">
   <img src="http://i67.tinypic.com/6gbms8.png"/>
+</p>
+
+<p>Modena skin:</p>
+<p align="center">
+  <img src="http://i65.tinypic.com/2ih88za.png"/>
 </p>
 
 ## License
