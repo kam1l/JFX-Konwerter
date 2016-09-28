@@ -2,14 +2,10 @@
 
 JavaFX-based unit converter
 
-## Screenshots
+## Main window
 
 <p align="center">
   <img src="http://i67.tinypic.com/6gbms8.png"/>
-</p>
-
-<p align="center">
-  <img src="http://i67.tinypic.com/vomn9l.png"/>
 </p>
 
 ## License
