@@ -1,4 +1,4 @@
-package application.service;
+package application.model;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -22,16 +22,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import application.dao.Preferences;
-import application.dao.SqliteConnection;
-import application.dao.Unit;
-import application.dao.UnitType;
-import application.service.converter.BasicConverter;
-import application.service.converter.Converter;
-import application.service.converter.InvalidNumberBaseException;
-import application.service.converter.InvalidNumberFormatException;
-import application.service.converter.NumberBaseConverter;
-import application.service.converter.TemperatureConverter;
+import application.model.converter.BasicConverter;
+import application.model.converter.Converter;
+import application.model.converter.InvalidNumberBaseException;
+import application.model.converter.InvalidNumberFormatException;
+import application.model.converter.NumberBaseConverter;
+import application.model.converter.TemperatureConverter;
+import application.model.dto.Preferences;
+import application.model.dto.Unit;
+import application.model.dto.UnitType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

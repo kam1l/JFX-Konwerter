@@ -4,8 +4,8 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
-import application.dao.Preferences;
-import application.service.Model;
+import application.model.Model;
+import application.model.dto.Preferences;
 import application.util.Message;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;

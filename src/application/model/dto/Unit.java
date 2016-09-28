@@ -1,4 +1,4 @@
-package application.dao;
+package application.model.dto;
 
 public class Unit
 {

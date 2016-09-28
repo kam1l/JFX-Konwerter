@@ -1,4 +1,4 @@
-package application.service.converter;
+package application.model.converter;
 
 import java.util.ArrayList;
 import java.util.List;

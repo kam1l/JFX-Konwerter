@@ -5,9 +5,9 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
-import application.service.Model;
-import application.service.converter.InvalidNumberBaseException;
-import application.service.converter.InvalidNumberFormatException;
+import application.model.Model;
+import application.model.converter.InvalidNumberBaseException;
+import application.model.converter.InvalidNumberFormatException;
 import application.util.Message;
 import javafx.application.Application;
 import javafx.application.HostServices;

@@ -1,6 +1,6 @@
 package application.util;
 
-import application.service.Model;
+import application.model.Model;
 import javafx.scene.control.TextField;
 
 public class NumberTextField extends TextField
