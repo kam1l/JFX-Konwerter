@@ -1,6 +1,8 @@
 # JFX Konwerter
 
-JavaFX based unit converter
+JavaFX-based unit converter
+
+![JFX Konwerter](http://i67.tinypic.com/6gbms8.png)
 
 ## License
 
