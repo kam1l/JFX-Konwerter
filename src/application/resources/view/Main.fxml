@@ -372,12 +372,12 @@
 					textAlignment="CENTER" />
 				<Label
 					fx:id="programNameInInfo"
-					layoutX="63.0"
+					layoutX="61.0"
 					layoutY="22.0"
 					prefHeight="32.0"
-					prefWidth="215.0"
+					prefWidth="225.0"
 					style="-fx-font-size: 16; -fx-font-weight: bold;"
-					text="JFX Konwerter, wersja 0.5"
+					text="JFX Konwerter, wersja 0.5a"
 					textFill="WHITE" />
 				<Label
 					layoutX="85.0"
