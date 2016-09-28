@@ -2,6 +2,10 @@
 
 JavaFX-based unit converter
 
+## Installing
+
+You can download an ``JFX-Konwerter.zip`` file from the [releases page](https://github.com/kam1l/JFX-Konwerter/releases). It contains runnable JAR file and units.db file.
+
 ## Main window
 
 <p>Blue caspian skin:</p>
