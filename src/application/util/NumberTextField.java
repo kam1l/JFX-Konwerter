@@ -1,12 +1,12 @@
 package application.util;
 
-import application.model.Model;
 import javafx.scene.control.TextField;
 
 public class NumberTextField extends TextField
 {
 	private int start, end;
 	private String typedText;
+	private boolean lettersAreAllowed;
 
 	@Override
 	public void replaceText(int start, int end, String typedText)
@@ -26,9 +26,9 @@ public class NumberTextField extends TextField
 		String currentText = getCharacters().toString();
 		String newText = getNewText(currentText);
 
-		if (currentUnitsAreNumberBases())
+		if (lettersAreAllowed)
 		{
-			return newText.matches("(-)?([0-9A-Fa-f]+(\\.[0-9A-Fa-f]*)?)?");
+			return newText.matches("(-)?([0-9A-Za-z]+(\\.[0-9A-Za-z]*)?)?");
 		}
 		else
 		{
@@ -41,8 +41,8 @@ public class NumberTextField extends TextField
 		return currentText.substring(0, start) + typedText + currentText.substring(end);
 	}
 
-	private boolean currentUnitsAreNumberBases()
+	public void setLettersAreAllowed(boolean lettersAreAllowed)
 	{
-		return Model.getCurrentUnitTypeClassifier().equals("number");
+		this.lettersAreAllowed = lettersAreAllowed;
 	}
 }

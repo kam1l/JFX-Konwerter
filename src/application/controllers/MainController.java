@@ -9,6 +9,7 @@ import application.model.Model;
 import application.model.converter.InvalidNumberBaseException;
 import application.model.converter.InvalidNumberFormatException;
 import application.util.Message;
+import application.util.NumberTextField;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -44,7 +45,10 @@ public class MainController implements Initializable
 	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
 
 	@FXML
-	private TextField valueTextField, resultTextField;
+	private TextField resultTextField;
+
+	@FXML
+	private NumberTextField valueTextField;
 
 	@FXML
 	private AnchorPane appInfoAnchorPane, updateInfoAnchorPane;
@@ -71,7 +75,9 @@ public class MainController implements Initializable
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 		String currentFirstUnitName = model.getUnitDisplayName("currentFirstUnit");
 		String currentSecondUnitName = model.getUnitDisplayName("currentSecondUnit");
+		boolean lettersAreAllowed = Model.getCurrentUnitTypeClassifier().equals("number");
 
+		valueTextField.setLettersAreAllowed(lettersAreAllowed);
 		firstUnitComboBox.setItems(unitNames);
 		secondUnitComboBox.setItems(unitNames);
 		firstUnitSel.select(currentFirstUnitName);
@@ -365,6 +371,9 @@ public class MainController implements Initializable
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 
+		boolean lettersAreAllowed = Model.getCurrentUnitTypeClassifier().equals("number");
+
+		valueTextField.setLettersAreAllowed(lettersAreAllowed);
 		setResult();
 	}
 
