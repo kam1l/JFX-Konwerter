@@ -1,6 +1,8 @@
 # JFX Konwerter
 
-JavaFX-based unit converter
+JavaFX-based unit converter which utilises SQLite database management system.
+
+"units.db" file currently stores information about 217 units, exchange rates and number bases.
 
 ## Installing
 
