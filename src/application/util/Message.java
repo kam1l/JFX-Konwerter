@@ -16,6 +16,7 @@ public class Message
 	public static final String READING_PREFERENCES_ERROR_MESSAGE = "Wyst¹pi³ b³¹d podczas odczytu ustawieñ.";
 	public static final String INVALID_NUMBER_FORMAT_MESSAGE = "Nieprawid³owy format liczby.";
 	public static final String INVALID_NUMBER_BASE_MESSAGE = "Nieprawid³owy format liczby o podstawie ";
+	public static final String NUMBER_BASE_CONVERSION_ERROR_MESSAGE = "B³¹d konwersji podstawy liczby.";
 
 	public void showMessage(String title, String content)
 	{

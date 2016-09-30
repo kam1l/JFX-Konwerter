@@ -1,15 +1,13 @@
 package application.model.converter;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class TemperatureConverter extends Converter
 {
-	private double value;
+	private BigDecimal value;
 	private String firstScaleAbbreviation;
 	private String secondScaleAbbreviation;
-	private boolean isValidDouble;
-
-	{
-		isValidDouble = true;
-	}
 
 	public TemperatureConverter(String firstScaleAbbreviation, String secondScaleAbbreviation)
 	{
@@ -22,78 +20,70 @@ public class TemperatureConverter extends Converter
 	{
 		try
 		{
-			value = Double.parseDouble(userInput);
+			value = new BigDecimal(userInput);
 		}
-		catch (Exception e)
-		{
-			isValidDouble = false;
-		}
-
-		if (isValidDouble)
-		{
-			double result;
-			String formattedResult;
-
-			if (firstScaleAbbreviation.matches("°C"))
-			{
-				result = convertFromCelsiusToOther(value, secondScaleAbbreviation);
-			}
-			else
-			{
-				result = convertFromOtherToOther(value, firstScaleAbbreviation, secondScaleAbbreviation);
-			}
-
-			formattedResult = getFormattedResult(result, numberOfDecimalPlaces);
-
-			return formattedResult;
-		}
-		else
+		catch (NumberFormatException e)
 		{
 			throw new InvalidNumberFormatException();
 		}
+
+		BigDecimal result;
+
+		if (firstScaleAbbreviation.matches("°C"))
+		{
+			result = convertFromCelsiusToOther();
+		}
+		else
+		{
+			result = convertFromOtherToOther();
+		}
+
+		result = result.setScale(numberOfDecimalPlaces, RoundingMode.HALF_UP);
+		String formattedResult = result.stripTrailingZeros().toPlainString();
+
+		return formattedResult;
 	}
 
-	private double convertFromOtherToOther(double value, String firstScaleAbbreviation, String secondScaleAbbreviation)
+	private BigDecimal convertFromOtherToOther()
 	{
 		if (firstScaleAbbreviation.matches(secondScaleAbbreviation))
 		{
 			return value;
 		}
 
-		double result;
+		BigDecimal result = BigDecimal.ZERO;
 
 		switch (firstScaleAbbreviation)
 		{
 		case "°F":
-			result = (value - 32) / 1.8;
+			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), 100, RoundingMode.HALF_UP);
 			break;
 
 		case "°K":
-			result = value - 273.15;
+			result = value.subtract(new BigDecimal(273.15));
 			break;
 
 		case "°R":
-			result = value / 1.8 - 273.15;
+			result = value.divide(new BigDecimal(1.8), 100, RoundingMode.HALF_UP).subtract(new BigDecimal(273.15));
 			break;
 
 		case "°Ré":
-			result = 1.25 * value;
+			result = value.divide(new BigDecimal(0.8), 100, RoundingMode.HALF_UP);
 			break;
 
 		case "°Rø":
-			result = (value - 7.5) * 40 / 21;
+			result = (value.subtract(new BigDecimal(7.5))).multiply(new BigDecimal(40)).divide(new BigDecimal(21), 100,
+					RoundingMode.HALF_UP);
 			break;
 
 		case "°D":
-			result = 100 - value * 2 / 3;
+			result = new BigDecimal(100)
+					.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 100, RoundingMode.HALF_UP)));
 			break;
 
 		case "°N":
-			result = value / 0.33;
+			result = value.divide(new BigDecimal(0.33), 100, RoundingMode.HALF_UP);
 			break;
-
-		default:
-			result = 0;
 		}
 
 		if (secondScaleAbbreviation.matches("°C"))
@@ -102,11 +92,12 @@ public class TemperatureConverter extends Converter
 		}
 		else
 		{
-			return convertFromCelsiusToOther(result, secondScaleAbbreviation);
+			value = result;
+			return convertFromCelsiusToOther();
 		}
 	}
 
-	private double convertFromCelsiusToOther(double value, String secondScaleAbbreviation)
+	private BigDecimal convertFromCelsiusToOther()
 	{
 		switch (secondScaleAbbreviation)
 		{
@@ -114,28 +105,30 @@ public class TemperatureConverter extends Converter
 			return value;
 
 		case "°F":
-			return value * 1.8 + 32;
+			return value.multiply(new BigDecimal(1.8)).add(new BigDecimal(32));
 
 		case "°K":
-			return value + 273.15;
+			return value.add(new BigDecimal(273.15));
 
 		case "°R":
-			return (value + 273.15) * 1.8;
+			return (value.add(new BigDecimal(273.15))).multiply(new BigDecimal(1.8));
 
 		case "°Ré":
-			return value / 0.8;
+			return value.multiply(new BigDecimal(0.8));
 
 		case "°Rø":
-			return value * 21 / 40 + 7.5;
+			return value.multiply(new BigDecimal(21)).divide(new BigDecimal(40), 100, RoundingMode.HALF_UP)
+					.add(new BigDecimal(7.5));
 
 		case "°D":
-			return (100 - value) * 3 / 2;
+			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2), 100,
+					RoundingMode.HALF_UP);
 
 		case "°N":
-			return value * 0.33;
+			return value.multiply(new BigDecimal(0.33));
 
 		default:
-			return 0;
+			return BigDecimal.ZERO;
 		}
 	}
 }

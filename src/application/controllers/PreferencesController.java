@@ -8,6 +8,7 @@ import application.model.Model;
 import application.model.dto.Preferences;
 import application.util.Message;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,7 +35,9 @@ public class PreferencesController implements Initializable
 		int numberOfDecimalPlaces = Model.getNumberOfDecimalPlaces();
 		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
 				.getSelectionModel();
+		ObservableList<String> numbers = FXCollections.observableArrayList(getNumbersArray());
 
+		defaultNumberOfDecimalPlacesComboBox.setItems(numbers);
 		defaultNumberOfDecimalPlacesSel.select(String.valueOf(numberOfDecimalPlaces));
 
 		ObservableList<String> unitTypeNames = model.getNames("allUnitTypeNames");
@@ -73,6 +76,18 @@ public class PreferencesController implements Initializable
 		{
 			message.showMessage(Message.ERROR_TITLE, Message.READING_PREFERENCES_ERROR_MESSAGE);
 		}
+	}
+
+	private String[] getNumbersArray()
+	{
+		String[] numbers = new String[99];
+
+		for (int i = 0; i < 99; i++)
+		{
+			numbers[i] = String.valueOf(i + 2);
+		}
+
+		return numbers;
 	}
 
 	public void changeUnitSet(ActionEvent event)

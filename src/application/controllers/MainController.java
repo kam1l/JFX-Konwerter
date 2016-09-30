@@ -1,8 +1,13 @@
 package application.controllers;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import application.model.Model;
@@ -28,6 +33,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
@@ -58,6 +64,9 @@ public class MainController implements Initializable
 
 	private EventHandler<ActionEvent> firstUnitComboBoxHandler, secondUnitComboBoxHandler;
 
+	private final Tooltip valueTextFieldTooltip = new Tooltip();
+	private final Tooltip resultTextFieldTooltip = new Tooltip();
+
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
 	{
@@ -75,7 +84,7 @@ public class MainController implements Initializable
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 		String currentFirstUnitName = model.getUnitDisplayName("currentFirstUnit");
 		String currentSecondUnitName = model.getUnitDisplayName("currentSecondUnit");
-		boolean lettersAreAllowed = Model.getCurrentUnitTypeClassifier().equals("number");
+		boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
 
 		valueTextField.setLettersAreAllowed(lettersAreAllowed);
 		firstUnitComboBox.setItems(unitNames);
@@ -85,6 +94,9 @@ public class MainController implements Initializable
 		addListenerToValueTextField();
 
 		valueTextField.setText("0");
+		valueTextFieldTooltip.setText("0");
+		valueTextField.setTooltip(valueTextFieldTooltip);
+		resultTextField.setTooltip(resultTextFieldTooltip);
 		setResult();
 
 		addEventHandlersToComboBoxes();
@@ -120,6 +132,15 @@ public class MainController implements Initializable
 				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
 				{
 					userInput = valueTextField.getText();
+
+					if (userInput.length() == 0)
+					{
+						valueTextFieldTooltip.setText("pusty");
+					}
+					else
+					{
+						valueTextFieldTooltip.setText(userInput);
+					}
 				});
 	}
 
@@ -371,7 +392,7 @@ public class MainController implements Initializable
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 
-		boolean lettersAreAllowed = Model.getCurrentUnitTypeClassifier().equals("number");
+		boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
 
 		valueTextField.setLettersAreAllowed(lettersAreAllowed);
 		setResult();
@@ -379,18 +400,68 @@ public class MainController implements Initializable
 
 	public void setResult()
 	{
+		String result;
+
 		try
 		{
-			resultTextField.setText(model.convertValue(userInput));
+			result = model.convertValue(userInput);
 		}
 		catch (InvalidNumberFormatException e)
 		{
-			resultTextField.setText(Message.INVALID_NUMBER_FORMAT_MESSAGE);
+			result = Message.INVALID_NUMBER_FORMAT_MESSAGE;
 		}
 		catch (InvalidNumberBaseException e)
 		{
-			resultTextField.setText(Message.INVALID_NUMBER_BASE_MESSAGE + e.getInvalidNumberBase() + ".");
+			int numberBase = e.getInvalidNumberBase();
+
+			if (numberBase == 0)
+			{
+				result = Message.NUMBER_BASE_CONVERSION_ERROR_MESSAGE;
+			}
+			else
+			{
+				result = Message.INVALID_NUMBER_BASE_MESSAGE + numberBase + ".";
+			}
 		}
+
+		resultTextField.setText(result);
+		resultTextFieldTooltip.setText(result);
+	}
+
+	public void changeResultToScientificNotation(ActionEvent event)
+	{
+		String result = resultTextField.getText();
+
+		if (model.currentUnitsAreNumberBases() | result.contains("E"))
+		{
+			return;
+		}
+
+		BigDecimal bRes = null;
+		try
+		{
+			bRes = new BigDecimal(result);
+		}
+		catch (NumberFormatException e)
+		{
+		}
+
+		String inScientificNotation = getInScientificNotation(bRes);
+
+		resultTextFieldTooltip.setText(inScientificNotation);
+		resultTextField.setText(inScientificNotation);
+	}
+
+	private static String getInScientificNotation(BigDecimal value)
+	{
+		NumberFormat nF = NumberFormat.getNumberInstance(Locale.ROOT);
+		DecimalFormat formatter = (DecimalFormat) nF;
+
+		formatter.applyPattern("0.0E0");
+		formatter.setRoundingMode(RoundingMode.HALF_UP);
+		formatter.setMinimumFractionDigits((value.scale() > 0) ? value.precision() : value.scale());
+
+		return formatter.format(value);
 	}
 
 	public void closeApp(ActionEvent event)

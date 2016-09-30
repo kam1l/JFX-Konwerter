@@ -1,20 +1,25 @@
 package application.model.converter;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class BasicConverter extends Converter
 {
-	private double value;
-	private double firstUnitRatio;
-	private double secondUnitRatio;
-	private boolean isValidDouble;
+	private BigDecimal value;
+	private BigDecimal firstUnitRatio;
+	private BigDecimal secondUnitRatio;
 
+	public BasicConverter(String firstUnitRatio, String secondUnitRatio) throws InvalidNumberFormatException
 	{
-		isValidDouble = true;
-	}
-
-	public BasicConverter(double firstUnitRatio, double secondUnitRatio)
-	{
-		this.firstUnitRatio = firstUnitRatio;
-		this.secondUnitRatio = secondUnitRatio;
+		try
+		{
+			this.firstUnitRatio = new BigDecimal(firstUnitRatio);
+			this.secondUnitRatio = new BigDecimal(secondUnitRatio);
+		}
+		catch (NumberFormatException e)
+		{
+			throw new InvalidNumberFormatException();
+		}
 	}
 
 	@Override
@@ -22,23 +27,17 @@ public class BasicConverter extends Converter
 	{
 		try
 		{
-			value = Double.parseDouble(userInput);
+			value = new BigDecimal(userInput);
 		}
-		catch (Exception e)
-		{
-			isValidDouble = false;
-		}
-
-		if (isValidDouble)
-		{
-			double result = value * firstUnitRatio / secondUnitRatio;
-			String formattedResult = getFormattedResult(result, numberOfDecimalPlaces);
-
-			return formattedResult;
-		}
-		else
+		catch (NumberFormatException e)
 		{
 			throw new InvalidNumberFormatException();
 		}
+
+		BigDecimal result = value.multiply(firstUnitRatio.divide(secondUnitRatio, 100, RoundingMode.HALF_UP));
+		result = result.setScale(numberOfDecimalPlaces, RoundingMode.HALF_UP);
+		String formattedResult = result.stripTrailingZeros().toPlainString();
+
+		return formattedResult;
 	}
 }

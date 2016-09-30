@@ -56,6 +56,20 @@
 					<items>
 						<MenuItem
 							mnemonicParsing="false"
+							onAction="#changeResultToScientificNotation"
+							text="Pokaż wynik w notacji naukowej">
+							<accelerator>
+								<KeyCodeCombination
+									alt="UP"
+									code="G"
+									control="DOWN"
+									meta="UP"
+									shift="UP"
+									shortcut="UP" />
+							</accelerator>
+						</MenuItem>
+						<MenuItem
+							mnemonicParsing="false"
 							onAction="#swapUnits"
 							text="Zamień jednostki">
 							<accelerator>
@@ -377,7 +391,7 @@
 					prefHeight="32.0"
 					prefWidth="225.0"
 					style="-fx-font-size: 16; -fx-font-weight: bold;"
-					text="JFX Konwerter, wersja 0.5a"
+					text="JFX Konwerter, wersja 0.6a"
 					textFill="WHITE" />
 				<Label
 					layoutX="85.0"

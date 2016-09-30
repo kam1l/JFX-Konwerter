@@ -1,13 +1,16 @@
 package application.model.converter;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 
 public class NumberBaseConverter extends Converter
 {
 	private String userInput;
-	private int firstNumberBase;
-	private int secondNumberBase;
+	private BigInteger firstNumberBase;
+	private BigInteger secondNumberBase;
 
 	private String stringDecPart;
 	private String stringIntPart;
@@ -17,8 +20,8 @@ public class NumberBaseConverter extends Converter
 	private boolean isInvalidStringValue;
 
 	private int dotIndex;
-	private double decimalFractionPart;
-	private long integerPart;
+	private BigDecimal decimalFractionPart = BigDecimal.ZERO;
+	private BigInteger integerPart = BigInteger.ZERO;
 
 	private List<Double> doubleValuesOfEachCharOfIntPart;
 	private List<Double> doubleValuesOfEachCharOfDecPart;
@@ -27,10 +30,17 @@ public class NumberBaseConverter extends Converter
 		hasValidCharacters = true;
 	}
 
-	public NumberBaseConverter(int firstNumberBase, int secondNumberBase)
+	public NumberBaseConverter(String firstNumberBase, String secondNumberBase) throws InvalidNumberBaseException
 	{
-		this.firstNumberBase = firstNumberBase;
-		this.secondNumberBase = secondNumberBase;
+		try
+		{
+			this.firstNumberBase = new BigInteger(firstNumberBase);
+			this.secondNumberBase = new BigInteger(secondNumberBase);
+		}
+		catch (NumberFormatException e)
+		{
+			throw new InvalidNumberBaseException();
+		}
 	}
 
 	@Override
@@ -66,7 +76,7 @@ public class NumberBaseConverter extends Converter
 		}
 		else
 		{
-			throw new InvalidNumberBaseException(firstNumberBase);
+			throw new InvalidNumberBaseException(firstNumberBase.intValue());
 		}
 	}
 
@@ -98,14 +108,14 @@ public class NumberBaseConverter extends Converter
 
 	private String convertIntPart()
 	{
-		long reminder;
+		BigInteger reminder;
 		String result = new String("");
 
-		while (integerPart > 0)
+		while (integerPart.compareTo(BigInteger.ZERO) == 1)
 		{
-			reminder = integerPart % secondNumberBase;
-			result = convertLongToCharacter(reminder) + result;
-			integerPart /= secondNumberBase;
+			reminder = integerPart.remainder(secondNumberBase);
+			result = convertLongToCharacter(reminder.longValue()) + result;
+			integerPart = integerPart.divide(secondNumberBase);
 		}
 
 		return result.isEmpty() ? "0" : result;
@@ -119,15 +129,15 @@ public class NumberBaseConverter extends Converter
 
 		do
 		{
-			decimalFractionPart *= secondNumberBase;
-			intP = (long) decimalFractionPart;
-			decimalFractionPart -= intP;
+			decimalFractionPart = decimalFractionPart.multiply(new BigDecimal(secondNumberBase));
+			intP = decimalFractionPart.longValue();
+			decimalFractionPart = decimalFractionPart.subtract(new BigDecimal(intP));
 
 			result += convertLongToCharacter(intP);
 
 			numberOfDigits++;
 		}
-		while ((decimalFractionPart != 0) && (numberOfDigits < numberOfDecimalPlaces));
+		while ((decimalFractionPart.compareTo(BigDecimal.ZERO) != 0) && (numberOfDigits < numberOfDecimalPlaces));
 
 		return result;
 	}
@@ -163,22 +173,29 @@ public class NumberBaseConverter extends Converter
 
 	private boolean currentCharacterIsInvalid(double currentCharacterValue)
 	{
-		return currentCharacterValue >= firstNumberBase;
+		return currentCharacterValue >= firstNumberBase.intValue();
 	}
 
 	private void calculateDecPart()
 	{
+		BigDecimal val;
+		BigDecimal firstBase = new BigDecimal(firstNumberBase);
+
 		for (int i = 0, j = -1; i < stringDecPart.length(); i++, j--)
 		{
-			decimalFractionPart += doubleValuesOfEachCharOfDecPart.get(i) * Math.pow(firstNumberBase, j);
+			val = new BigDecimal(doubleValuesOfEachCharOfDecPart.get(i));
+			decimalFractionPart = decimalFractionPart.add(firstBase.pow(j, new MathContext(100)).multiply(val));
 		}
 	}
 
 	private void calculateIntPart()
 	{
+		BigInteger val;
+
 		for (int i = 0, j = stringIntPart.length() - 1; i < stringIntPart.length(); i++, j--)
 		{
-			integerPart += doubleValuesOfEachCharOfIntPart.get(i) * Math.pow(firstNumberBase, j);
+			val = new BigDecimal(doubleValuesOfEachCharOfIntPart.get(i)).toBigInteger();
+			integerPart = integerPart.add(firstNumberBase.pow(j).multiply(val));
 		}
 	}
 

@@ -74,15 +74,15 @@ public class Model
 
 		if (currentUnitsAreBasic())
 		{
-			double firstUnitRatio = units.get("currentFirstUnit").getUnitRatio();
-			double secondUnitRatio = units.get("currentSecondUnit").getUnitRatio();
+			String firstUnitRatio = String.valueOf(units.get("currentFirstUnit").getUnitRatio());
+			String secondUnitRatio = String.valueOf(units.get("currentSecondUnit").getUnitRatio());
 
 			converter = new BasicConverter(firstUnitRatio, secondUnitRatio);
 		}
 		else if (currentUnitsAreNumberBases())
 		{
-			int firstNumberBase = (int) units.get("currentFirstUnit").getUnitRatio();
-			int secondNumberBase = (int) units.get("currentSecondUnit").getUnitRatio();
+			String firstNumberBase = String.valueOf((int) units.get("currentFirstUnit").getUnitRatio());
+			String secondNumberBase = String.valueOf((int) units.get("currentSecondUnit").getUnitRatio());
 
 			converter = new NumberBaseConverter(firstNumberBase, secondNumberBase);
 		}
@@ -102,7 +102,7 @@ public class Model
 		return currentUnitTypeClassifier.equals("basic");
 	}
 
-	private boolean currentUnitsAreNumberBases()
+	public boolean currentUnitsAreNumberBases()
 	{
 		return currentUnitTypeClassifier.equals("number");
 	}
@@ -465,11 +465,6 @@ public class Model
 	public void setPreferences(Preferences prefs)
 	{
 		preferences = prefs;
-	}
-
-	public static String getCurrentUnitTypeClassifier()
-	{
-		return currentUnitTypeClassifier;
 	}
 
 	public ObservableList<String> getNames(String key)
