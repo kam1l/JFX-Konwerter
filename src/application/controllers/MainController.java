@@ -31,6 +31,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -47,6 +48,7 @@ public class MainController implements Initializable
 	private HostServices hostServices;
 
 	private String userInput;
+	private String resultInFixedNotation;
 	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
 
@@ -61,6 +63,9 @@ public class MainController implements Initializable
 
 	@FXML
 	private ComboBox<String> unitTypeComboBox, firstUnitComboBox, secondUnitComboBox;
+
+	@FXML
+	private MenuItem resultFormattingMenuItem;
 
 	private EventHandler<ActionEvent> firstUnitComboBoxHandler, secondUnitComboBoxHandler;
 
@@ -97,7 +102,7 @@ public class MainController implements Initializable
 		valueTextFieldTooltip.setText("0");
 		valueTextField.setTooltip(valueTextFieldTooltip);
 		resultTextField.setTooltip(resultTextFieldTooltip);
-		setResult();
+		getAndSetResult();
 
 		addEventHandlersToComboBoxes();
 		addListenersToBooleanProperties();
@@ -129,42 +134,42 @@ public class MainController implements Initializable
 	private void addListenerToValueTextField()
 	{
 		valueTextField.textProperty()
-				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
-				{
-					userInput = valueTextField.getText();
+		.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
+		{
+			userInput = valueTextField.getText();
 
-					if (userInput.length() == 0)
-					{
-						valueTextFieldTooltip.setText("pusty");
-					}
-					else
-					{
-						valueTextFieldTooltip.setText(userInput);
-					}
-				});
+			if (userInput.length() == 0)
+			{
+				valueTextFieldTooltip.setText("pusty");
+			}
+			else
+			{
+				valueTextFieldTooltip.setText(userInput);
+			}
+		});
 	}
 
 	private void addListenersToBooleanProperties()
 	{
 		numberOfDecimalPlacesWasChanged
-				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-				{
-					if (newValue == true)
-					{
-						setResult();
-						numberOfDecimalPlacesWasChanged.set(false);
-					}
-				});
+		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+		{
+			if (newValue == true)
+			{
+				getAndSetResult();
+				numberOfDecimalPlacesWasChanged.set(false);
+			}
+		});
 
 		defaultSkinNameWasChanged
-				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-				{
-					if (newValue == true)
-					{
-						setAppSkin();
-						defaultSkinNameWasChanged.set(false);
-					}
-				});
+		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+		{
+			if (newValue == true)
+			{
+				setAppSkin();
+				defaultSkinNameWasChanged.set(false);
+			}
+		});
 	}
 
 	private void addEventHandlersToComboBoxes()
@@ -176,7 +181,7 @@ public class MainController implements Initializable
 
 			model.setUnit(firstUnitSelectedIndex, "currentFirstUnit");
 
-			setResult();
+			getAndSetResult();
 		};
 
 		secondUnitComboBoxHandler = (ActionEvent event) ->
@@ -186,7 +191,7 @@ public class MainController implements Initializable
 
 			model.setUnit(secondUnitSelectedIndex, "currentSecondUnit");
 
-			setResult();
+			getAndSetResult();
 		};
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
@@ -208,7 +213,7 @@ public class MainController implements Initializable
 			valueTextField.setText(userInput + clickedButtonValue);
 		}
 
-		setResult();
+		getAndSetResult();
 	}
 
 	private boolean currentUserInputIsEqualZero()
@@ -242,7 +247,7 @@ public class MainController implements Initializable
 				valueTextField.setText("-" + userInput);
 			}
 
-			setResult();
+			getAndSetResult();
 		}
 	}
 
@@ -283,7 +288,7 @@ public class MainController implements Initializable
 			}
 		}
 
-		setResult();
+		getAndSetResult();
 	}
 
 	private boolean currentUserInputCanBeShortened()
@@ -310,7 +315,7 @@ public class MainController implements Initializable
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 
-		setResult();
+		getAndSetResult();
 	}
 
 	public void runUpdateThread(ActionEvent event)
@@ -331,7 +336,7 @@ public class MainController implements Initializable
 					model.updateExchangeRatesInRam();
 					message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
 
-					setResult();
+					getAndSetResult();
 				}
 				else
 				{
@@ -351,9 +356,9 @@ public class MainController implements Initializable
 		Parent root = FXMLLoader.load(getClass().getResource("/application/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
 		scene.getStylesheets()
-				.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+		.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 		stage.getIcons()
-				.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
+		.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
@@ -395,10 +400,20 @@ public class MainController implements Initializable
 		boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
 
 		valueTextField.setLettersAreAllowed(lettersAreAllowed);
-		setResult();
+		getAndSetResult();
 	}
 
-	public void setResult()
+	public void getAndSetResult()
+	{
+		String result = getResult();
+
+		resultInFixedNotation = null;
+		resultFormattingMenuItem.setText("Poka¿ wynik w notacji naukowej");
+		resultTextField.setText(result);
+		resultTextFieldTooltip.setText(result);
+	}
+
+	private String getResult()
 	{
 		String result;
 
@@ -424,32 +439,59 @@ public class MainController implements Initializable
 			}
 		}
 
-		resultTextField.setText(result);
-		resultTextFieldTooltip.setText(result);
+		return result;
 	}
 
-	public void changeResultToScientificNotation(ActionEvent event)
+	public void changeResultFormatting(ActionEvent event)
 	{
-		String result = resultTextField.getText();
-
-		if (model.currentUnitsAreNumberBases() | result.contains("E"))
+		if (model.currentUnitsAreNumberBases())
 		{
 			return;
 		}
 
-		BigDecimal bRes = null;
+		if(resultIsInScientificNotation())
+		{
+			resultTextFieldTooltip.setText(resultInFixedNotation);
+			resultTextField.setText(resultInFixedNotation);
+			resultFormattingMenuItem.setText("Poka¿ wynik w notacji naukowej");
+
+			resultInFixedNotation = null;
+		}
+		else
+		{
+			String result = resultTextField.getText();
+			resultInFixedNotation = result;
+			BigDecimal bdResult = getResultInBigDecimal(result);
+			if(bdResult == null)
+			{
+				return;
+			}
+			String resultInScientificNotation = getInScientificNotation(bdResult);
+
+			resultTextFieldTooltip.setText(resultInScientificNotation);
+			resultTextField.setText(resultInScientificNotation);
+			resultFormattingMenuItem.setText("Powrót do notacji sta³opozycyjnej");
+		}
+	}
+
+	private boolean resultIsInScientificNotation()
+	{
+		return resultInFixedNotation != null;
+	}
+
+	private BigDecimal getResultInBigDecimal(String result)
+	{
+		BigDecimal bdResult = null;
+
 		try
 		{
-			bRes = new BigDecimal(result);
+			bdResult = new BigDecimal(result);
 		}
 		catch (NumberFormatException e)
 		{
 		}
 
-		String inScientificNotation = getInScientificNotation(bRes);
-
-		resultTextFieldTooltip.setText(inScientificNotation);
-		resultTextField.setText(inScientificNotation);
+		return bdResult;
 	}
 
 	private static String getInScientificNotation(BigDecimal value)
