@@ -3,11 +3,16 @@ package application.model.converter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class BasicConverter extends Converter
+import application.model.converter.exception.InvalidNumberFormatException;
+
+public class BasicConverter implements Converter
 {
+	String userInput;
 	private BigDecimal value;
+	private BigDecimal result;
 	private BigDecimal firstUnitRatio;
 	private BigDecimal secondUnitRatio;
+	private int numberOfDecimalPlaces;
 
 	public BasicConverter(String firstUnitRatio, String secondUnitRatio) throws InvalidNumberFormatException
 	{
@@ -25,19 +30,38 @@ public class BasicConverter extends Converter
 	@Override
 	public String doValueConversion(String userInput, int numberOfDecimalPlaces) throws InvalidNumberFormatException
 	{
+		this.userInput = userInput;
+		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
+		value = preprocessUserInput();
+		result = value.multiply(firstUnitRatio.divide(secondUnitRatio, 100, RoundingMode.HALF_UP));
+
+		String formattedResult = formatResult();
+
+		return formattedResult;
+	}
+
+	@Override
+	public BigDecimal preprocessUserInput() throws InvalidNumberFormatException
+	{
+		BigDecimal bigDecimal;
+
 		try
 		{
-			value = new BigDecimal(userInput);
+			bigDecimal = new BigDecimal(userInput);
 		}
 		catch (NumberFormatException e)
 		{
 			throw new InvalidNumberFormatException();
 		}
 
-		BigDecimal result = value.multiply(firstUnitRatio.divide(secondUnitRatio, 100, RoundingMode.HALF_UP));
-		result = result.setScale(numberOfDecimalPlaces, RoundingMode.HALF_UP);
-		String formattedResult = result.stripTrailingZeros().toPlainString();
+		return bigDecimal;
+	}
 
-		return formattedResult;
+	@Override
+	public String formatResult()
+	{
+		result = result.setScale(numberOfDecimalPlaces, RoundingMode.HALF_UP);
+
+		return result.stripTrailingZeros().toPlainString();
 	}
 }

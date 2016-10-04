@@ -11,8 +11,8 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import application.model.Model;
-import application.model.converter.InvalidNumberBaseException;
-import application.model.converter.InvalidNumberFormatException;
+import application.model.converter.exception.InvalidNumberBaseException;
+import application.model.converter.exception.InvalidNumberFormatException;
 import application.util.Message;
 import application.util.NumberTextField;
 import javafx.application.Application;

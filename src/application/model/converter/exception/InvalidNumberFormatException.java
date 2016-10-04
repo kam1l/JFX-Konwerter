@@ -1,4 +1,4 @@
-package application.model.converter;
+package application.model.converter.exception;
 
 public class InvalidNumberFormatException extends Exception
 {

@@ -24,10 +24,10 @@ import org.xml.sax.SAXException;
 
 import application.model.converter.BasicConverter;
 import application.model.converter.Converter;
-import application.model.converter.InvalidNumberBaseException;
-import application.model.converter.InvalidNumberFormatException;
 import application.model.converter.NumberBaseConverter;
 import application.model.converter.TemperatureConverter;
+import application.model.converter.exception.InvalidNumberBaseException;
+import application.model.converter.exception.InvalidNumberFormatException;
 import application.model.dto.Preferences;
 import application.model.dto.Unit;
 import application.model.dto.UnitType;

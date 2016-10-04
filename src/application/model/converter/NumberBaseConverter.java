@@ -6,12 +6,16 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NumberBaseConverter extends Converter
+import application.model.converter.exception.InvalidNumberBaseException;
+import application.model.converter.exception.InvalidNumberFormatException;
+
+public class NumberBaseConverter implements Converter
 {
 	private String userInput;
 	private BigInteger firstNumberBase;
 	private BigInteger secondNumberBase;
 
+	private String result;
 	private String stringDecPart;
 	private String stringIntPart;
 
@@ -48,19 +52,10 @@ public class NumberBaseConverter extends Converter
 			throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
 		this.userInput = userInput;
-		isInvalidStringValue = userInput.matches("^$|^-$") ? true : false;
-
-		if (isInvalidStringValue)
-		{
-			throw new InvalidNumberFormatException();
-		}
-
-		prepareInputValue();
+		hasValidCharacters = preprocessUserInput();
 
 		if (hasValidCharacters)
 		{
-			String result;
-
 			if (isDecimalFraction())
 			{
 				result = convertIntPart() + "." + convertDecPart(numberOfDecimalPlaces);
@@ -70,9 +65,9 @@ public class NumberBaseConverter extends Converter
 				result = convertIntPart();
 			}
 
-			result = isNegative ? "-" + result : result;
+			String formattedResult = formatResult();
 
-			return removeNegativeAndTrailingZeros(result);
+			return formattedResult;
 		}
 		else
 		{
@@ -80,8 +75,16 @@ public class NumberBaseConverter extends Converter
 		}
 	}
 
-	private void prepareInputValue()
+	@Override
+	public Boolean preprocessUserInput() throws InvalidNumberFormatException
 	{
+		isInvalidStringValue = userInput.matches("^$|^-$") ? true : false;
+
+		if (isInvalidStringValue)
+		{
+			throw new InvalidNumberFormatException();
+		}
+
 		userInput = removeTrailingZeros(userInput);
 		dotIndex = userInput.indexOf(".");
 		isNegative = userInput.indexOf("-") == -1 ? false : true;
@@ -104,6 +107,8 @@ public class NumberBaseConverter extends Converter
 			convertEachCharOfDecPartToDoubleValue();
 			calculateDecPart();
 		}
+
+		return hasValidCharacters;
 	}
 
 	private String convertIntPart()
@@ -228,4 +233,22 @@ public class NumberBaseConverter extends Converter
 	{
 		return dotIndex == -1 ? false : true;
 	}
+
+	@Override
+	public String formatResult()
+	{
+		return removeNegativeZero(removeTrailingZeros(isNegative ? "-" + result : result));
+	}
+
+	private String removeTrailingZeros(String value)
+	{
+		return (value.indexOf(".") == -1) ? value : value.replaceAll("0+$", "").replaceAll("\\.$", "");
+	}
+
+	private String removeNegativeZero(String value)
+	{
+		return value.matches("-|-0") ? "0" : value;
+	}
+
+
 }
