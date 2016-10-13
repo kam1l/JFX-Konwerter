@@ -13,7 +13,7 @@
 	maxWidth="-Infinity"
 	minHeight="-Infinity"
 	minWidth="-Infinity"
-	prefHeight="341.0"
+	prefHeight="380.0"
 	prefWidth="486.0"
 	xmlns="http://javafx.com/javafx/8.0.60"
 	xmlns:fx="http://javafx.com/fxml/1"
@@ -21,7 +21,7 @@
 	<children>
 		<Button
 			layoutX="213.0"
-			layoutY="295.0"
+			layoutY="341.0"
 			mnemonicParsing="false"
 			onAction="#savePreferences"
 			prefHeight="25.0"
@@ -79,20 +79,20 @@
 			prefWidth="60.0">
 		</ComboBox>
 		<Separator
-			layoutX="13.0"
-			layoutY="281.0"
+			layoutX="14.0"
+			layoutY="324.0"
 			prefHeight="3.0"
 			prefWidth="459.0" />
 		<Label
-			layoutX="184.0"
-			layoutY="248.0"
+			layoutX="185.0"
+			layoutY="290.0"
 			prefHeight="17.0"
 			prefWidth="41.0"
 			text="Skórka:" />
 		<ComboBox
 			fx:id="defaultSkinNameComboBox"
-			layoutX="231.0"
-			layoutY="244.0"
+			layoutX="232.0"
+			layoutY="286.0"
 			prefHeight="25.0"
 			prefWidth="241.0">
 			<items>
@@ -103,11 +103,13 @@
 			</items>
 		</ComboBox>
 		<Label
-			layoutX="191.0"
+			layoutX="145.0"
 			layoutY="206.0"
-			text="Język:" />
+			prefHeight="17.0"
+			prefWidth="82.0"
+			text="Język aplikacji:" />
 		<ComboBox
-			layoutX="231.0"
+			layoutX="232.0"
 			layoutY="202.0"
 			prefHeight="25.0"
 			prefWidth="241.0">
@@ -120,6 +122,25 @@
 			<value>
 				<String fx:value="Polski" />
 			</value>
+		</ComboBox>
+		<Label
+			layoutX="137.0"
+			layoutY="248.0"
+			prefHeight="17.0"
+			prefWidth="90.0"
+			text="Język jednostek:" />
+		<ComboBox
+			layoutX="231.0"
+			layoutY="244.0"
+			prefHeight="25.0"
+			prefWidth="241.0"
+			value="Polski">
+			<items>
+				<FXCollections fx:factory="observableArrayList">
+					<String fx:value="Polski" />
+					<String fx:value="Angielski" />
+				</FXCollections>
+			</items>
 		</ComboBox>
 	</children>
 </AnchorPane>

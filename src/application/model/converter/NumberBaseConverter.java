@@ -250,5 +250,4 @@ public class NumberBaseConverter implements Converter
 		return value.matches("-|-0") ? "0" : value;
 	}
 
-
 }

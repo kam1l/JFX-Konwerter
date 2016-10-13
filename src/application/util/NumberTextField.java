@@ -32,7 +32,8 @@ public class NumberTextField extends TextField
 		}
 		else
 		{
-			return typedText.matches("") || newText.matches("(-)?([0-9]+(\\.[0-9]*)?)?");
+			return typedText.matches("") || newText.matches("(-)?([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?")
+					|| newText.matches("(-)?([0-9]+(\\.([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?)?)?");
 		}
 	}
 

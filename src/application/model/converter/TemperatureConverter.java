@@ -92,7 +92,7 @@ public class TemperatureConverter implements Converter
 
 		case "°D":
 			result = new BigDecimal(100)
-			.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 100, RoundingMode.HALF_UP)));
+					.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 100, RoundingMode.HALF_UP)));
 			break;
 
 		case "°N":

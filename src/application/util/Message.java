@@ -17,6 +17,8 @@ public class Message
 	public static final String INVALID_NUMBER_FORMAT_MESSAGE = "Nieprawid³owy format liczby.";
 	public static final String INVALID_NUMBER_BASE_MESSAGE = "Nieprawid³owy format liczby o podstawie ";
 	public static final String NUMBER_BASE_CONVERSION_ERROR_MESSAGE = "B³¹d konwersji podstawy liczby.";
+	public static final String NUMBER_TOO_LONG_ERROR_MESSAGE = "Obliczenia nie mog³y zostaæ wykonane. "
+			+ "Liczba wejœciowa mo¿e mieæ maksymalnie 1000 znaków (aktualna ma ";
 
 	public void showMessage(String title, String content)
 	{

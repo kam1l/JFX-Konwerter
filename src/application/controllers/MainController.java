@@ -102,7 +102,6 @@ public class MainController implements Initializable
 		valueTextFieldTooltip.setText("0");
 		valueTextField.setTooltip(valueTextFieldTooltip);
 		resultTextField.setTooltip(resultTextFieldTooltip);
-		getAndSetResult();
 
 		addEventHandlersToComboBoxes();
 		addListenersToBooleanProperties();
@@ -134,42 +133,58 @@ public class MainController implements Initializable
 	private void addListenerToValueTextField()
 	{
 		valueTextField.textProperty()
-		.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
-		{
-			userInput = valueTextField.getText();
+				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
+				{
+					userInput = valueTextField.getText();
+					int userInputLength = userInput.length();
 
-			if (userInput.length() == 0)
-			{
-				valueTextFieldTooltip.setText("pusty");
-			}
-			else
-			{
-				valueTextFieldTooltip.setText(userInput);
-			}
-		});
+					if (userInputLength > 1000)
+					{
+						showNumberIsTooLongErrorMessage(userInputLength);
+					}
+					else
+					{
+						if (userInputLength == 0)
+						{
+							valueTextFieldTooltip.setText("pusty");
+						}
+						else
+						{
+							valueTextFieldTooltip.setText(userInput);
+						}
+
+						getAndSetResult();
+					}
+
+				});
+	}
+
+	private void showNumberIsTooLongErrorMessage(int userInputLength)
+	{
+		message.showMessage(Message.ERROR_TITLE, Message.NUMBER_TOO_LONG_ERROR_MESSAGE + userInputLength + ").");
 	}
 
 	private void addListenersToBooleanProperties()
 	{
 		numberOfDecimalPlacesWasChanged
-		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-		{
-			if (newValue == true)
-			{
-				getAndSetResult();
-				numberOfDecimalPlacesWasChanged.set(false);
-			}
-		});
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+				{
+					if (newValue == true)
+					{
+						getAndSetResult();
+						numberOfDecimalPlacesWasChanged.set(false);
+					}
+				});
 
 		defaultSkinNameWasChanged
-		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-		{
-			if (newValue == true)
-			{
-				setAppSkin();
-				defaultSkinNameWasChanged.set(false);
-			}
-		});
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+				{
+					if (newValue == true)
+					{
+						setAppSkin();
+						defaultSkinNameWasChanged.set(false);
+					}
+				});
 	}
 
 	private void addEventHandlersToComboBoxes()
@@ -198,7 +213,7 @@ public class MainController implements Initializable
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 	}
 
-	public void processDigitAndSetResult(ActionEvent event)
+	public void processDigit(ActionEvent event)
 	{
 		Object eventSource = event.getSource();
 		Button eventSourceButton = (Button) eventSource;
@@ -208,12 +223,15 @@ public class MainController implements Initializable
 		{
 			valueTextField.setText(clickedButtonValue);
 		}
-		else
+		else if (userInputCanBeLonger())
 		{
 			valueTextField.setText(userInput + clickedButtonValue);
 		}
+	}
 
-		getAndSetResult();
+	private boolean userInputCanBeLonger()
+	{
+		return !userInput.matches("^.+(e|E)(-|\\+)?[0-9]{2}$");
 	}
 
 	private boolean currentUserInputIsEqualZero()
@@ -223,10 +241,16 @@ public class MainController implements Initializable
 
 	public void processDecimalMark(ActionEvent event)
 	{
-		if (currentUserInputDoesNotContainDecimalMark() && currentUserInputIsNotEmpty())
+		if (currentUserInputDoesNotContainE() && currentUserInputDoesNotContainDecimalMark()
+				&& currentUserInputIsNotEmpty())
 		{
 			valueTextField.setText(userInput + ".");
 		}
+	}
+
+	private boolean currentUserInputDoesNotContainE()
+	{
+		return !userInput.contains("e") && !userInput.contains("E");
 	}
 
 	private boolean currentUserInputDoesNotContainDecimalMark()
@@ -234,7 +258,7 @@ public class MainController implements Initializable
 		return !userInput.contains(".");
 	}
 
-	public void processSignAndSetResult(ActionEvent event)
+	public void processSign(ActionEvent event)
 	{
 		if (currentUserInputIsNotEmpty())
 		{
@@ -246,8 +270,6 @@ public class MainController implements Initializable
 			{
 				valueTextField.setText("-" + userInput);
 			}
-
-			getAndSetResult();
 		}
 	}
 
@@ -266,7 +288,7 @@ public class MainController implements Initializable
 		return userInput.length() > 1 || userInput.charAt(0) != '0';
 	}
 
-	public void processDeletionKeyAndSetResult(ActionEvent event)
+	public void processDeletionKey(ActionEvent event)
 	{
 		Object eventSource = event.getSource();
 		Button eventSourceButton = (Button) eventSource;
@@ -287,8 +309,6 @@ public class MainController implements Initializable
 				valueTextField.setText("0");
 			}
 		}
-
-		getAndSetResult();
 	}
 
 	private boolean currentUserInputCanBeShortened()
@@ -351,14 +371,14 @@ public class MainController implements Initializable
 	public void showPreferences(ActionEvent event) throws IOException
 	{
 		stage = new Stage();
-		stage.setMaxHeight(368);
+		stage.setMaxHeight(413);
 		stage.setResizable(false);
 		Parent root = FXMLLoader.load(getClass().getResource("/application/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
 		scene.getStylesheets()
-		.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+				.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 		stage.getIcons()
-		.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
+				.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
@@ -449,7 +469,7 @@ public class MainController implements Initializable
 			return;
 		}
 
-		if(resultIsInScientificNotation())
+		if (resultIsInScientificNotation())
 		{
 			resultTextFieldTooltip.setText(resultInFixedNotation);
 			resultTextField.setText(resultInFixedNotation);
@@ -462,7 +482,7 @@ public class MainController implements Initializable
 			String result = resultTextField.getText();
 			resultInFixedNotation = result;
 			BigDecimal bdResult = getResultInBigDecimal(result);
-			if(bdResult == null)
+			if (bdResult == null)
 			{
 				return;
 			}
@@ -470,7 +490,7 @@ public class MainController implements Initializable
 
 			resultTextFieldTooltip.setText(resultInScientificNotation);
 			resultTextField.setText(resultInScientificNotation);
-			resultFormattingMenuItem.setText("Powrót do notacji sta³opozycyjnej");
+			resultFormattingMenuItem.setText("Wróæ do notacji sta³opozycyjnej");
 		}
 	}
 
