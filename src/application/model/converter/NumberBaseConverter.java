@@ -78,7 +78,8 @@ public class NumberBaseConverter implements Converter
 	@Override
 	public Boolean preprocessUserInput() throws InvalidNumberFormatException
 	{
-		isInvalidStringValue = userInput.matches("^$|^-$") ? true : false;
+		isInvalidStringValue = userInput.isEmpty() || userInput.length() == 1 && userInput.charAt(0) == '-' ? true
+				: false;
 
 		if (isInvalidStringValue)
 		{

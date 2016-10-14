@@ -1,5 +1,7 @@
 package application.util;
 
+import java.util.regex.Pattern;
+
 import javafx.scene.control.TextField;
 
 public class NumberTextField extends TextField
@@ -7,6 +9,9 @@ public class NumberTextField extends TextField
 	private int start, end;
 	private String typedText;
 	private boolean lettersAreAllowed;
+	private Pattern numberWithLetters = Pattern.compile("(-)?([0-9A-Za-z]+(\\.[0-9A-Za-z]*)?)?");
+	private Pattern numberWithoutDecimalMark = Pattern.compile("(-)?([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?");
+	private Pattern numberWithDecimalMark = Pattern.compile("(-)?([0-9]+(\\.([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?)?)?");
 
 	@Override
 	public void replaceText(int start, int end, String typedText)
@@ -28,12 +33,12 @@ public class NumberTextField extends TextField
 
 		if (lettersAreAllowed)
 		{
-			return newText.matches("(-)?([0-9A-Za-z]+(\\.[0-9A-Za-z]*)?)?");
+			return numberWithLetters.matcher(newText).matches();
 		}
 		else
 		{
-			return typedText.matches("") || newText.matches("(-)?([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?")
-					|| newText.matches("(-)?([0-9]+(\\.([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?)?)?");
+			return typedText.isEmpty() || numberWithoutDecimalMark.matcher(newText).matches()
+					|| numberWithDecimalMark.matcher(newText).matches();
 		}
 	}
 

@@ -27,7 +27,7 @@ public class TemperatureConverter implements Converter
 		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
 		value = preprocessUserInput();
 
-		if (firstScaleAbbreviation.matches("°C"))
+		if (firstScaleAbbreviation.equals("°C"))
 		{
 			result = convertFromCelsiusToOther();
 		}
@@ -60,7 +60,7 @@ public class TemperatureConverter implements Converter
 
 	private BigDecimal convertFromOtherToOther()
 	{
-		if (firstScaleAbbreviation.matches(secondScaleAbbreviation))
+		if (firstScaleAbbreviation.equals(secondScaleAbbreviation))
 		{
 			return value;
 		}
@@ -100,7 +100,7 @@ public class TemperatureConverter implements Converter
 			break;
 		}
 
-		if (secondScaleAbbreviation.matches("°C"))
+		if (secondScaleAbbreviation.equals("°C"))
 		{
 			return result;
 		}

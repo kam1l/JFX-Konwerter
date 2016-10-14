@@ -9,6 +9,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import application.model.Model;
 import application.model.converter.exception.InvalidNumberBaseException;
@@ -49,6 +50,8 @@ public class MainController implements Initializable
 
 	private String userInput;
 	private String resultInFixedNotation;
+	private Pattern numberWithTwoDigitExponent = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
+	private Pattern numberWithOneDigit = Pattern.compile("-?[0-9]?|(-0\\.)");
 	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
 
@@ -231,7 +234,7 @@ public class MainController implements Initializable
 
 	private boolean userInputCanBeLonger()
 	{
-		return !userInput.matches("^.+(e|E)(-|\\+)?[0-9]{2}$");
+		return !numberWithTwoDigitExponent.matcher(userInput).matches();
 	}
 
 	private boolean currentUserInputIsEqualZero()
@@ -313,7 +316,7 @@ public class MainController implements Initializable
 
 	private boolean currentUserInputCanBeShortened()
 	{
-		return !userInput.matches("-?[0-9]?|(-0\\.)");
+		return !numberWithOneDigit.matcher(userInput).matches();
 	}
 
 	public void swapUnits(ActionEvent event)
