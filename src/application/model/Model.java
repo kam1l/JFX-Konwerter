@@ -24,6 +24,7 @@ import org.xml.sax.SAXException;
 
 import application.model.converter.BasicConverter;
 import application.model.converter.Converter;
+import application.model.converter.InputValue;
 import application.model.converter.NumberBaseConverter;
 import application.model.converter.TemperatureConverter;
 import application.model.converter.exception.InvalidNumberBaseException;
@@ -94,7 +95,9 @@ public class Model
 			converter = new TemperatureConverter(firstScaleAbbreviation, secondScaleAbbreviation);
 		}
 
-		return converter.doValueConversion(userInput, numberOfDecimalPlaces);
+		InputValue value = converter.preprocessUserInput(userInput);
+
+		return converter.doValueConversion(value, numberOfDecimalPlaces);
 	}
 
 	private boolean currentUnitsAreBasic()

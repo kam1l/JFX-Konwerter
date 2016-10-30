@@ -7,12 +7,9 @@ import application.model.converter.exception.InvalidNumberFormatException;
 
 public class TemperatureConverter implements Converter
 {
-	String userInput;
-	private BigDecimal value;
-	private BigDecimal result;
+	public static final RoundingMode roundingMode = RoundingMode.HALF_EVEN;
 	private String firstScaleAbbreviation;
 	private String secondScaleAbbreviation;
-	private int numberOfDecimalPlaces;
 
 	public TemperatureConverter(String firstScaleAbbreviation, String secondScaleAbbreviation)
 	{
@@ -21,44 +18,42 @@ public class TemperatureConverter implements Converter
 	}
 
 	@Override
-	public String doValueConversion(String userInput, int numberOfDecimalPlaces) throws InvalidNumberFormatException
+	public String doValueConversion(InputValue inputValue, int numberOfDecimalPlaces)
 	{
-		this.userInput = userInput;
-		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
-		value = preprocessUserInput();
+		BigDecimal result;
 
 		if (firstScaleAbbreviation.equals("°C"))
 		{
-			result = convertFromCelsiusToOther();
+			result = convertFromCelsiusToOther(inputValue.bigDecimalValue, numberOfDecimalPlaces);
 		}
 		else
 		{
-			result = convertFromOtherToOther();
+			result = convertFromOtherToOther(inputValue.bigDecimalValue, numberOfDecimalPlaces);
 		}
 
-		String formattedResult = formatResult();
+		result = result.setScale(numberOfDecimalPlaces, roundingMode);
 
-		return formattedResult;
+		return result.stripTrailingZeros().toPlainString();
 	}
 
 	@Override
-	public BigDecimal preprocessUserInput() throws InvalidNumberFormatException
+	public InputValue preprocessUserInput(String userInput) throws InvalidNumberFormatException
 	{
-		BigDecimal bigDecimal;
+		BigDecimal bdValue;
 
 		try
 		{
-			bigDecimal = new BigDecimal(userInput);
+			bdValue = new BigDecimal(userInput);
 		}
 		catch (NumberFormatException e)
 		{
 			throw new InvalidNumberFormatException();
 		}
 
-		return bigDecimal;
+		return new InputValue(bdValue);
 	}
 
-	private BigDecimal convertFromOtherToOther()
+	private BigDecimal convertFromOtherToOther(BigDecimal value, int numberOfDecimalPlaces)
 	{
 		if (firstScaleAbbreviation.equals(secondScaleAbbreviation))
 		{
@@ -70,7 +65,8 @@ public class TemperatureConverter implements Converter
 		switch (firstScaleAbbreviation)
 		{
 		case "°F":
-			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), 100, RoundingMode.HALF_UP);
+			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), numberOfDecimalPlaces + 1,
+					roundingMode);
 			break;
 
 		case "°K":
@@ -78,25 +74,26 @@ public class TemperatureConverter implements Converter
 			break;
 
 		case "°R":
-			result = value.divide(new BigDecimal(1.8), 100, RoundingMode.HALF_UP).subtract(new BigDecimal(273.15));
+			result = value.divide(new BigDecimal(1.8), numberOfDecimalPlaces + 1, roundingMode)
+					.subtract(new BigDecimal(273.15));
 			break;
 
 		case "°Ré":
-			result = value.divide(new BigDecimal(0.8), 100, RoundingMode.HALF_UP);
+			result = value.divide(new BigDecimal(0.8), numberOfDecimalPlaces + 1, roundingMode);
 			break;
 
 		case "°Rø":
-			result = (value.subtract(new BigDecimal(7.5))).multiply(new BigDecimal(40)).divide(new BigDecimal(21), 100,
-					RoundingMode.HALF_UP);
+			result = (value.subtract(new BigDecimal(7.5))).multiply(new BigDecimal(40)).divide(new BigDecimal(21),
+					numberOfDecimalPlaces + 1, roundingMode);
 			break;
 
 		case "°D":
-			result = new BigDecimal(100)
-					.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 100, RoundingMode.HALF_UP)));
+			result = new BigDecimal(100).subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3),
+					numberOfDecimalPlaces + 1, roundingMode)));
 			break;
 
 		case "°N":
-			result = value.divide(new BigDecimal(0.33), 100, RoundingMode.HALF_UP);
+			result = value.divide(new BigDecimal(0.33), numberOfDecimalPlaces + 1, roundingMode);
 			break;
 		}
 
@@ -107,11 +104,11 @@ public class TemperatureConverter implements Converter
 		else
 		{
 			value = result;
-			return convertFromCelsiusToOther();
+			return convertFromCelsiusToOther(value, numberOfDecimalPlaces);
 		}
 	}
 
-	private BigDecimal convertFromCelsiusToOther()
+	private BigDecimal convertFromCelsiusToOther(BigDecimal value, int numberOfDecimalPlaces)
 	{
 		switch (secondScaleAbbreviation)
 		{
@@ -131,12 +128,12 @@ public class TemperatureConverter implements Converter
 			return value.multiply(new BigDecimal(0.8));
 
 		case "°Rø":
-			return value.multiply(new BigDecimal(21)).divide(new BigDecimal(40), 100, RoundingMode.HALF_UP)
-					.add(new BigDecimal(7.5));
+			return value.multiply(new BigDecimal(21))
+					.divide(new BigDecimal(40), numberOfDecimalPlaces + 1, roundingMode).add(new BigDecimal(7.5));
 
 		case "°D":
-			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2), 100,
-					RoundingMode.HALF_UP);
+			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2),
+					numberOfDecimalPlaces + 1, roundingMode);
 
 		case "°N":
 			return value.multiply(new BigDecimal(0.33));
@@ -144,13 +141,5 @@ public class TemperatureConverter implements Converter
 		default:
 			return BigDecimal.ZERO;
 		}
-	}
-
-	@Override
-	public String formatResult()
-	{
-		result = result.setScale(numberOfDecimalPlaces, RoundingMode.HALF_UP);
-
-		return result.stripTrailingZeros().toPlainString();
 	}
 }

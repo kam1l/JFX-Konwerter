@@ -7,12 +7,9 @@ import application.model.converter.exception.InvalidNumberFormatException;
 
 public class BasicConverter implements Converter
 {
-	String userInput;
-	private BigDecimal value;
-	private BigDecimal result;
+	public static final RoundingMode roundingMode = RoundingMode.HALF_EVEN;
 	private BigDecimal firstUnitRatio;
 	private BigDecimal secondUnitRatio;
-	private int numberOfDecimalPlaces;
 
 	public BasicConverter(String firstUnitRatio, String secondUnitRatio) throws InvalidNumberFormatException
 	{
@@ -28,40 +25,29 @@ public class BasicConverter implements Converter
 	}
 
 	@Override
-	public String doValueConversion(String userInput, int numberOfDecimalPlaces) throws InvalidNumberFormatException
+	public String doValueConversion(InputValue inputValue, int numberOfDecimalPlaces)
 	{
-		this.userInput = userInput;
-		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
-		value = preprocessUserInput();
-		result = value.multiply(firstUnitRatio.divide(secondUnitRatio, 100, RoundingMode.HALF_UP));
+		BigDecimal result = inputValue.bigDecimalValue
+				.multiply(firstUnitRatio.divide(secondUnitRatio, numberOfDecimalPlaces + 1, roundingMode));
+		result = result.setScale(numberOfDecimalPlaces, roundingMode);
 
-		String formattedResult = formatResult();
-
-		return formattedResult;
+		return result.stripTrailingZeros().toPlainString();
 	}
 
 	@Override
-	public BigDecimal preprocessUserInput() throws InvalidNumberFormatException
+	public InputValue preprocessUserInput(String userInput) throws InvalidNumberFormatException
 	{
-		BigDecimal bigDecimal;
+		BigDecimal bdValue;
 
 		try
 		{
-			bigDecimal = new BigDecimal(userInput);
+			bdValue = new BigDecimal(userInput);
 		}
 		catch (NumberFormatException e)
 		{
 			throw new InvalidNumberFormatException();
 		}
 
-		return bigDecimal;
-	}
-
-	@Override
-	public String formatResult()
-	{
-		result = result.setScale(numberOfDecimalPlaces, RoundingMode.HALF_UP);
-
-		return result.stripTrailingZeros().toPlainString();
+		return new InputValue(bdValue);
 	}
 }

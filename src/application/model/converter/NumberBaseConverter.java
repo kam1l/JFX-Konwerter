@@ -11,16 +11,10 @@ import application.model.converter.exception.InvalidNumberFormatException;
 
 public class NumberBaseConverter implements Converter
 {
-	private String userInput;
 	private BigInteger firstNumberBase;
 	private BigInteger secondNumberBase;
 
-	private String result;
-	private String stringDecPart;
-	private String stringIntPart;
-
 	private boolean isNegative;
-	private boolean hasValidCharacters;
 	private boolean isInvalidStringValue;
 
 	private int dotIndex;
@@ -29,10 +23,6 @@ public class NumberBaseConverter implements Converter
 
 	private List<Double> doubleValuesOfEachCharOfIntPart;
 	private List<Double> doubleValuesOfEachCharOfDecPart;
-
-	{
-		hasValidCharacters = true;
-	}
 
 	public NumberBaseConverter(String firstNumberBase, String secondNumberBase) throws InvalidNumberBaseException
 	{
@@ -48,35 +38,26 @@ public class NumberBaseConverter implements Converter
 	}
 
 	@Override
-	public String doValueConversion(String userInput, int numberOfDecimalPlaces)
-			throws InvalidNumberFormatException, InvalidNumberBaseException
+	public String doValueConversion(InputValue inputValue, int numberOfDecimalPlaces)
 	{
-		this.userInput = userInput;
-		hasValidCharacters = preprocessUserInput();
+		String result;
 
-		if (hasValidCharacters)
+		if (isDecimalFraction())
 		{
-			if (isDecimalFraction())
-			{
-				result = convertIntPart() + "." + convertDecPart(numberOfDecimalPlaces);
-			}
-			else
-			{
-				result = convertIntPart();
-			}
-
-			String formattedResult = formatResult();
-
-			return formattedResult;
+			result = convertIntPart(inputValue.stringIntPart) + "."
+					+ convertDecPart(inputValue.stringDecPart, numberOfDecimalPlaces);
 		}
 		else
 		{
-			throw new InvalidNumberBaseException(firstNumberBase.intValue());
+			result = convertIntPart(inputValue.stringIntPart);
 		}
+
+		return removeNegativeZero(removeTrailingZeros(isNegative ? "-" + result : result));
 	}
 
 	@Override
-	public Boolean preprocessUserInput() throws InvalidNumberFormatException
+	public InputValue preprocessUserInput(String userInput)
+			throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
 		isInvalidStringValue = userInput.isEmpty() || userInput.length() == 1 && userInput.charAt(0) == '-' ? true
 				: false;
@@ -96,23 +77,24 @@ public class NumberBaseConverter implements Converter
 			dotIndex = dotIndex == -1 ? dotIndex : dotIndex - 1;
 		}
 
-		stringIntPart = isDecimalFraction() ? userInput.substring(0, dotIndex) : userInput;
+		String intPart = isDecimalFraction() ? userInput.substring(0, dotIndex) : userInput;
+		String decPart = null;
 
-		convertEachCharOfIntPartToDoubleValue();
-		calculateIntPart();
+		convertEachCharOfIntPartToDoubleValue(intPart);
+		calculateIntPart(intPart);
 
 		if (isDecimalFraction())
 		{
-			stringDecPart = userInput.substring(dotIndex + 1);
+			decPart = userInput.substring(dotIndex + 1);
 
-			convertEachCharOfDecPartToDoubleValue();
-			calculateDecPart();
+			convertEachCharOfDecPartToDoubleValue(decPart);
+			calculateDecPart(decPart);
 		}
 
-		return hasValidCharacters;
+		return new InputValue(intPart, decPart);
 	}
 
-	private String convertIntPart()
+	private String convertIntPart(String stringIntPart)
 	{
 		BigInteger reminder;
 		String result = new String("");
@@ -127,7 +109,7 @@ public class NumberBaseConverter implements Converter
 		return result.isEmpty() ? "0" : result;
 	}
 
-	private String convertDecPart(int numberOfDecimalPlaces)
+	private String convertDecPart(String stringDecPart, int numberOfDecimalPlaces)
 	{
 		long intP;
 		int numberOfDigits = 0;
@@ -148,17 +130,17 @@ public class NumberBaseConverter implements Converter
 		return result;
 	}
 
-	private void convertEachCharOfIntPartToDoubleValue()
+	private void convertEachCharOfIntPartToDoubleValue(String intPart) throws InvalidNumberBaseException
 	{
-		doubleValuesOfEachCharOfIntPart = convertEachCharToDoubleValue(stringIntPart);
+		doubleValuesOfEachCharOfIntPart = convertEachCharToDoubleValue(intPart);
 	}
 
-	private void convertEachCharOfDecPartToDoubleValue()
+	private void convertEachCharOfDecPartToDoubleValue(String decPart) throws InvalidNumberBaseException
 	{
-		doubleValuesOfEachCharOfDecPart = convertEachCharToDoubleValue(stringDecPart);
+		doubleValuesOfEachCharOfDecPart = convertEachCharToDoubleValue(decPart);
 	}
 
-	private List<Double> convertEachCharToDoubleValue(String value)
+	private List<Double> convertEachCharToDoubleValue(String value) throws InvalidNumberBaseException
 	{
 		List<Double> doubleValuesOfEachChar = new ArrayList<Double>();
 		double currentCharacterValue;
@@ -170,7 +152,7 @@ public class NumberBaseConverter implements Converter
 
 			if (currentCharacterIsInvalid(currentCharacterValue))
 			{
-				hasValidCharacters = false;
+				throw new InvalidNumberBaseException(firstNumberBase.intValue());
 			}
 		}
 
@@ -182,7 +164,7 @@ public class NumberBaseConverter implements Converter
 		return currentCharacterValue >= firstNumberBase.intValue();
 	}
 
-	private void calculateDecPart()
+	private void calculateDecPart(String stringDecPart)
 	{
 		BigDecimal val;
 		BigDecimal firstBase = new BigDecimal(firstNumberBase);
@@ -194,7 +176,7 @@ public class NumberBaseConverter implements Converter
 		}
 	}
 
-	private void calculateIntPart()
+	private void calculateIntPart(String stringIntPart)
 	{
 		BigInteger val;
 
@@ -233,12 +215,6 @@ public class NumberBaseConverter implements Converter
 	private boolean isDecimalFraction()
 	{
 		return dotIndex == -1 ? false : true;
-	}
-
-	@Override
-	public String formatResult()
-	{
-		return removeNegativeZero(removeTrailingZeros(isNegative ? "-" + result : result));
 	}
 
 	private String removeTrailingZeros(String value)

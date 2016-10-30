@@ -5,10 +5,8 @@ import application.model.converter.exception.InvalidNumberFormatException;
 
 public interface Converter
 {
-	public Object preprocessUserInput() throws InvalidNumberFormatException;
-
-	public String doValueConversion(String userInput, int numberOfDecimalPlaces)
+	public InputValue preprocessUserInput(String userInput)
 			throws InvalidNumberFormatException, InvalidNumberBaseException;
 
-	public String formatResult();
+	public String doValueConversion(InputValue value, int numberOfDecimalPlaces);
 }
