@@ -1,24 +1,16 @@
 package application.model.converter;
 
-import java.math.BigDecimal;
-
-public class InputValue
+public class InputValue<T>
 {
-	public final BigDecimal bigDecimalValue;
-	public final String stringIntPart;
-	public final String stringDecPart;
+	private final T value;
 
-	public InputValue(BigDecimal bdInputValue)
+	public InputValue(T value)
 	{
-		this.bigDecimalValue = bdInputValue;
-		stringIntPart = null;
-		stringDecPart = null;
+		this.value = value;
 	}
 
-	public InputValue(String stringIntPart, String stringDecPart)
+	public T get()
 	{
-		this.stringIntPart = stringIntPart;
-		this.stringDecPart = stringDecPart;
-		this.bigDecimalValue = null;
+		return value;
 	}
 }

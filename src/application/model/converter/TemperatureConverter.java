@@ -18,17 +18,17 @@ public class TemperatureConverter implements Converter
 	}
 
 	@Override
-	public String doValueConversion(InputValue inputValue, int numberOfDecimalPlaces)
+	public String doValueConversion(InputValue<?> inputValue, int numberOfDecimalPlaces)
 	{
 		BigDecimal result;
 
 		if (firstScaleAbbreviation.equals("°C"))
 		{
-			result = convertFromCelsiusToOther(inputValue.bigDecimalValue, numberOfDecimalPlaces);
+			result = convertFromCelsiusToOther((BigDecimal) inputValue.get(), numberOfDecimalPlaces);
 		}
 		else
 		{
-			result = convertFromOtherToOther(inputValue.bigDecimalValue, numberOfDecimalPlaces);
+			result = convertFromOtherToOther((BigDecimal) inputValue.get(), numberOfDecimalPlaces);
 		}
 
 		result = result.setScale(numberOfDecimalPlaces, roundingMode);
@@ -37,7 +37,7 @@ public class TemperatureConverter implements Converter
 	}
 
 	@Override
-	public InputValue preprocessUserInput(String userInput) throws InvalidNumberFormatException
+	public InputValue<?> preprocessUserInput(String userInput) throws InvalidNumberFormatException
 	{
 		BigDecimal bdValue;
 
@@ -50,7 +50,7 @@ public class TemperatureConverter implements Converter
 			throw new InvalidNumberFormatException();
 		}
 
-		return new InputValue(bdValue);
+		return new InputValue<BigDecimal>(bdValue);
 	}
 
 	private BigDecimal convertFromOtherToOther(BigDecimal value, int numberOfDecimalPlaces)

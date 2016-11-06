@@ -33,25 +33,28 @@ public class NumberBaseConverter implements Converter
 	}
 
 	@Override
-	public String doValueConversion(InputValue inputValue, int numberOfDecimalPlaces)
+	public String doValueConversion(InputValue<?> inputValue, int numberOfDecimalPlaces)
 	{
 		String result;
+		String value = (String) inputValue.get();
 
 		if (isDecimalFraction)
 		{
-			result = convertIntPart(inputValue.stringIntPart) + "."
-					+ convertDecPart(inputValue.stringDecPart, numberOfDecimalPlaces);
+			int dotIndex = value.indexOf('.');
+
+			result = convertIntPart(value.substring(0, dotIndex)) + "."
+					+ convertDecPart(value.substring(dotIndex + 1), numberOfDecimalPlaces);
 		}
 		else
 		{
-			result = convertIntPart(inputValue.stringIntPart);
+			result = convertIntPart(value);
 		}
 
 		return removeNegativeZero(removeTrailingZeros(isNegative ? "-" + result : result));
 	}
 
 	@Override
-	public InputValue preprocessUserInput(String userInput)
+	public InputValue<?> preprocessUserInput(String userInput)
 			throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
 		if (userInputIsNotValid(userInput))
@@ -84,7 +87,7 @@ public class NumberBaseConverter implements Converter
 			calculateDecPart(valuesOfEachCharOfDecPart, decPart);
 		}
 
-		return new InputValue(intPart, decPart);
+		return new InputValue<String>(intPart + (decPart == null ? "" : "." + decPart));
 	}
 
 	private boolean userInputIsNotValid(String userInput)

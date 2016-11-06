@@ -95,7 +95,7 @@ public class Model
 			converter = new TemperatureConverter(firstScaleAbbreviation, secondScaleAbbreviation);
 		}
 
-		InputValue value = converter.preprocessUserInput(userInput);
+		InputValue<?> value = converter.preprocessUserInput(userInput);
 
 		return converter.doValueConversion(value, numberOfDecimalPlaces);
 	}
