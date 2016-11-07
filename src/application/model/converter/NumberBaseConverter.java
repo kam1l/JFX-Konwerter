@@ -13,9 +13,6 @@ public class NumberBaseConverter implements Converter
 {
 	private BigInteger firstNumberBase;
 	private BigInteger secondNumberBase;
-	private BigInteger integerPart = BigInteger.ZERO;
-	private BigDecimal decimalFractionPart = BigDecimal.ZERO;
-
 	private boolean isNegative;
 	private boolean isDecimalFraction;
 
@@ -36,18 +33,15 @@ public class NumberBaseConverter implements Converter
 	public String doValueConversion(InputValue<?> inputValue, int numberOfDecimalPlaces)
 	{
 		String result;
-		String value = (String) inputValue.get();
 
 		if (isDecimalFraction)
 		{
-			int dotIndex = value.indexOf('.');
-
-			result = convertIntPart(value.substring(0, dotIndex)) + "."
-					+ convertDecPart(value.substring(dotIndex + 1), numberOfDecimalPlaces);
+			result = convertIntPart((BigInteger) inputValue.get()[0]) + "."
+					+ convertDecPart((BigDecimal) inputValue.get()[1], numberOfDecimalPlaces);
 		}
 		else
 		{
-			result = convertIntPart(value);
+			result = convertIntPart((BigInteger) inputValue.get()[0]);
 		}
 
 		return removeNegativeZero(removeTrailingZeros(isNegative ? "-" + result : result));
@@ -74,20 +68,18 @@ public class NumberBaseConverter implements Converter
 		}
 
 		String intPart = isDecimalFraction ? userInput.substring(0, dotIndex) : userInput;
-		String decPart = null;
-
 		List<Double> valuesOfEachCharOfIntPart = convertEachCharOfIntPartToDoubleValue(intPart);
-		calculateIntPart(valuesOfEachCharOfIntPart, intPart);
+		BigInteger integerPart = calculateIntPart(valuesOfEachCharOfIntPart, intPart);
+		BigDecimal decimalFractionPart = null;
 
 		if (isDecimalFraction)
 		{
-			decPart = userInput.substring(dotIndex + 1);
-
+			String decPart = userInput.substring(dotIndex + 1);
 			List<Double> valuesOfEachCharOfDecPart = convertEachCharOfDecPartToDoubleValue(decPart);
-			calculateDecPart(valuesOfEachCharOfDecPart, decPart);
+			decimalFractionPart = calculateDecPart(valuesOfEachCharOfDecPart, decPart);
 		}
 
-		return new InputValue<String>(intPart + (decPart == null ? "" : "." + decPart));
+		return new InputValue<Object>(new Object[] { integerPart, decimalFractionPart });
 	}
 
 	private boolean userInputIsNotValid(String userInput)
@@ -95,7 +87,7 @@ public class NumberBaseConverter implements Converter
 		return userInput.isEmpty() || userInput.length() == 1 && userInput.charAt(0) == '-' ? true : false;
 	}
 
-	private String convertIntPart(String stringIntPart)
+	private String convertIntPart(BigInteger integerPart)
 	{
 		BigInteger reminder;
 		String result = new String("");
@@ -110,7 +102,7 @@ public class NumberBaseConverter implements Converter
 		return result.isEmpty() ? "0" : result;
 	}
 
-	private String convertDecPart(String stringDecPart, int numberOfDecimalPlaces)
+	private String convertDecPart(BigDecimal decimalFractionPart, int numberOfDecimalPlaces)
 	{
 		long intP;
 		int numberOfDigits = 0;
@@ -165,27 +157,33 @@ public class NumberBaseConverter implements Converter
 		return currentCharacterValue >= firstNumberBase.intValue();
 	}
 
-	private void calculateDecPart(List<Double> valuesOfEachCharOfDecPart, String stringDecPart)
+	private BigDecimal calculateDecPart(List<Double> valuesOfEachCharOfDecPart, String stringDecPart)
 	{
 		BigDecimal val;
 		BigDecimal firstBase = new BigDecimal(firstNumberBase);
+		BigDecimal decimalFractionPart = BigDecimal.ZERO;
 
 		for (int i = 0, j = -1; i < stringDecPart.length(); i++, j--)
 		{
 			val = new BigDecimal(valuesOfEachCharOfDecPart.get(i));
 			decimalFractionPart = decimalFractionPart.add(firstBase.pow(j, new MathContext(100)).multiply(val));
 		}
+
+		return decimalFractionPart;
 	}
 
-	private void calculateIntPart(List<Double> valuesOfEachCharOfIntPart, String stringIntPart)
+	private BigInteger calculateIntPart(List<Double> valuesOfEachCharOfIntPart, String stringIntPart)
 	{
 		BigInteger val;
+		BigInteger integerPart = BigInteger.ZERO;
 
 		for (int i = 0, j = stringIntPart.length() - 1; i < stringIntPart.length(); i++, j--)
 		{
 			val = new BigDecimal(valuesOfEachCharOfIntPart.get(i)).toBigInteger();
 			integerPart = integerPart.add(firstNumberBase.pow(j).multiply(val));
 		}
+
+		return integerPart;
 	}
 
 	private double convertCharacterToDouble(char ch)
@@ -222,5 +220,4 @@ public class NumberBaseConverter implements Converter
 	{
 		return value.matches("-|-0") ? "0" : value;
 	}
-
 }

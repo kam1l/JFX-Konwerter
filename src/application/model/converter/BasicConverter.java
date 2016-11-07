@@ -27,7 +27,7 @@ public class BasicConverter implements Converter
 	@Override
 	public String doValueConversion(InputValue<?> inputValue, int numberOfDecimalPlaces)
 	{
-		BigDecimal result = ((BigDecimal) inputValue.get())
+		BigDecimal result = ((BigDecimal) inputValue.get()[0])
 				.multiply(firstUnitRatio.divide(secondUnitRatio, numberOfDecimalPlaces + 1, roundingMode));
 		result = result.setScale(numberOfDecimalPlaces, roundingMode);
 
@@ -48,6 +48,6 @@ public class BasicConverter implements Converter
 			throw new InvalidNumberFormatException();
 		}
 
-		return new InputValue<BigDecimal>(bdValue);
+		return new InputValue<BigDecimal>(new BigDecimal[] { bdValue });
 	}
 }

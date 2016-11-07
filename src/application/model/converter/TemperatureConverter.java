@@ -24,11 +24,11 @@ public class TemperatureConverter implements Converter
 
 		if (firstScaleAbbreviation.equals("°C"))
 		{
-			result = convertFromCelsiusToOther((BigDecimal) inputValue.get(), numberOfDecimalPlaces);
+			result = convertFromCelsiusToOther((BigDecimal) inputValue.get()[0], numberOfDecimalPlaces);
 		}
 		else
 		{
-			result = convertFromOtherToOther((BigDecimal) inputValue.get(), numberOfDecimalPlaces);
+			result = convertFromOtherToOther((BigDecimal) inputValue.get()[0], numberOfDecimalPlaces);
 		}
 
 		result = result.setScale(numberOfDecimalPlaces, roundingMode);
@@ -50,7 +50,7 @@ public class TemperatureConverter implements Converter
 			throw new InvalidNumberFormatException();
 		}
 
-		return new InputValue<BigDecimal>(bdValue);
+		return new InputValue<BigDecimal>(new BigDecimal[] { bdValue });
 	}
 
 	private BigDecimal convertFromOtherToOther(BigDecimal value, int numberOfDecimalPlaces)
