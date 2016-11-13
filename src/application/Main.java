@@ -2,6 +2,7 @@ package application;
 
 import application.controllers.MainController;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -22,14 +23,26 @@ public class Main extends Application
 
 			Scene scene = new Scene(root);
 			scene.getStylesheets()
-					.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+			.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 
 			primaryStage.setTitle("JFX Konwerter");
 			primaryStage.getIcons()
-					.add(new Image(Main.class.getResourceAsStream("/application/resources/images/icon.png")));
+			.add(new Image(Main.class.getResourceAsStream("/application/resources/images/icon.png")));
 			primaryStage.setMaxWidth(595);
 			primaryStage.setResizable(false);
 			primaryStage.setScene(scene);
+			primaryStage.setOnCloseRequest(e ->
+			{
+				if (controller.canBeShutdown())
+				{
+					controller.shutdownExecutor();
+					Platform.exit();
+				}
+				else
+				{
+					e.consume();
+				}
+			});
 			primaryStage.show();
 		}
 		catch (Exception e)

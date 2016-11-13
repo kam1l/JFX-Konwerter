@@ -9,6 +9,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import application.model.Model;
@@ -47,6 +49,7 @@ public class MainController implements Initializable
 	private Message message = new Message();
 	private static Stage stage;
 	private HostServices hostServices;
+	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	private String userInput;
 	private String resultInFixedNotation;
@@ -136,30 +139,30 @@ public class MainController implements Initializable
 	private void addListenerToValueTextField()
 	{
 		valueTextField.textProperty()
-				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
+		.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
+		{
+			userInput = valueTextField.getText();
+			int userInputLength = userInput.length();
+
+			if (userInputLength > 1000)
+			{
+				showNumberIsTooLongErrorMessage(userInputLength);
+			}
+			else
+			{
+				if (userInputLength == 0)
 				{
-					userInput = valueTextField.getText();
-					int userInputLength = userInput.length();
+					valueTextFieldTooltip.setText("pusty");
+				}
+				else
+				{
+					valueTextFieldTooltip.setText(userInput);
+				}
 
-					if (userInputLength > 1000)
-					{
-						showNumberIsTooLongErrorMessage(userInputLength);
-					}
-					else
-					{
-						if (userInputLength == 0)
-						{
-							valueTextFieldTooltip.setText("pusty");
-						}
-						else
-						{
-							valueTextFieldTooltip.setText(userInput);
-						}
+				getAndSetResult();
+			}
 
-						getAndSetResult();
-					}
-
-				});
+		});
 	}
 
 	private void showNumberIsTooLongErrorMessage(int userInputLength)
@@ -170,24 +173,24 @@ public class MainController implements Initializable
 	private void addListenersToBooleanProperties()
 	{
 		numberOfDecimalPlacesWasChanged
-				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-				{
-					if (newValue == true)
-					{
-						getAndSetResult();
-						numberOfDecimalPlacesWasChanged.set(false);
-					}
-				});
+		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+		{
+			if (newValue == true)
+			{
+				getAndSetResult();
+				numberOfDecimalPlacesWasChanged.set(false);
+			}
+		});
 
 		defaultSkinNameWasChanged
-				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-				{
-					if (newValue == true)
-					{
-						setAppSkin();
-						defaultSkinNameWasChanged.set(false);
-					}
-				});
+		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+		{
+			if (newValue == true)
+			{
+				setAppSkin();
+				defaultSkinNameWasChanged.set(false);
+			}
+		});
 	}
 
 	private void addEventHandlersToComboBoxes()
@@ -349,7 +352,8 @@ public class MainController implements Initializable
 		}
 
 		updateInfoAnchorPane.setVisible(true);
-		new Thread(() ->
+
+		executor.execute(() ->
 		{
 			boolean taskSucceeded = model.updateExchangeRates();
 			Platform.runLater(() ->
@@ -368,20 +372,25 @@ public class MainController implements Initializable
 
 				updateInfoAnchorPane.setVisible(false);
 			});
-		}).start();
+		});
 	}
 
 	public void showPreferences(ActionEvent event) throws IOException
 	{
+		if(updateIsPerforming())
+		{
+			return;
+		}
+
 		stage = new Stage();
 		stage.setMaxHeight(413);
 		stage.setResizable(false);
 		Parent root = FXMLLoader.load(getClass().getResource("/application/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
 		scene.getStylesheets()
-				.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+		.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 		stage.getIcons()
-				.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
+		.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
@@ -540,12 +549,24 @@ public class MainController implements Initializable
 
 	public void closeApp(ActionEvent event)
 	{
-		Platform.exit();
-		System.exit(0);
+		if(canBeShutdown())
+		{
+			shutdownExecutor();
+			Platform.exit();
+		}
+		else
+		{
+			event.consume();
+		}
 	}
 
 	public void showAppInfo(ActionEvent event)
 	{
+		if(updateIsPerforming())
+		{
+			return;
+		}
+
 		appInfoAnchorPane.setVisible(true);
 	}
 
@@ -578,6 +599,21 @@ public class MainController implements Initializable
 		}
 	}
 
+	private boolean updateIsPerforming()
+	{
+		return updateInfoAnchorPane.isVisible();
+	}
+
+	public boolean canBeShutdown()
+	{
+		return !updateIsPerforming();
+	}
+
+	public void shutdownExecutor()
+	{
+		executor.shutdown();
+	}
+
 	public static Stage getStage()
 	{
 		return stage;
@@ -587,4 +623,5 @@ public class MainController implements Initializable
 	{
 		this.hostServices = hostServices;
 	}
+
 }

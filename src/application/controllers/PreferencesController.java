@@ -3,6 +3,8 @@ package application.controllers;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import application.model.Model;
 import application.model.dto.Preferences;
@@ -20,12 +22,13 @@ public class PreferencesController implements Initializable
 {
 	private Model model;
 	private Message message = new Message();
+	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	private boolean numberOfDecimalPlacesWasChanged, defaultSkinNameWasChanged;
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
-			defaultSecondUnitComboBox, defaultSkinNameComboBox;
+	defaultSecondUnitComboBox, defaultSkinNameComboBox;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
@@ -116,7 +119,7 @@ public class PreferencesController implements Initializable
 	{
 		if (changesWereMade())
 		{
-			new Thread(() ->
+			executor.execute(() ->
 			{
 				Preferences prefs = getNewValues();
 				boolean taskSucceeded = model.updatePreferencesInDB(prefs);
@@ -132,9 +135,10 @@ public class PreferencesController implements Initializable
 						message.showMessage(Message.ERROR_TITLE, Message.SAVING_PREFERENCES_ERROR_MESSAGE);
 					}
 				});
-			}).start();
+			});
 		}
 
+		executor.shutdown();
 		MainController.getStage().close();
 	}
 
