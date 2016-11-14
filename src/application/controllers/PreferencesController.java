@@ -28,7 +28,7 @@ public class PreferencesController implements Initializable
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
-	defaultSecondUnitComboBox, defaultSkinNameComboBox;
+			defaultSecondUnitComboBox, defaultSkinNameComboBox;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)

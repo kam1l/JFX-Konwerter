@@ -139,30 +139,30 @@ public class MainController implements Initializable
 	private void addListenerToValueTextField()
 	{
 		valueTextField.textProperty()
-		.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
-		{
-			userInput = valueTextField.getText();
-			int userInputLength = userInput.length();
-
-			if (userInputLength > 1000)
-			{
-				showNumberIsTooLongErrorMessage(userInputLength);
-			}
-			else
-			{
-				if (userInputLength == 0)
+				.addListener((ObservableValue<? extends String> observable, String oldText, String newText) ->
 				{
-					valueTextFieldTooltip.setText("pusty");
-				}
-				else
-				{
-					valueTextFieldTooltip.setText(userInput);
-				}
+					userInput = valueTextField.getText();
+					int userInputLength = userInput.length();
 
-				getAndSetResult();
-			}
+					if (userInputLength > 1000)
+					{
+						showNumberIsTooLongErrorMessage(userInputLength);
+					}
+					else
+					{
+						if (userInputLength == 0)
+						{
+							valueTextFieldTooltip.setText("pusty");
+						}
+						else
+						{
+							valueTextFieldTooltip.setText(userInput);
+						}
 
-		});
+						getAndSetResult();
+					}
+
+				});
 	}
 
 	private void showNumberIsTooLongErrorMessage(int userInputLength)
@@ -173,24 +173,24 @@ public class MainController implements Initializable
 	private void addListenersToBooleanProperties()
 	{
 		numberOfDecimalPlacesWasChanged
-		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-		{
-			if (newValue == true)
-			{
-				getAndSetResult();
-				numberOfDecimalPlacesWasChanged.set(false);
-			}
-		});
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+				{
+					if (newValue == true)
+					{
+						getAndSetResult();
+						numberOfDecimalPlacesWasChanged.set(false);
+					}
+				});
 
 		defaultSkinNameWasChanged
-		.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
-		{
-			if (newValue == true)
-			{
-				setAppSkin();
-				defaultSkinNameWasChanged.set(false);
-			}
-		});
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+				{
+					if (newValue == true)
+					{
+						setAppSkin();
+						defaultSkinNameWasChanged.set(false);
+					}
+				});
 	}
 
 	private void addEventHandlersToComboBoxes()
@@ -346,7 +346,7 @@ public class MainController implements Initializable
 
 	public void runUpdateThread(ActionEvent event)
 	{
-		if (updateInfoAnchorPane.isVisible())
+		if (updateIsPerforming() || appInfoIsShowing())
 		{
 			return;
 		}
@@ -377,7 +377,7 @@ public class MainController implements Initializable
 
 	public void showPreferences(ActionEvent event) throws IOException
 	{
-		if(updateIsPerforming())
+		if (updateIsPerforming() || appInfoIsShowing())
 		{
 			return;
 		}
@@ -388,9 +388,9 @@ public class MainController implements Initializable
 		Parent root = FXMLLoader.load(getClass().getResource("/application/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
 		scene.getStylesheets()
-		.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+				.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 		stage.getIcons()
-		.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
+				.add(new Image(MainController.class.getResourceAsStream("/application/resources/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
@@ -549,7 +549,7 @@ public class MainController implements Initializable
 
 	public void closeApp(ActionEvent event)
 	{
-		if(canBeShutdown())
+		if (canBeShutdown())
 		{
 			shutdownExecutor();
 			Platform.exit();
@@ -562,7 +562,7 @@ public class MainController implements Initializable
 
 	public void showAppInfo(ActionEvent event)
 	{
-		if(updateIsPerforming())
+		if (updateIsPerforming())
 		{
 			return;
 		}
@@ -602,6 +602,11 @@ public class MainController implements Initializable
 	private boolean updateIsPerforming()
 	{
 		return updateInfoAnchorPane.isVisible();
+	}
+
+	private boolean appInfoIsShowing()
+	{
+		return appInfoAnchorPane.isVisible();
 	}
 
 	public boolean canBeShutdown()

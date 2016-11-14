@@ -23,11 +23,11 @@ public class Main extends Application
 
 			Scene scene = new Scene(root);
 			scene.getStylesheets()
-			.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
+					.add(getClass().getResource("/application/resources/css/application.css").toExternalForm());
 
 			primaryStage.setTitle("JFX Konwerter");
 			primaryStage.getIcons()
-			.add(new Image(Main.class.getResourceAsStream("/application/resources/images/icon.png")));
+					.add(new Image(Main.class.getResourceAsStream("/application/resources/images/icon.png")));
 			primaryStage.setMaxWidth(595);
 			primaryStage.setResizable(false);
 			primaryStage.setScene(scene);
