@@ -65,8 +65,7 @@ public class TemperatureConverter implements Converter
 		switch (firstScaleAbbreviation)
 		{
 		case "°F":
-			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), numberOfDecimalPlaces + 1,
-					roundingMode);
+			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), 300, roundingMode);
 			break;
 
 		case "°K":
@@ -74,26 +73,25 @@ public class TemperatureConverter implements Converter
 			break;
 
 		case "°R":
-			result = value.divide(new BigDecimal(1.8), numberOfDecimalPlaces + 1, roundingMode)
-					.subtract(new BigDecimal(273.15));
+			result = value.divide(new BigDecimal(1.8), 300, roundingMode).subtract(new BigDecimal(273.15));
 			break;
 
 		case "°Ré":
-			result = value.divide(new BigDecimal(0.8), numberOfDecimalPlaces + 1, roundingMode);
+			result = value.divide(new BigDecimal(0.8), 300, roundingMode);
 			break;
 
 		case "°Rø":
-			result = (value.subtract(new BigDecimal(7.5))).multiply(new BigDecimal(40)).divide(new BigDecimal(21),
-					numberOfDecimalPlaces + 1, roundingMode);
+			result = (value.subtract(new BigDecimal(7.5))).multiply(new BigDecimal(40)).divide(new BigDecimal(21), 300,
+					roundingMode);
 			break;
 
 		case "°D":
-			result = new BigDecimal(100).subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3),
-					numberOfDecimalPlaces + 1, roundingMode)));
+			result = new BigDecimal(100)
+					.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 300, roundingMode)));
 			break;
 
 		case "°N":
-			result = value.divide(new BigDecimal(0.33), numberOfDecimalPlaces + 1, roundingMode);
+			result = value.divide(new BigDecimal(0.33), 300, roundingMode);
 			break;
 		}
 
@@ -128,12 +126,12 @@ public class TemperatureConverter implements Converter
 			return value.multiply(new BigDecimal(0.8));
 
 		case "°Rø":
-			return value.multiply(new BigDecimal(21))
-					.divide(new BigDecimal(40), numberOfDecimalPlaces + 1, roundingMode).add(new BigDecimal(7.5));
+			return value.multiply(new BigDecimal(21)).divide(new BigDecimal(40), 300, roundingMode)
+					.add(new BigDecimal(7.5));
 
 		case "°D":
-			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2),
-					numberOfDecimalPlaces + 1, roundingMode);
+			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2), 300,
+					roundingMode);
 
 		case "°N":
 			return value.multiply(new BigDecimal(0.33));

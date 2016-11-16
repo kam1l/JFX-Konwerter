@@ -1,16 +1,19 @@
 package application.controllers;
 
 import java.net.URL;
-import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import application.model.Model;
+import application.model.Model.NamesKey;
+import application.model.Model.UnitKey;
+import application.model.Model.UnitTypeKey;
 import application.model.dto.Preferences;
 import application.util.Message;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,74 +26,77 @@ public class PreferencesController implements Initializable
 	private Model model;
 	private Message message = new Message();
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
-
-	private boolean numberOfDecimalPlacesWasChanged, defaultSkinNameWasChanged;
+	private Preferences currentPreferences;
+	private EnumMap<IdKeys, Integer> currentIds = new EnumMap<IdKeys, Integer>(IdKeys.class);
+	private EnumMap<IdKeys, Integer> selectedIds = new EnumMap<IdKeys, Integer>(IdKeys.class);
 
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
-			defaultSecondUnitComboBox, defaultSkinNameComboBox;
+			defaultSecondUnitComboBox, defaultAppLanguageComboBox, defaultUnitsLanguageComboBox, defaultAppSkinComboBox;
+
+	private int defaultNumberOfDecimalPlacesIndex, defaultUnitTypeIndex, defaultFirstUnitIndex, defaultSecondUnitIndex,
+			defaultAppLanguageIndex, defaultUnitsLanguageIndex, defaultAppSkinIndex;
+
+	private enum IdKeys
+	{
+		NUMBER_OF_DECIMAL_PLACES_ID, UNIT_TYPE_ID, FIRST_UNIT_ID, SECOND_UNIT_ID, APP_LANGUAGE_ID, UNITS_LANGUAGE_ID,
+		APP_SKIN_ID
+	}
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
 	{
-		initializeModel();
+		model = MainController.getModel();
+		currentPreferences = model.getPreferences();
 
-		int numberOfDecimalPlaces = Model.getNumberOfDecimalPlaces();
+		ObservableList<String> numbers = model.getNames(NamesKey.ALLOWED_NUMBERS_OF_DECIMAL_PLACES);
 		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
 				.getSelectionModel();
-		ObservableList<String> numbers = FXCollections.observableArrayList(getNumbersArray());
+		currentIds.put(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID, currentPreferences.getDefaultNumberOfDecimalPlacesId());
 
 		defaultNumberOfDecimalPlacesComboBox.setItems(numbers);
-		defaultNumberOfDecimalPlacesSel.select(String.valueOf(numberOfDecimalPlaces));
+		defaultNumberOfDecimalPlacesSel.select(String.valueOf(model.getNumberOfDecimalPlaces()));
 
-		ObservableList<String> unitTypeNames = model.getNames("allUnitTypeNames");
+		ObservableList<String> unitTypeNames = model.getNames(NamesKey.ALL_UNIT_TYPE_NAMES);
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
-		String defaultUnitTypeName = model.getUnitTypeName("defaultUnitType");
+		currentIds.put(IdKeys.UNIT_TYPE_ID, currentPreferences.getDefaultUnitTypeId());
 
 		defaultUnitTypeComboBox.setItems(unitTypeNames);
-		defaultUnitTypeSel.select(defaultUnitTypeName);
+		defaultUnitTypeSel.select(model.getUnitTypeName(UnitTypeKey.DEFAULT_UNIT_TYPE));
 
-		ObservableList<String> unitNames = model.getNames("preferencesUnitNames");
+		ObservableList<String> unitNames = model.getNames(NamesKey.PREFERENCES_UNIT_NAMES);
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		String defaultFirstUnitName = model.getUnitDisplayName("defaultFirstUnit");
+		currentIds.put(IdKeys.FIRST_UNIT_ID, currentPreferences.getDefaultFirstUnitId());
 
 		defaultFirstUnitComboBox.setItems(unitNames);
-		defaultFirstUnitSel.select(defaultFirstUnitName);
+		defaultFirstUnitSel.select(model.getUnitDisplayName(UnitKey.DEFAULT_FIRST_UNIT));
 
 		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
-		String defaultSecondUnitName = model.getUnitDisplayName("defaultSecondUnit");
+		currentIds.put(IdKeys.SECOND_UNIT_ID, currentPreferences.getDefaultSecondUnitId());
 
 		defaultSecondUnitComboBox.setItems(unitNames);
-		defaultSecondUnitSel.select(defaultSecondUnitName);
+		defaultSecondUnitSel.select(model.getUnitDisplayName(UnitKey.DEFAULT_SECOND_UNIT));
 
-		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
-		String defaultSkinName = model.getPreferences().getDefaultSkinName();
+		ObservableList<String> appLanguagesNames = model.getNames(NamesKey.APP_LANGUAGES_NAMES);
+		SingleSelectionModel<String> defaultAppLanguageSel = defaultAppLanguageComboBox.getSelectionModel();
+		currentIds.put(IdKeys.APP_LANGUAGE_ID, currentPreferences.getDefaultAppLanguageId());
 
-		defaultSkinNameSel.select(defaultSkinName);
-	}
+		defaultAppLanguageComboBox.setItems(appLanguagesNames);
+		defaultAppLanguageSel.select(model.getAppLanguageName());
 
-	private void initializeModel()
-	{
-		try
-		{
-			model = new Model();
-		}
-		catch (SQLException e)
-		{
-			message.showMessage(Message.ERROR_TITLE, Message.READING_PREFERENCES_ERROR_MESSAGE);
-		}
-	}
+		ObservableList<String> unitsLanguagesNames = model.getNames(NamesKey.UNITS_LANGUAGES_NAMES);
+		SingleSelectionModel<String> defaultUnitsLanguageSel = defaultUnitsLanguageComboBox.getSelectionModel();
+		currentIds.put(IdKeys.UNITS_LANGUAGE_ID, currentPreferences.getDefaultUnitsLanguageId());
 
-	private String[] getNumbersArray()
-	{
-		String[] numbers = new String[99];
+		defaultUnitsLanguageComboBox.setItems(unitsLanguagesNames);
+		defaultUnitsLanguageSel.select(model.getUnitsLanguageName());
 
-		for (int i = 0; i < 99; i++)
-		{
-			numbers[i] = String.valueOf(i + 2);
-		}
+		ObservableList<String> appSkinNames = model.getNames(NamesKey.APP_SKINS_NAMES);
+		SingleSelectionModel<String> defaultAppSkinSel = defaultAppSkinComboBox.getSelectionModel();
+		currentIds.put(IdKeys.APP_SKIN_ID, currentPreferences.getDefaultAppSkinId());
 
-		return numbers;
+		defaultAppSkinComboBox.setItems(appSkinNames);
+		defaultAppSkinSel.select(model.getAppSkinName());
 	}
 
 	public void changeUnitSet(ActionEvent event)
@@ -103,7 +109,7 @@ public class PreferencesController implements Initializable
 
 		model.changePreferencesSetOfUnits(currentUnitTypeIndex);
 
-		ObservableList<String> unitNames = model.getNames("preferencesUnitNames");
+		ObservableList<String> unitNames = model.getNames(NamesKey.PREFERENCES_UNIT_NAMES);
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
 
 		defaultFirstUnitComboBox.setItems(unitNames);
@@ -144,74 +150,113 @@ public class PreferencesController implements Initializable
 
 	private boolean changesWereMade()
 	{
-		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
-				.getSelectionModel();
-		String currentNumberOfDecPlaces = String.valueOf(Model.getNumberOfDecimalPlaces());
-		String selectedNumberOfDecPlaces = defaultNumberOfDecimalPlacesSel.getSelectedItem().toString();
+		defaultNumberOfDecimalPlacesIndex = defaultNumberOfDecimalPlacesComboBox.getSelectionModel().getSelectedIndex();
+		defaultUnitTypeIndex = defaultUnitTypeComboBox.getSelectionModel().getSelectedIndex();
+		defaultFirstUnitIndex = defaultFirstUnitComboBox.getSelectionModel().getSelectedIndex();
+		defaultSecondUnitIndex = defaultSecondUnitComboBox.getSelectionModel().getSelectedIndex();
+		defaultAppLanguageIndex = defaultAppLanguageComboBox.getSelectionModel().getSelectedIndex();
+		defaultUnitsLanguageIndex = defaultUnitsLanguageComboBox.getSelectionModel().getSelectedIndex();
+		defaultAppSkinIndex = defaultAppSkinComboBox.getSelectionModel().getSelectedIndex();
 
-		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		String currentDefaultFirstUnitName = model.getUnitDisplayName("defaultFirstUnit");
-		String selectedDefaultFirstUnitName = defaultFirstUnitSel.getSelectedItem().toString();
+		selectedIds.put(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID,
+				model.getNumbersOfDecimalPlaces(defaultNumberOfDecimalPlacesIndex).getNumberOfDecimalPlacesId());
+		selectedIds.put(IdKeys.UNIT_TYPE_ID, model.getUnitType(defaultUnitTypeIndex).getUnitTypeId());
+		selectedIds.put(IdKeys.FIRST_UNIT_ID, model.getPreferencesUnit(defaultFirstUnitIndex).getUnitId());
+		selectedIds.put(IdKeys.SECOND_UNIT_ID, model.getPreferencesUnit(defaultSecondUnitIndex).getUnitId());
+		selectedIds.put(IdKeys.APP_LANGUAGE_ID, model.getAppLanguages(defaultAppLanguageIndex).getAppLanguageId());
+		selectedIds.put(IdKeys.UNITS_LANGUAGE_ID,
+				model.getUnitsLanguages(defaultUnitsLanguageIndex).getUnitsLanguageId());
+		selectedIds.put(IdKeys.APP_SKIN_ID, model.getAppSkins(defaultAppSkinIndex).getAppSkinId());
 
-		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
-		String currentDefaultSecondUnitName = model.getUnitDisplayName("defaultSecondUnit");
-		String selectedDefaultSecondUnitName = defaultSecondUnitSel.getSelectedItem().toString();
-
-		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
-		String currentDefaultSkinName = model.getPreferences().getDefaultSkinName();
-		String selectedDefaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
-
-		numberOfDecimalPlacesWasChanged = !selectedNumberOfDecPlaces.equals(currentNumberOfDecPlaces);
-		defaultSkinNameWasChanged = !selectedDefaultSkinName.equals(currentDefaultSkinName);
-
-		return !(numberOfDecimalPlacesWasChanged && selectedDefaultFirstUnitName.equals(currentDefaultFirstUnitName)
-				&& selectedDefaultSecondUnitName.equals(currentDefaultSecondUnitName) && defaultSkinNameWasChanged);
+		return !Arrays.equals(currentIds.values().toArray(), selectedIds.values().toArray());
 	}
 
 	private Preferences getNewValues()
 	{
-		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
-				.getSelectionModel();
-		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
-		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
-		SingleSelectionModel<String> defaultSkinNameSel = defaultSkinNameComboBox.getSelectionModel();
-
-		int defaultNumberOfDecimalPlaces = Integer
-				.valueOf(defaultNumberOfDecimalPlacesSel.getSelectedItem().toString());
-		int defaultUnitTypeIndex = defaultUnitTypeSel.getSelectedIndex();
-		int defaultFirstUnitIndex = defaultFirstUnitSel.getSelectedIndex();
-		int defaultSecondUnitIndex = defaultSecondUnitSel.getSelectedIndex();
-		String defaultSkinName = defaultSkinNameSel.getSelectedItem().toString();
-
-		int preferencesId = model.getPreferencesId();
-		int defaultUnitTypeId = model.getUnitType(defaultUnitTypeIndex).getUnitTypeId();
-		int defaultFirstUnitId = model.getPreferencesUnit(defaultFirstUnitIndex).getUnitId();
-		int defaultSecondUnitId = model.getPreferencesUnit(defaultSecondUnitIndex).getUnitId();
-
-		Preferences prefs = new Preferences(preferencesId, defaultNumberOfDecimalPlaces, defaultUnitTypeId,
-				defaultFirstUnitId, defaultSecondUnitId, defaultSkinName);
-
-		return prefs;
+		return new Preferences(currentPreferences.getPreferencesId(),
+				selectedIds.get(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID), selectedIds.get(IdKeys.UNIT_TYPE_ID),
+				selectedIds.get(IdKeys.FIRST_UNIT_ID), selectedIds.get(IdKeys.SECOND_UNIT_ID),
+				selectedIds.get(IdKeys.APP_LANGUAGE_ID), selectedIds.get(IdKeys.UNITS_LANGUAGE_ID),
+				selectedIds.get(IdKeys.APP_SKIN_ID));
 	}
 
-	private void updatePreferencesRamDataStructures(Preferences prefs)
+	private void updatePreferencesRamDataStructures(Preferences newPreferences)
 	{
-		model.setPreferences(prefs);
+		model.setPreferences(newPreferences);
 
-		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
-		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
+		if (defaultUnitTypeWasChanged())
+		{
+			model.setDefaultUnitType(defaultUnitTypeIndex);
+		}
 
-		int defaultUnitTypeIndex = defaultUnitTypeSel.getSelectedIndex();
-		int defaultFirstUnitIndex = defaultFirstUnitSel.getSelectedIndex();
-		int defaultSecondUnitIndex = defaultSecondUnitSel.getSelectedIndex();
+		if (defaultFirstUnitWasChanged())
+		{
+			model.setUnit(defaultFirstUnitIndex, UnitKey.DEFAULT_FIRST_UNIT);
+		}
 
-		model.setDefaultUnitType(defaultUnitTypeIndex);
-		model.setUnit(defaultFirstUnitIndex, "defaultFirstUnit");
-		model.setUnit(defaultSecondUnitIndex, "defaultSecondUnit");
+		if (defaultSecondUnitWasChanged())
+		{
+			model.setUnit(defaultSecondUnitIndex, UnitKey.DEFAULT_SECOND_UNIT);
+		}
 
-		MainController.numberOfDecimalPlacesWasChanged.setValue(numberOfDecimalPlacesWasChanged);
-		MainController.defaultSkinNameWasChanged.setValue(defaultSkinNameWasChanged);
+		if (numberOfDecimalPlacesWasChanged())
+		{
+			model.setNumberOfDecimalPlaces(defaultNumberOfDecimalPlacesIndex);
+			MainController.numberOfDecimalPlacesWasChanged.setValue(true);
+		}
+
+		if (defaultAppLanguageWasChanged())
+		{
+			model.setAppLanguage(defaultAppLanguageIndex);
+			MainController.defaultAppLanguageWasChanged.setValue(true);
+		}
+
+		if (defaultUnitsLanguageWasChanged())
+		{
+			model.setUnitsLanguage(defaultUnitsLanguageIndex);
+			MainController.defaultUnitsLanguageWasChanged.setValue(true);
+		}
+
+		if (defaultAppSkinWasChanged())
+		{
+			model.setAppSkin(defaultAppSkinIndex);
+			MainController.defaultSkinNameWasChanged.setValue(true);
+		}
+	}
+
+	private boolean defaultUnitTypeWasChanged()
+	{
+		return currentIds.get(IdKeys.UNIT_TYPE_ID) != selectedIds.get(IdKeys.UNIT_TYPE_ID);
+	}
+
+	private boolean defaultFirstUnitWasChanged()
+	{
+		return currentIds.get(IdKeys.FIRST_UNIT_ID) != selectedIds.get(IdKeys.FIRST_UNIT_ID);
+	}
+
+	private boolean defaultSecondUnitWasChanged()
+	{
+		return currentIds.get(IdKeys.SECOND_UNIT_ID) != selectedIds.get(IdKeys.SECOND_UNIT_ID);
+	}
+
+	private Boolean numberOfDecimalPlacesWasChanged()
+	{
+		return currentIds.get(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID) != selectedIds
+				.get(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID);
+	}
+
+	private Boolean defaultAppLanguageWasChanged()
+	{
+		return currentIds.get(IdKeys.APP_LANGUAGE_ID) != selectedIds.get(IdKeys.APP_LANGUAGE_ID);
+	}
+
+	private Boolean defaultUnitsLanguageWasChanged()
+	{
+		return currentIds.get(IdKeys.UNITS_LANGUAGE_ID) != selectedIds.get(IdKeys.UNITS_LANGUAGE_ID);
+	}
+
+	private Boolean defaultAppSkinWasChanged()
+	{
+		return currentIds.get(IdKeys.APP_SKIN_ID) != selectedIds.get(IdKeys.APP_SKIN_ID);
 	}
 }

@@ -14,6 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import application.model.Model;
+import application.model.Model.NamesKey;
+import application.model.Model.UnitKey;
+import application.model.Model.UnitTypeKey;
 import application.model.converter.exception.InvalidNumberBaseException;
 import application.model.converter.exception.InvalidNumberFormatException;
 import application.util.Message;
@@ -45,17 +48,19 @@ import javafx.stage.Stage;
 
 public class MainController implements Initializable
 {
-	private Model model;
-	private Message message = new Message();
 	private static Stage stage;
+	private static Model model;
+	private Message message = new Message();
 	private HostServices hostServices;
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
-
 	private String userInput;
 	private String resultInFixedNotation;
+
 	private static final Pattern numberWithTwoDigitExponent = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
 	private static final Pattern numberWithOneDigit = Pattern.compile("-?[0-9]?|(-0\\.)");
 	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
+	public static BooleanProperty defaultAppLanguageWasChanged = new SimpleBooleanProperty();
+	public static BooleanProperty defaultUnitsLanguageWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
 
 	@FXML
@@ -81,20 +86,20 @@ public class MainController implements Initializable
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1)
 	{
-		initializeModel();
+		createModel();
 
-		ObservableList<String> unitTypeNames = model.getNames("allUnitTypeNames");
-		String currentUnitTypeName = model.getUnitTypeName("currentUnitType");
+		ObservableList<String> unitTypeNames = model.getNames(NamesKey.ALL_UNIT_TYPE_NAMES);
+		String currentUnitTypeName = model.getUnitTypeName(UnitTypeKey.CURRENT_UNIT_TYPE);
 		SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
 
 		unitTypeComboBox.setItems(unitTypeNames);
 		unitTypeSel.select(currentUnitTypeName);
 
-		ObservableList<String> unitNames = model.getNames("mainWindowUnitNames");
+		ObservableList<String> unitNames = model.getNames(NamesKey.MAIN_WINDOW_UNIT_NAMES);
 		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-		String currentFirstUnitName = model.getUnitDisplayName("currentFirstUnit");
-		String currentSecondUnitName = model.getUnitDisplayName("currentSecondUnit");
+		String currentFirstUnitName = model.getUnitDisplayName(UnitKey.CURRENT_FIRST_UNIT);
+		String currentSecondUnitName = model.getUnitDisplayName(UnitKey.CURRENT_SECOND_UNIT);
 		boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
 
 		valueTextField.setLettersAreAllowed(lettersAreAllowed);
@@ -115,12 +120,11 @@ public class MainController implements Initializable
 		setAppSkin();
 	}
 
-	private void initializeModel()
+	private void createModel()
 	{
 		try
 		{
 			model = new Model();
-			model.initializeRamDataStructures();
 		}
 		catch (SQLException e)
 		{
@@ -161,7 +165,6 @@ public class MainController implements Initializable
 
 						getAndSetResult();
 					}
-
 				});
 	}
 
@@ -200,7 +203,7 @@ public class MainController implements Initializable
 			SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 			int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
 
-			model.setUnit(firstUnitSelectedIndex, "currentFirstUnit");
+			model.setUnit(firstUnitSelectedIndex, UnitKey.CURRENT_FIRST_UNIT);
 
 			getAndSetResult();
 		};
@@ -210,7 +213,7 @@ public class MainController implements Initializable
 			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
 
-			model.setUnit(secondUnitSelectedIndex, "currentSecondUnit");
+			model.setUnit(secondUnitSelectedIndex, UnitKey.CURRENT_SECOND_UNIT);
 
 			getAndSetResult();
 		};
@@ -335,8 +338,8 @@ public class MainController implements Initializable
 		firstUnitSel.select(secondUnitIndex);
 		secondUnitSel.select(firstUnitIndex);
 
-		model.setUnit(secondUnitIndex, "currentFirstUnit");
-		model.setUnit(firstUnitIndex, "currentSecondUnit");
+		model.setUnit(secondUnitIndex, UnitKey.CURRENT_FIRST_UNIT);
+		model.setUnit(firstUnitIndex, UnitKey.CURRENT_SECOND_UNIT);
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
@@ -414,17 +417,17 @@ public class MainController implements Initializable
 		firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 
-		ObservableList<String> unitNames = model.getNames("mainWindowUnitNames");
+		ObservableList<String> unitNames = model.getNames(NamesKey.MAIN_WINDOW_UNIT_NAMES);
 		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 
 		firstUnitComboBox.setItems(unitNames);
 		firstUnitSel.select(0);
-		model.setUnit(0, "currentFirstUnit");
+		model.setUnit(0, UnitKey.CURRENT_FIRST_UNIT);
 
 		secondUnitComboBox.setItems(unitNames);
 		secondUnitSel.select(0);
-		model.setUnit(0, "currentSecondUnit");
+		model.setUnit(0, UnitKey.CURRENT_SECOND_UNIT);
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
@@ -587,16 +590,9 @@ public class MainController implements Initializable
 
 	public void setAppSkin()
 	{
-		String skinName = model.getPreferences().getDefaultSkinName();
+		String appSkinPath = model.getAppSkinPath();
 
-		if (skinName.equals("Modena"))
-		{
-			Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA);
-		}
-		else
-		{
-			Application.setUserAgentStylesheet("/application/resources/css/caspian.css");
-		}
+		Application.setUserAgentStylesheet(appSkinPath);
 	}
 
 	private boolean updateIsPerforming()
@@ -629,4 +625,8 @@ public class MainController implements Initializable
 		this.hostServices = hostServices;
 	}
 
+	public static Model getModel()
+	{
+		return model;
+	}
 }

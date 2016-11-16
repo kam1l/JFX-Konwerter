@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,33 +30,57 @@ import application.model.converter.NumberBaseConverter;
 import application.model.converter.TemperatureConverter;
 import application.model.converter.exception.InvalidNumberBaseException;
 import application.model.converter.exception.InvalidNumberFormatException;
+import application.model.dto.AppLanguage;
+import application.model.dto.AppSkin;
+import application.model.dto.NumberOfDecimalPlaces;
 import application.model.dto.Preferences;
 import application.model.dto.Unit;
 import application.model.dto.UnitType;
+import application.model.dto.UnitsLanguage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Model
 {
 	private Connection connection;
-	private static Preferences preferences;
-	private static String currentUnitTypeClassifier;
+	private Preferences preferences;
+	private Map<String, Double> updatedExchangeRates;
+	private String currentUnitTypeClassifier;
 
-	private static List<UnitType> allUnitTypes = new ArrayList<UnitType>();
-	private static List<Unit> allUnits = new ArrayList<Unit>();
-	private static Map<String, Double> updatedExchangeRates;
+	private List<UnitType> allUnitTypes = new ArrayList<UnitType>();
+	private List<Unit> allUnits = new ArrayList<Unit>();
+	private List<Unit> mainWindowUnits = new ArrayList<Unit>();
+	private List<Unit> preferencesUnits = new ArrayList<Unit>();
 
-	private static List<Unit> mainWindowUnits = new ArrayList<Unit>();
-	private static List<Unit> preferencesUnits = new ArrayList<Unit>();
+	private List<AppLanguage> appLanguages = new ArrayList<AppLanguage>();
+	private List<UnitsLanguage> unitsLanguages = new ArrayList<UnitsLanguage>();
+	private List<AppSkin> appSkins = new ArrayList<AppSkin>();
+	private List<NumberOfDecimalPlaces> numbersOfDecimalPlaces = new ArrayList<NumberOfDecimalPlaces>();
 
-	private static Map<String, UnitType> unitTypes = new HashMap<String, UnitType>();
-	private static Map<String, Unit> units = new HashMap<String, Unit>();
-	private static Map<String, ObservableList<String>> names = new HashMap<String, ObservableList<String>>();
+	private AppLanguage appLanguage;
+	private UnitsLanguage unitsLanguage;
+	private AppSkin appSkin;
+	private NumberOfDecimalPlaces numberOfDecimalPlaces;
 
-	static
+	private EnumMap<UnitTypeKey, UnitType> unitTypes = new EnumMap<UnitTypeKey, UnitType>(UnitTypeKey.class);
+	private EnumMap<UnitKey, Unit> units = new EnumMap<UnitKey, Unit>(UnitKey.class);
+	private EnumMap<NamesKey, ObservableList<String>> names = new EnumMap<NamesKey, ObservableList<String>>(
+			NamesKey.class);
+
+	public enum UnitTypeKey
 	{
-		names.put("mainWindowUnitNames", FXCollections.observableArrayList());
-		names.put("preferencesUnitNames", FXCollections.observableArrayList());
+		CURRENT_UNIT_TYPE, DEFAULT_UNIT_TYPE
+	}
+
+	public enum UnitKey
+	{
+		CURRENT_FIRST_UNIT, CURRENT_SECOND_UNIT, DEFAULT_FIRST_UNIT, DEFAULT_SECOND_UNIT
+	}
+
+	public enum NamesKey
+	{
+		MAIN_WINDOW_UNIT_NAMES, PREFERENCES_UNIT_NAMES, ALL_UNIT_TYPE_NAMES, APP_LANGUAGES_NAMES, UNITS_LANGUAGES_NAMES,
+		APP_SKINS_NAMES, ALLOWED_NUMBERS_OF_DECIMAL_PLACES
 	}
 
 	public Model() throws SQLException
@@ -66,6 +91,8 @@ public class Model
 		{
 			throw new SQLException();
 		}
+
+		initializeRamDataStructures();
 	}
 
 	public String convertValue(String userInput) throws InvalidNumberFormatException, InvalidNumberBaseException
@@ -75,22 +102,22 @@ public class Model
 
 		if (currentUnitsAreBasic())
 		{
-			String firstUnitRatio = String.valueOf(units.get("currentFirstUnit").getUnitRatio());
-			String secondUnitRatio = String.valueOf(units.get("currentSecondUnit").getUnitRatio());
+			String firstUnitRatio = String.valueOf(units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitRatio());
+			String secondUnitRatio = String.valueOf(units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitRatio());
 
 			converter = new BasicConverter(firstUnitRatio, secondUnitRatio);
 		}
 		else if (currentUnitsAreNumberBases())
 		{
-			String firstNumberBase = String.valueOf((int) units.get("currentFirstUnit").getUnitRatio());
-			String secondNumberBase = String.valueOf((int) units.get("currentSecondUnit").getUnitRatio());
+			String firstNumberBase = String.valueOf((int) units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitRatio());
+			String secondNumberBase = String.valueOf((int) units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitRatio());
 
 			converter = new NumberBaseConverter(firstNumberBase, secondNumberBase);
 		}
 		else
 		{
-			String firstScaleAbbreviation = getUnitAbbreviation("currentFirstUnit");
-			String secondScaleAbbreviation = getUnitAbbreviation("currentSecondUnit");
+			String firstScaleAbbreviation = getUnitAbbreviation(UnitKey.CURRENT_FIRST_UNIT);
+			String secondScaleAbbreviation = getUnitAbbreviation(UnitKey.CURRENT_SECOND_UNIT);
 
 			converter = new TemperatureConverter(firstScaleAbbreviation, secondScaleAbbreviation);
 		}
@@ -110,11 +137,15 @@ public class Model
 		return currentUnitTypeClassifier.equals("number");
 	}
 
-	public void initializeRamDataStructures() throws SQLException
+	private void initializeRamDataStructures() throws SQLException
 	{
 		preferences = getPreferencesFromDB();
+		appLanguages = getAppLanguagesFromDB(preferences.getDefaultAppLanguageId());
+		unitsLanguages = getUnitsLanguagesFromDB(preferences.getDefaultUnitsLanguageId());
+		appSkins = getAppSkinsFromDB(preferences.getDefaultAppSkinId());
+		numbersOfDecimalPlaces = getNumbersOfDecimalPlacesFromDB(preferences.getDefaultNumberOfDecimalPlacesId());
 		unitTypes = getUnitTypesFromDB(preferences.getDefaultUnitTypeId());
-		int currentUnitTypeId = unitTypes.get("currentUnitType").getUnitTypeId();
+		int currentUnitTypeId = unitTypes.get(UnitTypeKey.CURRENT_UNIT_TYPE).getUnitTypeId();
 		allUnits = getUnitsFromDB(currentUnitTypeId);
 	}
 
@@ -126,24 +157,149 @@ public class Model
 			resultSet.next();
 
 			int preferencesId = resultSet.getInt("preferencesId");
-			int numberOfDecimalPlaces = resultSet.getInt("numberOfDecimalPlaces");
+			int defaultNumberOfDecimalPlacesId = resultSet.getInt("defaultNumberOfDecimalPlacesId");
 			int defaultUnitTypeId = resultSet.getInt("defaultUnitTypeId");
 			int defaultFirstUnitId = resultSet.getInt("defaultFirstUnitId");
 			int defaultSecondUnitId = resultSet.getInt("defaultSecondUnitId");
-			String defaultSkinName = resultSet.getString("defaultSkinName");
+			int defaultAppLanguageId = resultSet.getInt("defaultAppLanguageId");
+			int defaultUnitsLanguageId = resultSet.getInt("defaultUnitsLanguageId");
+			int defaultAppSkinId = resultSet.getInt("defaultAppSkinId");
 
-			return new Preferences(preferencesId, numberOfDecimalPlaces, defaultUnitTypeId, defaultFirstUnitId,
-					defaultSecondUnitId, defaultSkinName);
+			return new Preferences(preferencesId, defaultNumberOfDecimalPlacesId, defaultUnitTypeId, defaultFirstUnitId,
+					defaultSecondUnitId, defaultAppLanguageId, defaultUnitsLanguageId, defaultAppSkinId);
 		}
 	}
 
-	private Map<String, UnitType> getUnitTypesFromDB(int defaultUnitTypeId) throws SQLException
+	private List<AppLanguage> getAppLanguagesFromDB(int defaultAppLanguageId) throws SQLException
+	{
+		try (PreparedStatement preparedStatement = connection
+				.prepareStatement("select * from AppLanguage order by appLanguageName asc");
+				ResultSet resultSet = preparedStatement.executeQuery())
+		{
+			ObservableList<String> nameList = FXCollections.observableArrayList();
+			List<AppLanguage> aLanguages = new ArrayList<AppLanguage>();
+
+			while (resultSet.next())
+			{
+				int appLanguageId = resultSet.getInt("appLanguageId");
+				String appLanguageName = resultSet.getString("appLanguageName");
+				AppLanguage appLanguage = new AppLanguage(appLanguageId, appLanguageName);
+
+				aLanguages.add(appLanguage);
+				nameList.add(appLanguageName);
+
+				if (appLanguageId == defaultAppLanguageId)
+				{
+					this.appLanguage = appLanguage;
+				}
+			}
+
+			names.put(NamesKey.APP_LANGUAGES_NAMES, nameList);
+
+			return aLanguages;
+		}
+	}
+
+	private List<UnitsLanguage> getUnitsLanguagesFromDB(int defaultUnitsLanguageId) throws SQLException
+	{
+		try (PreparedStatement preparedStatement = connection
+				.prepareStatement("select * from UnitsLanguage order by unitsLanguageName asc");
+				ResultSet resultSet = preparedStatement.executeQuery())
+		{
+			ObservableList<String> nameList = FXCollections.observableArrayList();
+			List<UnitsLanguage> uLanguages = new ArrayList<UnitsLanguage>();
+
+			while (resultSet.next())
+			{
+				int unitsLanguageId = resultSet.getInt("unitsLanguageId");
+				String unitsLanguageName = resultSet.getString("unitsLanguageName");
+				UnitsLanguage unitsLanguage = new UnitsLanguage(unitsLanguageId, unitsLanguageName);
+
+				uLanguages.add(unitsLanguage);
+				nameList.add(unitsLanguageName);
+
+				if (unitsLanguageId == defaultUnitsLanguageId)
+				{
+					this.unitsLanguage = unitsLanguage;
+				}
+			}
+
+			names.put(NamesKey.UNITS_LANGUAGES_NAMES, nameList);
+
+			return uLanguages;
+		}
+	}
+
+	private List<AppSkin> getAppSkinsFromDB(int defaultAppSkinId) throws SQLException
+	{
+		try (PreparedStatement preparedStatement = connection
+				.prepareStatement("select * from AppSkin order by appSkinName asc");
+				ResultSet resultSet = preparedStatement.executeQuery())
+		{
+			ObservableList<String> nameList = FXCollections.observableArrayList();
+			List<AppSkin> aSkins = new ArrayList<AppSkin>();
+
+			while (resultSet.next())
+			{
+				int appSkinId = resultSet.getInt("appSkinId");
+				String appSkinName = resultSet.getString("appSkinName");
+				String appSkinPath = resultSet.getString("appSkinPath");
+				AppSkin appSkin = new AppSkin(appSkinId, appSkinName, appSkinPath);
+
+				aSkins.add(appSkin);
+				nameList.add(appSkinName);
+
+				if (appSkinId == defaultAppSkinId)
+				{
+					this.appSkin = appSkin;
+				}
+			}
+
+			names.put(NamesKey.APP_SKINS_NAMES, nameList);
+
+			return aSkins;
+		}
+	}
+
+	private List<NumberOfDecimalPlaces> getNumbersOfDecimalPlacesFromDB(int defaultNumberOfDecimalPlacesId)
+			throws SQLException
+	{
+		try (PreparedStatement preparedStatement = connection
+				.prepareStatement("select * from NumberOfDecimalPlaces order by numberOfDecimalPlaces asc");
+				ResultSet resultSet = preparedStatement.executeQuery())
+		{
+			ObservableList<String> nameList = FXCollections.observableArrayList();
+			List<NumberOfDecimalPlaces> numsOfDecPlaces = new ArrayList<NumberOfDecimalPlaces>();
+
+			while (resultSet.next())
+			{
+				int numberOfDecimalPlacesId = resultSet.getInt("numberOfDecimalPlacesId");
+				int numberOfDecimalPlaces = resultSet.getInt("numberOfDecimalPlaces");
+				NumberOfDecimalPlaces numberOfDecimalPlacesObject = new NumberOfDecimalPlaces(numberOfDecimalPlacesId,
+						numberOfDecimalPlaces);
+
+				numsOfDecPlaces.add(numberOfDecimalPlacesObject);
+				nameList.add(String.valueOf(numberOfDecimalPlaces));
+
+				if (numberOfDecimalPlacesId == defaultNumberOfDecimalPlacesId)
+				{
+					this.numberOfDecimalPlaces = numberOfDecimalPlacesObject;
+				}
+			}
+
+			names.put(NamesKey.ALLOWED_NUMBERS_OF_DECIMAL_PLACES, nameList);
+
+			return numsOfDecPlaces;
+		}
+	}
+
+	private EnumMap<UnitTypeKey, UnitType> getUnitTypesFromDB(int defaultUnitTypeId) throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("select * from UnitType order by unitTypeName asc");
 				ResultSet resultSet = preparedStatement.executeQuery())
 		{
-			Map<String, UnitType> uTypes = new HashMap<String, UnitType>();
+			EnumMap<UnitTypeKey, UnitType> uTypes = new EnumMap<UnitTypeKey, UnitType>(UnitTypeKey.class);
 			ObservableList<String> nameList = FXCollections.observableArrayList();
 
 			while (resultSet.next())
@@ -158,13 +314,13 @@ public class Model
 
 				if (unitTypeId == defaultUnitTypeId)
 				{
-					uTypes.put("currentUnitType", new UnitType(unitType));
-					uTypes.put("defaultUnitType", new UnitType(unitType));
+					uTypes.put(UnitTypeKey.CURRENT_UNIT_TYPE, new UnitType(unitType));
+					uTypes.put(UnitTypeKey.DEFAULT_UNIT_TYPE, new UnitType(unitType));
 					currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
 				}
 			}
 
-			names.put("allUnitTypeNames", nameList);
+			names.put(NamesKey.ALL_UNIT_TYPE_NAMES, nameList);
 
 			return uTypes;
 		}
@@ -177,6 +333,8 @@ public class Model
 				ResultSet resultSet = preparedStatement.executeQuery())
 		{
 			List<Unit> aUnits = new ArrayList<Unit>();
+			names.put(NamesKey.MAIN_WINDOW_UNIT_NAMES, FXCollections.observableArrayList());
+			names.put(NamesKey.PREFERENCES_UNIT_NAMES, FXCollections.observableArrayList());
 
 			while (resultSet.next())
 			{
@@ -205,8 +363,8 @@ public class Model
 		int defaultFirstUnitId = preferences.getDefaultFirstUnitId();
 		int defaultSecondUnitId = preferences.getDefaultSecondUnitId();
 
-		addItemToUnitNames(unit, "mainWindowUnitNames");
-		addItemToUnitNames(unit, "preferencesUnitNames");
+		addItemToUnitNames(unit, NamesKey.MAIN_WINDOW_UNIT_NAMES);
+		addItemToUnitNames(unit, NamesKey.PREFERENCES_UNIT_NAMES);
 
 		mainWindowUnits.add(unit);
 		preferencesUnits.add(unit);
@@ -215,13 +373,13 @@ public class Model
 
 		if (unitId == defaultFirstUnitId)
 		{
-			setUnit(unit, "currentFirstUnit");
-			setUnit(unit, "defaultFirstUnit");
+			setUnit(unit, UnitKey.CURRENT_FIRST_UNIT);
+			setUnit(unit, UnitKey.DEFAULT_FIRST_UNIT);
 		}
 		if (unitId == defaultSecondUnitId)
 		{
-			setUnit(unit, "currentSecondUnit");
-			setUnit(unit, "defaultSecondUnit");
+			setUnit(unit, UnitKey.CURRENT_SECOND_UNIT);
+			setUnit(unit, UnitKey.DEFAULT_SECOND_UNIT);
 		}
 	}
 
@@ -268,13 +426,13 @@ public class Model
 				String currentCurrency = eElement.getAttribute("currency");
 				double currentRate = 1.0 / Double.parseDouble(eElement.getAttribute("rate"));
 
-				updateExRaSingleRowInDB(currentCurrency, currentRate);
+				updateExchangeRateSingleRowInDB(currentCurrency, currentRate);
 				updatedExchangeRates.put(currentCurrency, currentRate);
 			}
 		}
 	}
 
-	private void updateExRaSingleRowInDB(String symbol, double rate) throws SQLException
+	private void updateExchangeRateSingleRowInDB(String symbol, double rate) throws SQLException
 	{
 		try (PreparedStatement preparedStatement = connection
 				.prepareStatement("update Unit set unitRatio = ? where unitAbbreviation = ?"))
@@ -288,8 +446,8 @@ public class Model
 
 	public void updateExchangeRatesInRam()
 	{
-		String currenFirstUnitAbbreviation = units.get("currentFirstUnit").getUnitAbbreviation();
-		String currentSecondUnitAbbreviation = units.get("currentSecondUnit").getUnitAbbreviation();
+		String currenFirstUnitAbbreviation = units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitAbbreviation();
+		String currentSecondUnitAbbreviation = units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitAbbreviation();
 		String unitAbbreviation;
 		double newValue;
 
@@ -307,33 +465,36 @@ public class Model
 		if (updatedExchangeRates.get(currenFirstUnitAbbreviation) != null)
 		{
 			newValue = updatedExchangeRates.get(currenFirstUnitAbbreviation);
-			Unit unit = units.get("currentFirstUnit");
+			Unit unit = units.get(UnitKey.CURRENT_FIRST_UNIT);
 			unit.setUnitRatio(newValue);
 
-			units.put("currentFirstUnit", unit);
+			units.put(UnitKey.CURRENT_FIRST_UNIT, unit);
 		}
 		if (updatedExchangeRates.get(currentSecondUnitAbbreviation) != null)
 		{
 			newValue = updatedExchangeRates.get(currentSecondUnitAbbreviation);
-			Unit unit = units.get("currentSecondUnit");
+			Unit unit = units.get(UnitKey.CURRENT_SECOND_UNIT);
 			unit.setUnitRatio(newValue);
 
-			units.put("currentSecondUnit", unit);
+			units.put(UnitKey.CURRENT_SECOND_UNIT, unit);
 		}
 	}
 
 	public boolean updatePreferencesInDB(Preferences newPreferences)
 	{
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
-				"update Preferences set numberOfDecimalPlaces = ?, defaultUnitTypeId = ?, defaultFirstUnitId = ?, "
-						+ "defaultSecondUnitId = ?, defaultSkinName = ? where preferencesId = ?"))
+		try (PreparedStatement preparedStatement = connection
+				.prepareStatement("update Preferences set defaultNumberOfDecimalPlacesId = ?, defaultUnitTypeId = ?, "
+						+ "defaultFirstUnitId = ?, defaultSecondUnitId = ?, defaultAppLanguageId = ?, "
+						+ "defaultUnitsLanguageId = ?, defaultAppSkinId = ? where preferencesId = ?"))
 		{
-			preparedStatement.setInt(1, newPreferences.getNumberOfDecimalPlaces());
+			preparedStatement.setInt(1, newPreferences.getDefaultNumberOfDecimalPlacesId());
 			preparedStatement.setInt(2, newPreferences.getDefaultUnitTypeId());
 			preparedStatement.setInt(3, newPreferences.getDefaultFirstUnitId());
 			preparedStatement.setInt(4, newPreferences.getDefaultSecondUnitId());
-			preparedStatement.setString(5, newPreferences.getDefaultSkinName());
-			preparedStatement.setInt(6, newPreferences.getPreferencesId());
+			preparedStatement.setInt(5, newPreferences.getDefaultAppLanguageId());
+			preparedStatement.setInt(6, newPreferences.getDefaultUnitsLanguageId());
+			preparedStatement.setInt(7, newPreferences.getDefaultAppSkinId());
+			preparedStatement.setInt(8, newPreferences.getPreferencesId());
 
 			preparedStatement.executeUpdate();
 
@@ -347,33 +508,31 @@ public class Model
 
 	public void changePreferencesSetOfUnits(int index)
 	{
-		names.put("preferencesUnitNames", FXCollections.observableArrayList());
 		preferencesUnits.clear();
 
 		UnitType unitType = allUnitTypes.get(index);
 		int typeId = unitType.getUnitTypeId();
 
-		preferencesUnits = getUnitLists("preferencesUnitNames", typeId);
+		preferencesUnits = getUnitLists(NamesKey.PREFERENCES_UNIT_NAMES, typeId);
 	}
 
 	public void changeMainWindowSetOfUnits(int index)
 	{
 		UnitType unitType = allUnitTypes.get(index);
 
-		names.put("mainWindowUnitNames", FXCollections.observableArrayList());
 		mainWindowUnits.clear();
-
-		unitTypes.put("currentUnitType", new UnitType(unitType));
+		unitTypes.put(UnitTypeKey.CURRENT_UNIT_TYPE, new UnitType(unitType));
 		currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
 
-		int currentUnitTypeId = unitTypes.get("currentUnitType").getUnitTypeId();
+		int currentUnitTypeId = unitTypes.get(UnitTypeKey.CURRENT_UNIT_TYPE).getUnitTypeId();
 
-		mainWindowUnits = getUnitLists("mainWindowUnitNames", currentUnitTypeId);
+		mainWindowUnits = getUnitLists(NamesKey.MAIN_WINDOW_UNIT_NAMES, currentUnitTypeId);
 	}
 
-	private List<Unit> getUnitLists(String key, int typeId)
+	private List<Unit> getUnitLists(NamesKey key, int typeId)
 	{
 		List<Unit> unitsL = new ArrayList<Unit>();
+		names.put(key, FXCollections.observableArrayList());
 
 		for (Unit unit : allUnits)
 		{
@@ -387,7 +546,7 @@ public class Model
 		return unitsL;
 	}
 
-	private void addItemToUnitNames(Unit unit, String key)
+	private void addItemToUnitNames(Unit unit, NamesKey key)
 	{
 		String displayName = unit.getUnitDisplayName();
 		ObservableList<String> namList = names.get(key);
@@ -411,14 +570,14 @@ public class Model
 	public void setDefaultUnitType(int index)
 	{
 		UnitType unitType = allUnitTypes.get(index);
-		unitTypes.put("defaultUnitType", new UnitType(unitType));
+		unitTypes.put(UnitTypeKey.DEFAULT_UNIT_TYPE, new UnitType(unitType));
 	}
 
-	public void setUnit(int index, String key)
+	public void setUnit(int index, UnitKey key)
 	{
 		Unit unit;
 
-		if (key.matches("^default.+"))
+		if (key.equals(UnitKey.DEFAULT_FIRST_UNIT) || key.equals(UnitKey.DEFAULT_SECOND_UNIT))
 		{
 			unit = preferencesUnits.get(index);
 		}
@@ -430,12 +589,32 @@ public class Model
 		setUnit(unit, key);
 	}
 
-	private void setUnit(Unit unit, String key)
+	private void setUnit(Unit unit, UnitKey key)
 	{
 		units.put(key, new Unit(unit));
 	}
 
-	public String getUnitDisplayName(String key)
+	public void setNumberOfDecimalPlaces(int index)
+	{
+		numberOfDecimalPlaces = numbersOfDecimalPlaces.get(index);
+	}
+
+	public void setAppLanguage(int index)
+	{
+		appLanguage = appLanguages.get(index);
+	}
+
+	public void setUnitsLanguage(int index)
+	{
+		unitsLanguage = unitsLanguages.get(index);
+	}
+
+	public void setAppSkin(int index)
+	{
+		appSkin = appSkins.get(index);
+	}
+
+	public String getUnitDisplayName(UnitKey key)
 	{
 		return units.get(key).getUnitDisplayName();
 	}
@@ -455,14 +634,34 @@ public class Model
 		return preferences.getPreferencesId();
 	}
 
-	private String getUnitAbbreviation(String key)
+	private String getUnitAbbreviation(UnitKey key)
 	{
 		return units.get(key).getUnitAbbreviation();
 	}
 
-	public static int getNumberOfDecimalPlaces()
+	public int getNumberOfDecimalPlaces()
 	{
-		return preferences.getNumberOfDecimalPlaces();
+		return numberOfDecimalPlaces.getNumberOfDecimalPlaces();
+	}
+
+	public String getAppSkinName()
+	{
+		return appSkin.getAppSkinName();
+	}
+
+	public String getAppSkinPath()
+	{
+		return appSkin.getAppSkinPath();
+	}
+
+	public String getAppLanguageName()
+	{
+		return appLanguage.getAppLanguageName();
+	}
+
+	public String getUnitsLanguageName()
+	{
+		return unitsLanguage.getUnitsLanguageName();
 	}
 
 	public void setPreferences(Preferences prefs)
@@ -470,19 +669,39 @@ public class Model
 		preferences = prefs;
 	}
 
-	public ObservableList<String> getNames(String key)
+	public Preferences getPreferences()
+	{
+		return preferences;
+	}
+
+	public AppLanguage getAppLanguages(int index)
+	{
+		return appLanguages.get(index);
+	}
+
+	public UnitsLanguage getUnitsLanguages(int index)
+	{
+		return unitsLanguages.get(index);
+	}
+
+	public AppSkin getAppSkins(int index)
+	{
+		return appSkins.get(index);
+	}
+
+	public NumberOfDecimalPlaces getNumbersOfDecimalPlaces(int index)
+	{
+		return numbersOfDecimalPlaces.get(index);
+	}
+
+	public ObservableList<String> getNames(NamesKey key)
 	{
 		return names.get(key);
 	}
 
-	public String getUnitTypeName(String key)
+	public String getUnitTypeName(UnitTypeKey key)
 	{
 		return unitTypes.get(key).getUnitTypeName();
-	}
-
-	public Preferences getPreferences()
-	{
-		return preferences;
 	}
 
 	public boolean dbIsConnected()

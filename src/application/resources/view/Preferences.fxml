@@ -76,7 +76,7 @@
 			layoutX="232.0"
 			layoutY="14.0"
 			prefHeight="25.0"
-			prefWidth="60.0">
+			prefWidth="65.0">
 		</ComboBox>
 		<Separator
 			layoutX="14.0"
@@ -90,17 +90,11 @@
 			prefWidth="41.0"
 			text="Skórka:" />
 		<ComboBox
-			fx:id="defaultSkinNameComboBox"
+			fx:id="defaultAppSkinComboBox"
 			layoutX="232.0"
 			layoutY="286.0"
 			prefHeight="25.0"
 			prefWidth="241.0">
-			<items>
-				<FXCollections fx:factory="observableArrayList">
-					<String fx:value="Blue Caspian" />
-					<String fx:value="Modena" />
-				</FXCollections>
-			</items>
 		</ComboBox>
 		<Label
 			layoutX="145.0"
@@ -109,19 +103,11 @@
 			prefWidth="82.0"
 			text="Język aplikacji:" />
 		<ComboBox
+			fx:id="defaultAppLanguageComboBox"
 			layoutX="232.0"
 			layoutY="202.0"
 			prefHeight="25.0"
 			prefWidth="241.0">
-			<items>
-				<FXCollections fx:factory="observableArrayList">
-					<String fx:value="Polski" />
-					<String fx:value="Angielski" />
-				</FXCollections>
-			</items>
-			<value>
-				<String fx:value="Polski" />
-			</value>
 		</ComboBox>
 		<Label
 			layoutX="137.0"
@@ -130,17 +116,11 @@
 			prefWidth="90.0"
 			text="Język jednostek:" />
 		<ComboBox
+			fx:id="defaultUnitsLanguageComboBox"
 			layoutX="231.0"
 			layoutY="244.0"
 			prefHeight="25.0"
-			prefWidth="241.0"
-			value="Polski">
-			<items>
-				<FXCollections fx:factory="observableArrayList">
-					<String fx:value="Polski" />
-					<String fx:value="Angielski" />
-				</FXCollections>
-			</items>
+			prefWidth="241.0">
 		</ComboBox>
 	</children>
 </AnchorPane>

@@ -3,21 +3,26 @@ package application.model.dto;
 public class Preferences
 {
 	private final int preferencesId;
-	private final int numberOfDecimalPlaces;
+	private final int defaultNumberOfDecimalPlacesId;
 	private final int defaultUnitTypeId;
 	private final int defaultFirstUnitId;
 	private final int defaultSecondUnitId;
-	private final String defaultSkinName;
+	private final int defaultAppLanguageId;
+	private final int defaultUnitsLanguageId;
+	private final int defaultAppSkinId;
 
-	public Preferences(int preferencesId, int numberOfDecimalPlaces, int defaultUnitTypeId, int defaultFirstUnitId,
-			int defaultSecondUnitId, String defaultSkinName)
+	public Preferences(int preferencesId, int defaultNumberOfDecimalPlacesId, int defaultUnitTypeId,
+			int defaultFirstUnitId, int defaultSecondUnitId, int defaultAppLanguageId, int defaultUnitsLanguageId,
+			int defaultAppSkinId)
 	{
 		this.preferencesId = preferencesId;
-		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
+		this.defaultNumberOfDecimalPlacesId = defaultNumberOfDecimalPlacesId;
 		this.defaultUnitTypeId = defaultUnitTypeId;
 		this.defaultFirstUnitId = defaultFirstUnitId;
 		this.defaultSecondUnitId = defaultSecondUnitId;
-		this.defaultSkinName = defaultSkinName;
+		this.defaultAppLanguageId = defaultAppLanguageId;
+		this.defaultUnitsLanguageId = defaultUnitsLanguageId;
+		this.defaultAppSkinId = defaultAppSkinId;
 	}
 
 	public int getPreferencesId()
@@ -25,9 +30,9 @@ public class Preferences
 		return preferencesId;
 	}
 
-	public int getNumberOfDecimalPlaces()
+	public int getDefaultNumberOfDecimalPlacesId()
 	{
-		return numberOfDecimalPlaces;
+		return defaultNumberOfDecimalPlacesId;
 	}
 
 	public int getDefaultUnitTypeId()
@@ -45,8 +50,18 @@ public class Preferences
 		return defaultSecondUnitId;
 	}
 
-	public String getDefaultSkinName()
+	public int getDefaultAppSkinId()
 	{
-		return defaultSkinName;
+		return defaultAppSkinId;
+	}
+
+	public int getDefaultAppLanguageId()
+	{
+		return defaultAppLanguageId;
+	}
+
+	public int getDefaultUnitsLanguageId()
+	{
+		return defaultUnitsLanguageId;
 	}
 }

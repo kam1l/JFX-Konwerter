@@ -28,7 +28,7 @@ public class BasicConverter implements Converter
 	public String doValueConversion(InputValue<?> inputValue, int numberOfDecimalPlaces)
 	{
 		BigDecimal result = ((BigDecimal) inputValue.get()[0])
-				.multiply(firstUnitRatio.divide(secondUnitRatio, numberOfDecimalPlaces + 1, roundingMode));
+				.multiply(firstUnitRatio.divide(secondUnitRatio, 300, roundingMode));
 		result = result.setScale(numberOfDecimalPlaces, roundingMode);
 
 		return result.stripTrailingZeros().toPlainString();
