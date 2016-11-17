@@ -386,8 +386,8 @@ public class MainController implements Initializable
 		}
 
 		stage = new Stage();
-		stage.setMaxHeight(413);
 		stage.setResizable(false);
+		stage.sizeToScene();
 		Parent root = FXMLLoader.load(getClass().getResource("/application/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
 		scene.getStylesheets()

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 
 <AnchorPane
 	maxHeight="-Infinity"
@@ -19,30 +18,34 @@
 	xmlns:fx="http://javafx.com/fxml/1"
 	fx:controller="application.controllers.PreferencesController">
 	<children>
-		<Button
-			layoutX="213.0"
-			layoutY="341.0"
-			mnemonicParsing="false"
-			onAction="#savePreferences"
-			prefHeight="25.0"
-			prefWidth="60.0"
-			text="Zapisz" />
 		<Label
-			layoutX="79.0"
+			alignment="CENTER_RIGHT"
+			layoutX="10.0"
 			layoutY="20.0"
-			text="Liczba miejsc po przecinku:" />
+			text="Liczba miejsc po przecinku:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<Label
+			alignment="CENTER_RIGHT"
 			layoutX="148.0"
 			layoutY="70.0"
-			text="Domyślny typ:" />
+			text="Domyślny typ:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<Label
+			alignment="CENTER_RIGHT"
 			layoutX="103.0"
 			layoutY="112.0"
-			text="Domyślna jednostka 1:" />
+			text="Domyślna jednostka 1:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<Label
+			alignment="CENTER_RIGHT"
 			layoutX="103.0"
 			layoutY="154.0"
-			text="Domyślna jednostka 2:" />
+			text="Domyślna jednostka 2:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<Separator
 			layoutX="13.0"
 			layoutY="52.0"
@@ -84,11 +87,12 @@
 			prefHeight="3.0"
 			prefWidth="459.0" />
 		<Label
+			alignment="CENTER_RIGHT"
 			layoutX="185.0"
 			layoutY="290.0"
-			prefHeight="17.0"
-			prefWidth="41.0"
-			text="Skórka:" />
+			text="Skórka:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
 			fx:id="defaultAppSkinComboBox"
 			layoutX="232.0"
@@ -97,11 +101,12 @@
 			prefWidth="241.0">
 		</ComboBox>
 		<Label
+			alignment="CENTER_RIGHT"
 			layoutX="145.0"
 			layoutY="206.0"
-			prefHeight="17.0"
-			prefWidth="82.0"
-			text="Język aplikacji:" />
+			text="Język aplikacji:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
 			fx:id="defaultAppLanguageComboBox"
 			layoutX="232.0"
@@ -110,11 +115,12 @@
 			prefWidth="241.0">
 		</ComboBox>
 		<Label
+			alignment="CENTER_RIGHT"
 			layoutX="137.0"
 			layoutY="248.0"
-			prefHeight="17.0"
-			prefWidth="90.0"
-			text="Język jednostek:" />
+			text="Język jednostek:"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
 			fx:id="defaultUnitsLanguageComboBox"
 			layoutX="231.0"
@@ -122,5 +128,23 @@
 			prefHeight="25.0"
 			prefWidth="241.0">
 		</ComboBox>
+		<StackPane
+			layoutX="6.0"
+			layoutY="330.0"
+			prefHeight="45.0"
+			prefWidth="257.0"
+			AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="10.0">
+			<children>
+				<Button
+					alignment="CENTER"
+					contentDisplay="CENTER"
+					mnemonicParsing="false"
+					onAction="#savePreferences"
+					prefHeight="25.0"
+					text="Zapisz"
+					StackPane.alignment="CENTER" />
+			</children>
+		</StackPane>
 	</children>
 </AnchorPane>

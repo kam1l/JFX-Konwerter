@@ -28,8 +28,8 @@ public class Main extends Application
 			primaryStage.setTitle("JFX Konwerter");
 			primaryStage.getIcons()
 					.add(new Image(Main.class.getResourceAsStream("/application/resources/images/icon.png")));
-			primaryStage.setMaxWidth(595);
 			primaryStage.setResizable(false);
+			primaryStage.sizeToScene();
 			primaryStage.setScene(scene);
 			primaryStage.setOnCloseRequest(e ->
 			{
