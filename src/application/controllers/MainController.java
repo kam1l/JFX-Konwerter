@@ -398,6 +398,16 @@ public class MainController implements Initializable
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
 		stage.initOwner(appInfoAnchorPane.getScene().getWindow());
+		stage.setOnCloseRequest(e ->
+		{
+			int defaultUnitTypeIndex = model.getDefaultUnitTypeIndex();
+
+			if (defaultUnitTypeIndex != model.getPreferencesUnitTypeIndex())
+			{
+				model.setPreferencesUnitTypeIndex(defaultUnitTypeIndex);
+				model.changePreferencesSetOfUnits(defaultUnitTypeIndex);
+			}
+		});
 		stage.show();
 	}
 

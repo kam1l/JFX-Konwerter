@@ -46,6 +46,7 @@ public class Model
 	private Preferences preferences;
 	private Map<String, Double> updatedExchangeRates;
 	private String currentUnitTypeClassifier;
+	private int defaultUnitTypeIndex, preferencesUnitTypeIndex;
 
 	private List<UnitType> allUnitTypes = new ArrayList<UnitType>();
 	private List<Unit> allUnits = new ArrayList<Unit>();
@@ -316,6 +317,8 @@ public class Model
 				{
 					uTypes.put(UnitTypeKey.CURRENT_UNIT_TYPE, new UnitType(unitType));
 					uTypes.put(UnitTypeKey.DEFAULT_UNIT_TYPE, new UnitType(unitType));
+					defaultUnitTypeIndex = allUnitTypes.size() - 1;
+					preferencesUnitTypeIndex = defaultUnitTypeIndex;
 					currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
 				}
 			}
@@ -672,6 +675,26 @@ public class Model
 	public Preferences getPreferences()
 	{
 		return preferences;
+	}
+
+	public int getDefaultUnitTypeIndex()
+	{
+		return defaultUnitTypeIndex;
+	}
+
+	public void setDefaultUnitTypeIndex(int defaultUnitTypeIndex)
+	{
+		this.defaultUnitTypeIndex = defaultUnitTypeIndex;
+	}
+
+	public int getPreferencesUnitTypeIndex()
+	{
+		return preferencesUnitTypeIndex;
+	}
+
+	public void setPreferencesUnitTypeIndex(int preferencesUnitTypeIndex)
+	{
+		this.preferencesUnitTypeIndex = preferencesUnitTypeIndex;
 	}
 
 	public AppLanguage getAppLanguages(int index)

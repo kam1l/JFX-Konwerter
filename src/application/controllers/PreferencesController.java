@@ -107,6 +107,7 @@ public class PreferencesController implements Initializable
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
 		int currentUnitTypeIndex = defaultUnitTypeSel.getSelectedIndex();
 
+		model.setPreferencesUnitTypeIndex(currentUnitTypeIndex);
 		model.changePreferencesSetOfUnits(currentUnitTypeIndex);
 
 		ObservableList<String> unitNames = model.getNames(NamesKey.PREFERENCES_UNIT_NAMES);
@@ -186,6 +187,7 @@ public class PreferencesController implements Initializable
 
 		if (defaultUnitTypeWasChanged())
 		{
+			model.setDefaultUnitTypeIndex(defaultUnitTypeIndex);
 			model.setDefaultUnitType(defaultUnitTypeIndex);
 		}
 
