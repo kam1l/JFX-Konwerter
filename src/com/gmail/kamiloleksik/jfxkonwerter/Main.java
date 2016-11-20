@@ -1,6 +1,6 @@
-package com.gmail.kamiloleksik;
+package com.gmail.kamiloleksik.jfxkonwerter;
 
-import com.gmail.kamiloleksik.controllers.MainController;
+import com.gmail.kamiloleksik.jfxkonwerter.controllers.MainController;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -18,18 +18,19 @@ public class Main extends Application
 		try
 		{
 			FXMLLoader loader = new FXMLLoader(
-					getClass().getResource("/com/gmail/kamiloleksik/resources/view/Main.fxml"));
+					getClass().getResource("/com/gmail/kamiloleksik/jfxkonwerter/resources/view/Main.fxml"));
 			Parent root = loader.load();
 			MainController controller = loader.getController();
 			controller.setHostServices(getHostServices());
 
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(
-					getClass().getResource("/com/gmail/kamiloleksik/resources/css/application.css").toExternalForm());
+			scene.getStylesheets()
+					.add(getClass().getResource("/com/gmail/kamiloleksik/jfxkonwerter/resources/css/application.css")
+							.toExternalForm());
 
 			primaryStage.setTitle("JFX Konwerter");
-			primaryStage.getIcons().add(
-					new Image(Main.class.getResourceAsStream("/com/gmail/kamiloleksik/resources/images/icon.png")));
+			primaryStage.getIcons().add(new Image(
+					Main.class.getResourceAsStream("/com/gmail/kamiloleksik/jfxkonwerter/resources/images/icon.png")));
 			primaryStage.setResizable(false);
 			primaryStage.sizeToScene();
 			primaryStage.setScene(scene);

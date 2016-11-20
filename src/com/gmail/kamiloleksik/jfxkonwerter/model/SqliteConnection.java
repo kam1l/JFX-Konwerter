@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.model;
+package com.gmail.kamiloleksik.jfxkonwerter.model;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.model.converter;
+package com.gmail.kamiloleksik.jfxkonwerter.model.converter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -6,8 +6,8 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberBaseException;
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberFormatException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
 
 public class NumberBaseConverter implements Converter
 {

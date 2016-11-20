@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.model.converter;
+package com.gmail.kamiloleksik.jfxkonwerter.model.converter;
 
 public class InputValue<T>
 {

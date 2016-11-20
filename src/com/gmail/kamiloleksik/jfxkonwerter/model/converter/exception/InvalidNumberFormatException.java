@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.model.converter.exception;
+package com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception;
 
 public class InvalidNumberFormatException extends Exception
 {

@@ -1,9 +1,9 @@
-package com.gmail.kamiloleksik.model.converter;
+package com.gmail.kamiloleksik.jfxkonwerter.model.converter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberFormatException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
 
 public class TemperatureConverter implements Converter
 {

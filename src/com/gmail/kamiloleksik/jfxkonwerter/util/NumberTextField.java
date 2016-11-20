@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.util;
+package com.gmail.kamiloleksik.jfxkonwerter.util;
 
 import java.util.regex.Pattern;
 

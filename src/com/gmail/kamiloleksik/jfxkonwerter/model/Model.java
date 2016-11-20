@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.model;
+package com.gmail.kamiloleksik.jfxkonwerter.model;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -23,20 +23,20 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.gmail.kamiloleksik.model.converter.BasicConverter;
-import com.gmail.kamiloleksik.model.converter.Converter;
-import com.gmail.kamiloleksik.model.converter.InputValue;
-import com.gmail.kamiloleksik.model.converter.NumberBaseConverter;
-import com.gmail.kamiloleksik.model.converter.TemperatureConverter;
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberBaseException;
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberFormatException;
-import com.gmail.kamiloleksik.model.dto.AppLanguage;
-import com.gmail.kamiloleksik.model.dto.AppSkin;
-import com.gmail.kamiloleksik.model.dto.NumberOfDecimalPlaces;
-import com.gmail.kamiloleksik.model.dto.Preferences;
-import com.gmail.kamiloleksik.model.dto.Unit;
-import com.gmail.kamiloleksik.model.dto.UnitType;
-import com.gmail.kamiloleksik.model.dto.UnitsLanguage;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.BasicConverter;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.Converter;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.InputValue;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.NumberBaseConverter;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.TemperatureConverter;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.AppLanguage;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.AppSkin;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.NumberOfDecimalPlaces;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.Preferences;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.Unit;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.UnitType;
+import com.gmail.kamiloleksik.jfxkonwerter.model.dto.UnitsLanguage;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

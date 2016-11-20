@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.model.dto;
+package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
 public class AppLanguage
 {

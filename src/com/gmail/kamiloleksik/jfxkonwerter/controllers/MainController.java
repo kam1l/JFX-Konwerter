@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.controllers;
+package com.gmail.kamiloleksik.jfxkonwerter.controllers;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -13,14 +13,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-import com.gmail.kamiloleksik.model.Model;
-import com.gmail.kamiloleksik.model.Model.NamesKey;
-import com.gmail.kamiloleksik.model.Model.UnitKey;
-import com.gmail.kamiloleksik.model.Model.UnitTypeKey;
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberBaseException;
-import com.gmail.kamiloleksik.model.converter.exception.InvalidNumberFormatException;
-import com.gmail.kamiloleksik.util.Message;
-import com.gmail.kamiloleksik.util.NumberTextField;
+import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
+import com.gmail.kamiloleksik.jfxkonwerter.model.Model.NamesKey;
+import com.gmail.kamiloleksik.jfxkonwerter.model.Model.UnitKey;
+import com.gmail.kamiloleksik.jfxkonwerter.model.Model.UnitTypeKey;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
+import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
+import com.gmail.kamiloleksik.jfxkonwerter.util.NumberTextField;
 
 import javafx.application.Application;
 import javafx.application.HostServices;
@@ -390,12 +390,12 @@ public class MainController implements Initializable
 		stage.setResizable(false);
 		stage.sizeToScene();
 		Parent root = FXMLLoader
-				.load(getClass().getResource("/com/gmail/kamiloleksik/resources/view/Preferences.fxml"));
+				.load(getClass().getResource("/com/gmail/kamiloleksik/jfxkonwerter/resources/view/Preferences.fxml"));
 		Scene scene = new Scene(root);
-		scene.getStylesheets()
-				.add(getClass().getResource("/com/gmail/kamiloleksik/resources/css/application.css").toExternalForm());
-		stage.getIcons().add(new Image(
-				MainController.class.getResourceAsStream("/com/gmail/kamiloleksik/resources/images/icon.png")));
+		scene.getStylesheets().add(getClass()
+				.getResource("/com/gmail/kamiloleksik/jfxkonwerter/resources/css/application.css").toExternalForm());
+		stage.getIcons().add(new Image(MainController.class
+				.getResourceAsStream("/com/gmail/kamiloleksik/jfxkonwerter/resources/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
