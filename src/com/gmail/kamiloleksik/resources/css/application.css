@@ -1,0 +1,19 @@
+.root
+{
+	-fx-font-family: "Tahoma";
+}
+
+.separator:horizontal .line
+{
+    -fx-border-color: black transparent transparent transparent;
+}
+
+.separator:vertical .line
+{
+    -fx-border-color: transparent black transparent transparent;
+}
+
+.hyperlink 
+{
+    -fx-text-fill: #0082df;
+}
