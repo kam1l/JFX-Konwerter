@@ -1,23 +1,40 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
-public class Unit
-{
-	private final int unitId;
-	private final String unitName;
-	private final String unitAbbreviation;
-	private final String unitDisplayName;
-	private double unitRatio;
-	private final int unitType_unitTypeId;
+import java.math.BigDecimal;
 
-	public Unit(int unitId, String unitName, String unitAbbreviation, String unitDisplayName, double unitRatio,
-			int unitType_unitTypeId)
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "Unit")
+public class Unit implements Comparable<Unit>
+{
+	@DatabaseField(generatedId = true)
+	private int unitId;
+	@DatabaseField(canBeNull = false)
+	private String unitName;
+	@DatabaseField(unique = true)
+	private String unitAbbreviation;
+	@DatabaseField(persisted = false)
+	private String unitDisplayName;
+	@DatabaseField(canBeNull = false)
+	private BigDecimal unitRatio;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "unitType_unitTypeId")
+	private UnitType unitType;
+
+	public Unit()
+	{
+		// ORMLite needs a no-arg constructor
+	}
+
+	public Unit(int unitId, String unitName, String unitAbbreviation, String unitDisplayName, BigDecimal unitRatio,
+			UnitType unitType)
 	{
 		this.unitId = unitId;
 		this.unitName = unitName;
 		this.unitAbbreviation = unitAbbreviation;
 		this.unitDisplayName = unitDisplayName;
 		this.unitRatio = unitRatio;
-		this.unitType_unitTypeId = unitType_unitTypeId;
+		this.unitType = unitType;
 	}
 
 	public Unit(Unit another)
@@ -27,10 +44,10 @@ public class Unit
 		this.unitAbbreviation = another.unitAbbreviation;
 		this.unitDisplayName = another.unitDisplayName;
 		this.unitRatio = another.unitRatio;
-		this.unitType_unitTypeId = another.unitType_unitTypeId;
+		this.unitType = another.unitType;
 	}
 
-	public void setUnitRatio(double unitRatio)
+	public void setUnitRatio(BigDecimal unitRatio)
 	{
 		this.unitRatio = unitRatio;
 	}
@@ -55,23 +72,34 @@ public class Unit
 		return unitDisplayName;
 	}
 
-	public double getUnitRatio()
+	public BigDecimal getUnitRatio()
 	{
 		return unitRatio;
 	}
 
-	public double getNumberBase()
+	public BigDecimal getNumberBase()
 	{
 		return unitRatio;
 	}
 
 	public boolean isCurrency()
 	{
-		return unitType_unitTypeId == 7 ? true : false;
+		return unitType.getUnitTypeId() == 7 ? true : false;
 	}
 
-	public int getUnitType_unitTypeId()
+	public UnitType getUnitType()
 	{
-		return unitType_unitTypeId;
+		return unitType;
+	}
+
+	public void setDisplayName(String unitDisplayName)
+	{
+		this.unitDisplayName = unitDisplayName;
+	}
+
+	@Override
+	public int compareTo(Unit o)
+	{
+		return unitName.compareToIgnoreCase(o.unitName);
 	}
 }

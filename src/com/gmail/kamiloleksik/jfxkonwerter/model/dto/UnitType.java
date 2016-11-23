@@ -1,10 +1,22 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
-public class UnitType
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "UnitType")
+public class UnitType implements Comparable<UnitType>
 {
-	private final int unitTypeId;
-	private final String unitTypeName;
-	private final String classifier;
+	@DatabaseField(generatedId = true)
+	private int unitTypeId;
+	@DatabaseField(canBeNull = false)
+	private String unitTypeName;
+	@DatabaseField(canBeNull = false)
+	private String classifier;
+
+	public UnitType()
+	{
+		// ORMLite needs a no-arg constructor
+	}
 
 	public UnitType(int unitTypeId, String unitTypeName, String classifier)
 	{
@@ -33,5 +45,11 @@ public class UnitType
 	public String getUnitTypeClassifier()
 	{
 		return classifier;
+	}
+
+	@Override
+	public int compareTo(UnitType o)
+	{
+		return unitTypeName.compareToIgnoreCase(o.unitTypeName);
 	}
 }

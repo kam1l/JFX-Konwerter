@@ -53,48 +53,49 @@ public class PreferencesController implements Initializable
 		ObservableList<String> numbers = model.getNames(NamesKey.ALLOWED_NUMBERS_OF_DECIMAL_PLACES);
 		SingleSelectionModel<String> defaultNumberOfDecimalPlacesSel = defaultNumberOfDecimalPlacesComboBox
 				.getSelectionModel();
-		currentIds.put(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID, currentPreferences.getDefaultNumberOfDecimalPlacesId());
+		currentIds.put(IdKeys.NUMBER_OF_DECIMAL_PLACES_ID,
+				currentPreferences.getNumberOfDecimalPlaces().getNumberOfDecimalPlacesId());
 
 		defaultNumberOfDecimalPlacesComboBox.setItems(numbers);
-		defaultNumberOfDecimalPlacesSel.select(String.valueOf(model.getNumberOfDecimalPlaces()));
+		defaultNumberOfDecimalPlacesSel.select(model.getNumberOfDecimalPlaces());
 
 		ObservableList<String> unitTypeNames = model.getNames(NamesKey.ALL_UNIT_TYPE_NAMES);
 		SingleSelectionModel<String> defaultUnitTypeSel = defaultUnitTypeComboBox.getSelectionModel();
-		currentIds.put(IdKeys.UNIT_TYPE_ID, currentPreferences.getDefaultUnitTypeId());
+		currentIds.put(IdKeys.UNIT_TYPE_ID, currentPreferences.getUnitType().getUnitTypeId());
 
 		defaultUnitTypeComboBox.setItems(unitTypeNames);
 		defaultUnitTypeSel.select(model.getUnitTypeName(UnitTypeKey.DEFAULT_UNIT_TYPE));
 
 		ObservableList<String> unitNames = model.getNames(NamesKey.PREFERENCES_UNIT_NAMES);
 		SingleSelectionModel<String> defaultFirstUnitSel = defaultFirstUnitComboBox.getSelectionModel();
-		currentIds.put(IdKeys.FIRST_UNIT_ID, currentPreferences.getDefaultFirstUnitId());
+		currentIds.put(IdKeys.FIRST_UNIT_ID, currentPreferences.getFirstUnit().getUnitId());
 
 		defaultFirstUnitComboBox.setItems(unitNames);
 		defaultFirstUnitSel.select(model.getUnitDisplayName(UnitKey.DEFAULT_FIRST_UNIT));
 
 		SingleSelectionModel<String> defaultSecondUnitSel = defaultSecondUnitComboBox.getSelectionModel();
-		currentIds.put(IdKeys.SECOND_UNIT_ID, currentPreferences.getDefaultSecondUnitId());
+		currentIds.put(IdKeys.SECOND_UNIT_ID, currentPreferences.getSecondUnit().getUnitId());
 
 		defaultSecondUnitComboBox.setItems(unitNames);
 		defaultSecondUnitSel.select(model.getUnitDisplayName(UnitKey.DEFAULT_SECOND_UNIT));
 
 		ObservableList<String> appLanguagesNames = model.getNames(NamesKey.APP_LANGUAGES_NAMES);
 		SingleSelectionModel<String> defaultAppLanguageSel = defaultAppLanguageComboBox.getSelectionModel();
-		currentIds.put(IdKeys.APP_LANGUAGE_ID, currentPreferences.getDefaultAppLanguageId());
+		currentIds.put(IdKeys.APP_LANGUAGE_ID, currentPreferences.getAppLanguage().getAppLanguageId());
 
 		defaultAppLanguageComboBox.setItems(appLanguagesNames);
 		defaultAppLanguageSel.select(model.getAppLanguageName());
 
 		ObservableList<String> unitsLanguagesNames = model.getNames(NamesKey.UNITS_LANGUAGES_NAMES);
 		SingleSelectionModel<String> defaultUnitsLanguageSel = defaultUnitsLanguageComboBox.getSelectionModel();
-		currentIds.put(IdKeys.UNITS_LANGUAGE_ID, currentPreferences.getDefaultUnitsLanguageId());
+		currentIds.put(IdKeys.UNITS_LANGUAGE_ID, currentPreferences.getUnitsLanguage().getUnitsLanguageId());
 
 		defaultUnitsLanguageComboBox.setItems(unitsLanguagesNames);
 		defaultUnitsLanguageSel.select(model.getUnitsLanguageName());
 
 		ObservableList<String> appSkinNames = model.getNames(NamesKey.APP_SKINS_NAMES);
 		SingleSelectionModel<String> defaultAppSkinSel = defaultAppSkinComboBox.getSelectionModel();
-		currentIds.put(IdKeys.APP_SKIN_ID, currentPreferences.getDefaultAppSkinId());
+		currentIds.put(IdKeys.APP_SKIN_ID, currentPreferences.getAppSkin().getAppSkinId());
 
 		defaultAppSkinComboBox.setItems(appSkinNames);
 		defaultAppSkinSel.select(model.getAppSkinName());

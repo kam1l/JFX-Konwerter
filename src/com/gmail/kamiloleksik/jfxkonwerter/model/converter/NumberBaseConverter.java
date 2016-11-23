@@ -16,12 +16,13 @@ public class NumberBaseConverter implements Converter
 	private boolean isNegative;
 	private boolean isDecimalFraction;
 
-	public NumberBaseConverter(String firstNumberBase, String secondNumberBase) throws InvalidNumberBaseException
+	public NumberBaseConverter(BigInteger firstNumberBase, BigInteger secondNumberBase)
+			throws InvalidNumberBaseException
 	{
 		try
 		{
-			this.firstNumberBase = new BigInteger(firstNumberBase);
-			this.secondNumberBase = new BigInteger(secondNumberBase);
+			this.firstNumberBase = firstNumberBase;
+			this.secondNumberBase = secondNumberBase;
 		}
 		catch (NumberFormatException e)
 		{

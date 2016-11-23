@@ -1,11 +1,22 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
-public class NumberOfDecimalPlaces
-{
-	private final int numberOfDecimalPlacesId;
-	private final int numberOfDecimalPlaces;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
-	public NumberOfDecimalPlaces(int numberOfDecimalPlacesId, int numberOfDecimalPlaces)
+@DatabaseTable(tableName = "NumberOfDecimalPlaces")
+public class NumberOfDecimalPlaces implements Comparable<NumberOfDecimalPlaces>
+{
+	@DatabaseField(generatedId = true)
+	private int numberOfDecimalPlacesId;
+	@DatabaseField(canBeNull = false, unique = true)
+	private String numberOfDecimalPlaces;
+
+	public NumberOfDecimalPlaces()
+	{
+		// ORMLite needs a no-arg constructor
+	}
+
+	public NumberOfDecimalPlaces(int numberOfDecimalPlacesId, String numberOfDecimalPlaces)
 	{
 		this.numberOfDecimalPlacesId = numberOfDecimalPlacesId;
 		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
@@ -16,8 +27,14 @@ public class NumberOfDecimalPlaces
 		return numberOfDecimalPlacesId;
 	}
 
-	public int getNumberOfDecimalPlaces()
+	public String getNumberOfDecimalPlaces()
 	{
 		return numberOfDecimalPlaces;
+	}
+
+	@Override
+	public int compareTo(NumberOfDecimalPlaces o)
+	{
+		return Integer.valueOf(numberOfDecimalPlaces).compareTo(Integer.valueOf(o.numberOfDecimalPlaces));
 	}
 }

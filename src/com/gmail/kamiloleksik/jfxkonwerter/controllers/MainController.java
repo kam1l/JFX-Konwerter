@@ -127,7 +127,7 @@ public class MainController implements Initializable
 		{
 			model = new Model();
 		}
-		catch (SQLException e)
+		catch (SQLException | IOException e)
 		{
 			showCriticalErrorMessageAndExitApp();
 		}
@@ -566,6 +566,7 @@ public class MainController implements Initializable
 	{
 		if (canBeShutdown())
 		{
+			closeConnection();
 			shutdownExecutor();
 			Platform.exit();
 		}
@@ -573,6 +574,11 @@ public class MainController implements Initializable
 		{
 			event.consume();
 		}
+	}
+
+	public void closeConnection()
+	{
+		model.closeConnection();
 	}
 
 	public void showAppInfo(ActionEvent event)

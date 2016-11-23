@@ -1,28 +1,58 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "Preferences")
 public class Preferences
 {
-	private final int preferencesId;
-	private final int defaultNumberOfDecimalPlacesId;
-	private final int defaultUnitTypeId;
-	private final int defaultFirstUnitId;
-	private final int defaultSecondUnitId;
-	private final int defaultAppLanguageId;
-	private final int defaultUnitsLanguageId;
-	private final int defaultAppSkinId;
+	@DatabaseField(generatedId = true)
+	private int preferencesId;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultNumberOfDecimalPlacesId")
+	private NumberOfDecimalPlaces numberOfDecimalPlaces;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultUnitTypeId")
+	private UnitType unitType;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultFirstUnitId")
+	private Unit firstUnit;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultSecondUnitId")
+	private Unit secondUnit;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultAppLanguageId")
+	private AppLanguage appLanguage;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultUnitsLanguageId")
+	private UnitsLanguage unitsLanguage;
+	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultAppSkinId")
+	private AppSkin appSkin;
+
+	public Preferences()
+	{
+		// ORMLite needs a no-arg constructor
+	}
+
+	public Preferences(int preferencesId, NumberOfDecimalPlaces numberOfDecimalPlaces, UnitType unitType,
+			Unit firstUnit, Unit secondUnit, AppLanguage appLanguage, UnitsLanguage unitsLanguage, AppSkin appSkin)
+	{
+		this.preferencesId = preferencesId;
+		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
+		this.unitType = unitType;
+		this.firstUnit = firstUnit;
+		this.secondUnit = secondUnit;
+		this.appLanguage = appLanguage;
+		this.unitsLanguage = unitsLanguage;
+		this.appSkin = appSkin;
+	}
 
 	public Preferences(int preferencesId, int defaultNumberOfDecimalPlacesId, int defaultUnitTypeId,
 			int defaultFirstUnitId, int defaultSecondUnitId, int defaultAppLanguageId, int defaultUnitsLanguageId,
 			int defaultAppSkinId)
 	{
 		this.preferencesId = preferencesId;
-		this.defaultNumberOfDecimalPlacesId = defaultNumberOfDecimalPlacesId;
-		this.defaultUnitTypeId = defaultUnitTypeId;
-		this.defaultFirstUnitId = defaultFirstUnitId;
-		this.defaultSecondUnitId = defaultSecondUnitId;
-		this.defaultAppLanguageId = defaultAppLanguageId;
-		this.defaultUnitsLanguageId = defaultUnitsLanguageId;
-		this.defaultAppSkinId = defaultAppSkinId;
+		numberOfDecimalPlaces = new NumberOfDecimalPlaces(defaultNumberOfDecimalPlacesId, null);
+		unitType = new UnitType(defaultUnitTypeId, null, null);
+		firstUnit = new Unit(defaultFirstUnitId, null, null, null, null, null);
+		secondUnit = new Unit(defaultSecondUnitId, null, null, null, null, null);
+		appLanguage = new AppLanguage(defaultAppLanguageId, null);
+		unitsLanguage = new UnitsLanguage(defaultUnitsLanguageId, null);
+		appSkin = new AppSkin(defaultAppSkinId, null, null);
 	}
 
 	public int getPreferencesId()
@@ -30,38 +60,38 @@ public class Preferences
 		return preferencesId;
 	}
 
-	public int getDefaultNumberOfDecimalPlacesId()
+	public NumberOfDecimalPlaces getNumberOfDecimalPlaces()
 	{
-		return defaultNumberOfDecimalPlacesId;
+		return numberOfDecimalPlaces;
 	}
 
-	public int getDefaultUnitTypeId()
+	public UnitType getUnitType()
 	{
-		return defaultUnitTypeId;
+		return unitType;
 	}
 
-	public int getDefaultFirstUnitId()
+	public Unit getFirstUnit()
 	{
-		return defaultFirstUnitId;
+		return firstUnit;
 	}
 
-	public int getDefaultSecondUnitId()
+	public Unit getSecondUnit()
 	{
-		return defaultSecondUnitId;
+		return secondUnit;
 	}
 
-	public int getDefaultAppSkinId()
+	public AppLanguage getAppLanguage()
 	{
-		return defaultAppSkinId;
+		return appLanguage;
 	}
 
-	public int getDefaultAppLanguageId()
+	public UnitsLanguage getUnitsLanguage()
 	{
-		return defaultAppLanguageId;
+		return unitsLanguage;
 	}
 
-	public int getDefaultUnitsLanguageId()
+	public AppSkin getAppSkin()
 	{
-		return defaultUnitsLanguageId;
+		return appSkin;
 	}
 }

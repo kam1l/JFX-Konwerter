@@ -1,10 +1,22 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
-public class AppSkin
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "AppSkin")
+public class AppSkin implements Comparable<AppSkin>
 {
-	private final int appSkinId;
-	private final String appSkinName;
-	private final String appSkinPath;
+	@DatabaseField(generatedId = true)
+	private int appSkinId;
+	@DatabaseField(canBeNull = false, unique = true)
+	private String appSkinName;
+	@DatabaseField(canBeNull = false)
+	private String appSkinPath;
+
+	public AppSkin()
+	{
+		// ORMLite needs a no-arg constructor
+	}
 
 	public AppSkin(int appSkinId, String appSkinName, String appSkinPath)
 	{
@@ -26,5 +38,11 @@ public class AppSkin
 	public String getAppSkinPath()
 	{
 		return appSkinPath;
+	}
+
+	@Override
+	public int compareTo(AppSkin o)
+	{
+		return appSkinName.compareToIgnoreCase(o.appSkinName);
 	}
 }

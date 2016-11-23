@@ -1,9 +1,20 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
 
-public class AppLanguage
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "AppLanguage")
+public class AppLanguage implements Comparable<AppLanguage>
 {
-	private final int appLanguageId;
-	private final String appLanguageName;
+	@DatabaseField(generatedId = true)
+	private int appLanguageId;
+	@DatabaseField(canBeNull = false, unique = true)
+	private String appLanguageName;
+
+	public AppLanguage()
+	{
+		// ORMLite needs a no-arg constructor
+	}
 
 	public AppLanguage(int appLanguageId, String appLanguageName)
 	{
@@ -19,5 +30,11 @@ public class AppLanguage
 	public String getAppLanguageName()
 	{
 		return appLanguageName;
+	}
+
+	@Override
+	public int compareTo(AppLanguage o)
+	{
+		return appLanguageName.compareToIgnoreCase(o.appLanguageName);
 	}
 }

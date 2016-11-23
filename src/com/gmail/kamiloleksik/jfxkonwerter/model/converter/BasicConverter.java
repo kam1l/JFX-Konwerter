@@ -11,12 +11,12 @@ public class BasicConverter implements Converter
 	private BigDecimal firstUnitRatio;
 	private BigDecimal secondUnitRatio;
 
-	public BasicConverter(String firstUnitRatio, String secondUnitRatio) throws InvalidNumberFormatException
+	public BasicConverter(BigDecimal firstUnitRatio, BigDecimal secondUnitRatio) throws InvalidNumberFormatException
 	{
 		try
 		{
-			this.firstUnitRatio = new BigDecimal(firstUnitRatio);
-			this.secondUnitRatio = new BigDecimal(secondUnitRatio);
+			this.firstUnitRatio = firstUnitRatio;
+			this.secondUnitRatio = secondUnitRatio;
 		}
 		catch (NumberFormatException e)
 		{

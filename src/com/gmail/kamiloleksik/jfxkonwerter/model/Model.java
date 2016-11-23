@@ -1,13 +1,14 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.gmail.kamiloleksik.jfxkonwerter.model.DaoManager.DaoKey;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.BasicConverter;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.Converter;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.InputValue;
@@ -37,15 +39,18 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.dto.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.model.dto.Unit;
 import com.gmail.kamiloleksik.jfxkonwerter.model.dto.UnitType;
 import com.gmail.kamiloleksik.jfxkonwerter.model.dto.UnitsLanguage;
+import com.j256.ormlite.dao.CloseableIterator;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.UpdateBuilder;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Model
 {
-	private Connection connection;
+	private DaoManager daoManager;
 	private Preferences preferences;
-	private Map<String, Double> updatedExchangeRates;
+	private Map<String, BigDecimal> updatedExchangeRates;
 	private String currentUnitTypeClassifier;
 	private int defaultUnitTypeIndex, preferencesUnitTypeIndex;
 
@@ -85,34 +90,28 @@ public class Model
 		APP_SKINS_NAMES, ALLOWED_NUMBERS_OF_DECIMAL_PLACES
 	}
 
-	public Model() throws SQLException
+	public Model() throws SQLException, IOException
 	{
-		connection = SqliteConnection.Connector();
-
-		if (connection == null)
-		{
-			throw new SQLException();
-		}
-
+		daoManager = new DaoManager();
 		initializeRamDataStructures();
 	}
 
 	public String convertValue(String userInput) throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
 		Converter converter;
-		int numberOfDecimalPlaces = getNumberOfDecimalPlaces();
+		int numberOfDecimalPlaces = Integer.valueOf(getNumberOfDecimalPlaces());
 
 		if (currentUnitsAreBasic())
 		{
-			String firstUnitRatio = String.valueOf(units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitRatio());
-			String secondUnitRatio = String.valueOf(units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitRatio());
+			BigDecimal firstUnitRatio = units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitRatio();
+			BigDecimal secondUnitRatio = units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitRatio();
 
 			converter = new BasicConverter(firstUnitRatio, secondUnitRatio);
 		}
 		else if (currentUnitsAreNumberBases())
 		{
-			String firstNumberBase = String.valueOf((int) units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitRatio());
-			String secondNumberBase = String.valueOf((int) units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitRatio());
+			BigInteger firstNumberBase = units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitRatio().toBigInteger();
+			BigInteger secondNumberBase = units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitRatio().toBigInteger();
 
 			converter = new NumberBaseConverter(firstNumberBase, secondNumberBase);
 		}
@@ -139,155 +138,141 @@ public class Model
 		return currentUnitTypeClassifier.equals("number");
 	}
 
-	private void initializeRamDataStructures() throws SQLException
+	private void initializeRamDataStructures() throws IOException
 	{
 		preferences = getPreferencesFromDB();
-		appLanguages = getAppLanguagesFromDB(preferences.getDefaultAppLanguageId());
-		unitsLanguages = getUnitsLanguagesFromDB(preferences.getDefaultUnitsLanguageId());
-		appSkins = getAppSkinsFromDB(preferences.getDefaultAppSkinId());
-		numbersOfDecimalPlaces = getNumbersOfDecimalPlacesFromDB(preferences.getDefaultNumberOfDecimalPlacesId());
-		unitTypes = getUnitTypesFromDB(preferences.getDefaultUnitTypeId());
+		appLanguages = getAppLanguagesFromDB(preferences.getAppLanguage().getAppLanguageId());
+		unitsLanguages = getUnitsLanguagesFromDB(preferences.getUnitsLanguage().getUnitsLanguageId());
+		appSkins = getAppSkinsFromDB(preferences.getAppSkin().getAppSkinId());
+		numbersOfDecimalPlaces = getNumbersOfDecimalPlacesFromDB(
+				preferences.getNumberOfDecimalPlaces().getNumberOfDecimalPlacesId());
+		unitTypes = getUnitTypesFromDB(preferences.getUnitType().getUnitTypeId());
 		int currentUnitTypeId = unitTypes.get(UnitTypeKey.CURRENT_UNIT_TYPE).getUnitTypeId();
 		allUnits = getUnitsFromDB(currentUnitTypeId);
 	}
 
-	private Preferences getPreferencesFromDB() throws SQLException
+	private Preferences getPreferencesFromDB() throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection.prepareStatement("select * from Preferences");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.PREFERENCES_DAO).closeableIterator())
 		{
-			resultSet.next();
-
-			int preferencesId = resultSet.getInt("preferencesId");
-			int defaultNumberOfDecimalPlacesId = resultSet.getInt("defaultNumberOfDecimalPlacesId");
-			int defaultUnitTypeId = resultSet.getInt("defaultUnitTypeId");
-			int defaultFirstUnitId = resultSet.getInt("defaultFirstUnitId");
-			int defaultSecondUnitId = resultSet.getInt("defaultSecondUnitId");
-			int defaultAppLanguageId = resultSet.getInt("defaultAppLanguageId");
-			int defaultUnitsLanguageId = resultSet.getInt("defaultUnitsLanguageId");
-			int defaultAppSkinId = resultSet.getInt("defaultAppSkinId");
-
-			return new Preferences(preferencesId, defaultNumberOfDecimalPlacesId, defaultUnitTypeId, defaultFirstUnitId,
-					defaultSecondUnitId, defaultAppLanguageId, defaultUnitsLanguageId, defaultAppSkinId);
+			return (Preferences) it.next();
 		}
 	}
 
-	private List<AppLanguage> getAppLanguagesFromDB(int defaultAppLanguageId) throws SQLException
+	private List<AppLanguage> getAppLanguagesFromDB(int defaultAppLanguageId) throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("select * from AppLanguage order by appLanguageName asc");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.APP_LANGUAGE_DAO).closeableIterator())
 		{
 			ObservableList<String> nameList = FXCollections.observableArrayList();
-			List<AppLanguage> aLanguages = new ArrayList<AppLanguage>();
+			List<AppLanguage> languages = new ArrayList<AppLanguage>();
+			AppLanguage lang;
 
-			while (resultSet.next())
+			while (it.hasNext())
 			{
-				int appLanguageId = resultSet.getInt("appLanguageId");
-				String appLanguageName = resultSet.getString("appLanguageName");
-				AppLanguage appLanguage = new AppLanguage(appLanguageId, appLanguageName);
+				lang = (AppLanguage) it.next();
 
-				aLanguages.add(appLanguage);
-				nameList.add(appLanguageName);
+				languages.add(lang);
+				nameList.add(lang.getAppLanguageName());
 
-				if (appLanguageId == defaultAppLanguageId)
+				if (lang.getAppLanguageId() == defaultAppLanguageId)
 				{
-					this.appLanguage = appLanguage;
+					appLanguage = lang;
 				}
 			}
 
+			Collections.sort(languages);
+			Collections.sort(nameList, String.CASE_INSENSITIVE_ORDER);
 			names.put(NamesKey.APP_LANGUAGES_NAMES, nameList);
 
-			return aLanguages;
+			return languages;
 		}
 	}
 
-	private List<UnitsLanguage> getUnitsLanguagesFromDB(int defaultUnitsLanguageId) throws SQLException
+	private List<UnitsLanguage> getUnitsLanguagesFromDB(int defaultUnitsLanguageId) throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("select * from UnitsLanguage order by unitsLanguageName asc");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.UNITS_LANGUAGE_DAO).closeableIterator())
 		{
 			ObservableList<String> nameList = FXCollections.observableArrayList();
-			List<UnitsLanguage> uLanguages = new ArrayList<UnitsLanguage>();
+			List<UnitsLanguage> languages = new ArrayList<UnitsLanguage>();
+			UnitsLanguage lang;
 
-			while (resultSet.next())
+			while (it.hasNext())
 			{
-				int unitsLanguageId = resultSet.getInt("unitsLanguageId");
-				String unitsLanguageName = resultSet.getString("unitsLanguageName");
-				UnitsLanguage unitsLanguage = new UnitsLanguage(unitsLanguageId, unitsLanguageName);
+				lang = (UnitsLanguage) it.next();
 
-				uLanguages.add(unitsLanguage);
-				nameList.add(unitsLanguageName);
+				languages.add(lang);
+				nameList.add(lang.getUnitsLanguageName());
 
-				if (unitsLanguageId == defaultUnitsLanguageId)
+				if (lang.getUnitsLanguageId() == defaultUnitsLanguageId)
 				{
-					this.unitsLanguage = unitsLanguage;
+					unitsLanguage = lang;
 				}
 			}
 
+			Collections.sort(languages);
+			Collections.sort(nameList, String.CASE_INSENSITIVE_ORDER);
 			names.put(NamesKey.UNITS_LANGUAGES_NAMES, nameList);
 
-			return uLanguages;
+			return languages;
 		}
 	}
 
-	private List<AppSkin> getAppSkinsFromDB(int defaultAppSkinId) throws SQLException
+	private List<AppSkin> getAppSkinsFromDB(int defaultAppSkinId) throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("select * from AppSkin order by appSkinName asc");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.APP_SKIN_DAO).closeableIterator())
 		{
 			ObservableList<String> nameList = FXCollections.observableArrayList();
-			List<AppSkin> aSkins = new ArrayList<AppSkin>();
+			List<AppSkin> skins = new ArrayList<AppSkin>();
+			AppSkin skin;
 
-			while (resultSet.next())
+			while (it.hasNext())
 			{
-				int appSkinId = resultSet.getInt("appSkinId");
-				String appSkinName = resultSet.getString("appSkinName");
-				String appSkinPath = resultSet.getString("appSkinPath");
-				AppSkin appSkin = new AppSkin(appSkinId, appSkinName, appSkinPath);
+				skin = (AppSkin) it.next();
 
-				aSkins.add(appSkin);
-				nameList.add(appSkinName);
+				skins.add(skin);
+				nameList.add(skin.getAppSkinName());
 
-				if (appSkinId == defaultAppSkinId)
+				if (skin.getAppSkinId() == defaultAppSkinId)
 				{
-					this.appSkin = appSkin;
+					appSkin = skin;
 				}
 			}
 
+			Collections.sort(skins);
+			Collections.sort(nameList, String.CASE_INSENSITIVE_ORDER);
 			names.put(NamesKey.APP_SKINS_NAMES, nameList);
 
-			return aSkins;
+			return skins;
 		}
 	}
 
 	private List<NumberOfDecimalPlaces> getNumbersOfDecimalPlacesFromDB(int defaultNumberOfDecimalPlacesId)
-			throws SQLException
+			throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("select * from NumberOfDecimalPlaces order by numberOfDecimalPlaces asc");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.NUMBER_OF_DECIMAL_PLACES_DAO).closeableIterator())
 		{
 			ObservableList<String> nameList = FXCollections.observableArrayList();
 			List<NumberOfDecimalPlaces> numsOfDecPlaces = new ArrayList<NumberOfDecimalPlaces>();
+			NumberOfDecimalPlaces num;
 
-			while (resultSet.next())
+			while (it.hasNext())
 			{
-				int numberOfDecimalPlacesId = resultSet.getInt("numberOfDecimalPlacesId");
-				int numberOfDecimalPlaces = resultSet.getInt("numberOfDecimalPlaces");
-				NumberOfDecimalPlaces numberOfDecimalPlacesObject = new NumberOfDecimalPlaces(numberOfDecimalPlacesId,
-						numberOfDecimalPlaces);
+				num = (NumberOfDecimalPlaces) it.next();
 
-				numsOfDecPlaces.add(numberOfDecimalPlacesObject);
-				nameList.add(String.valueOf(numberOfDecimalPlaces));
+				numsOfDecPlaces.add(num);
+				nameList.add(num.getNumberOfDecimalPlaces());
 
-				if (numberOfDecimalPlacesId == defaultNumberOfDecimalPlacesId)
+				if (num.getNumberOfDecimalPlacesId() == defaultNumberOfDecimalPlacesId)
 				{
-					this.numberOfDecimalPlaces = numberOfDecimalPlacesObject;
+					numberOfDecimalPlaces = num;
 				}
 			}
+
+			Collections.sort(numsOfDecPlaces);
+			Collections.sort(nameList, (o1, o2) ->
+			{
+				return Integer.valueOf(o1).compareTo(Integer.valueOf(o2));
+			});
 
 			names.put(NamesKey.ALLOWED_NUMBERS_OF_DECIMAL_PLACES, nameList);
 
@@ -295,68 +280,65 @@ public class Model
 		}
 	}
 
-	private EnumMap<UnitTypeKey, UnitType> getUnitTypesFromDB(int defaultUnitTypeId) throws SQLException
+	private EnumMap<UnitTypeKey, UnitType> getUnitTypesFromDB(int defaultUnitTypeId) throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("select * from UnitType order by unitTypeName asc");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.UNIT_TYPE_DAO).closeableIterator())
 		{
-			EnumMap<UnitTypeKey, UnitType> uTypes = new EnumMap<UnitTypeKey, UnitType>(UnitTypeKey.class);
 			ObservableList<String> nameList = FXCollections.observableArrayList();
+			EnumMap<UnitTypeKey, UnitType> uTypes = new EnumMap<UnitTypeKey, UnitType>(UnitTypeKey.class);
+			UnitType uType;
 
-			while (resultSet.next())
+			while (it.hasNext())
 			{
-				int unitTypeId = resultSet.getInt("unitTypeId");
-				String unitTypeName = resultSet.getString("unitTypeName");
-				String classifier = resultSet.getString("classifier");
-				UnitType unitType = new UnitType(unitTypeId, unitTypeName, classifier);
+				uType = (UnitType) it.next();
 
-				allUnitTypes.add(unitType);
-				nameList.add(unitTypeName);
+				allUnitTypes.add(uType);
+				nameList.add(uType.getUnitTypeName());
 
-				if (unitTypeId == defaultUnitTypeId)
+				if (uType.getUnitTypeId() == defaultUnitTypeId)
 				{
-					uTypes.put(UnitTypeKey.CURRENT_UNIT_TYPE, new UnitType(unitType));
-					uTypes.put(UnitTypeKey.DEFAULT_UNIT_TYPE, new UnitType(unitType));
+					uTypes.put(UnitTypeKey.CURRENT_UNIT_TYPE, new UnitType(uType));
+					uTypes.put(UnitTypeKey.DEFAULT_UNIT_TYPE, new UnitType(uType));
 					defaultUnitTypeIndex = allUnitTypes.size() - 1;
 					preferencesUnitTypeIndex = defaultUnitTypeIndex;
-					currentUnitTypeClassifier = unitType.getUnitTypeClassifier();
+					currentUnitTypeClassifier = uType.getUnitTypeClassifier();
 				}
 			}
 
+			Collections.sort(allUnitTypes);
+			Collections.sort(nameList, String.CASE_INSENSITIVE_ORDER);
 			names.put(NamesKey.ALL_UNIT_TYPE_NAMES, nameList);
 
 			return uTypes;
 		}
 	}
 
-	private List<Unit> getUnitsFromDB(int currentUnitTypeId) throws SQLException
+	private List<Unit> getUnitsFromDB(int currentUnitTypeId) throws IOException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("select * from Unit order by unitName asc");
-				ResultSet resultSet = preparedStatement.executeQuery())
+		try (CloseableIterator<?> it = daoManager.get(DaoKey.UNIT_DAO).closeableIterator())
 		{
 			List<Unit> aUnits = new ArrayList<Unit>();
 			names.put(NamesKey.MAIN_WINDOW_UNIT_NAMES, FXCollections.observableArrayList());
 			names.put(NamesKey.PREFERENCES_UNIT_NAMES, FXCollections.observableArrayList());
+			Unit unit;
 
-			while (resultSet.next())
+			while (it.hasNext())
 			{
-				int unitId = resultSet.getInt("unitId");
-				String unitName = resultSet.getString("unitName");
-				String unitAbbreviation = resultSet.getString("unitAbbreviation");
-				String displayName = getDisplayName(unitName, unitAbbreviation);
-				double unitRatio = resultSet.getDouble("unitRatio");
-				int unitType_unitTypeId = resultSet.getInt("unitType_unitTypeId");
-				Unit unit = new Unit(unitId, unitName, unitAbbreviation, displayName, unitRatio, unitType_unitTypeId);
-
+				unit = (Unit) it.next();
+				unit.setDisplayName(getDisplayName(unit.getUnitName(), unit.getUnitAbbreviation()));
 				aUnits.add(unit);
 
-				if (unitType_unitTypeId == currentUnitTypeId)
+				if (unit.getUnitType().getUnitTypeId() == currentUnitTypeId)
 				{
 					initializeStaticUnitObjects(unit);
 				}
 			}
+
+			Collections.sort(names.get(NamesKey.MAIN_WINDOW_UNIT_NAMES), String.CASE_INSENSITIVE_ORDER);
+			Collections.sort(names.get(NamesKey.PREFERENCES_UNIT_NAMES), String.CASE_INSENSITIVE_ORDER);
+			Collections.sort(mainWindowUnits);
+			Collections.sort(preferencesUnits);
+			Collections.sort(aUnits);
 
 			return aUnits;
 		}
@@ -364,8 +346,8 @@ public class Model
 
 	private void initializeStaticUnitObjects(Unit unit)
 	{
-		int defaultFirstUnitId = preferences.getDefaultFirstUnitId();
-		int defaultSecondUnitId = preferences.getDefaultSecondUnitId();
+		int defaultFirstUnitId = preferences.getFirstUnit().getUnitId();
+		int defaultSecondUnitId = preferences.getSecondUnit().getUnitId();
 
 		addItemToUnitNames(unit, NamesKey.MAIN_WINDOW_UNIT_NAMES);
 		addItemToUnitNames(unit, NamesKey.PREFERENCES_UNIT_NAMES);
@@ -418,7 +400,7 @@ public class Model
 
 	private void updateExchangeRatesInDB(NodeList nList) throws SQLException
 	{
-		updatedExchangeRates = new HashMap<String, Double>();
+		updatedExchangeRates = new HashMap<String, BigDecimal>();
 
 		for (int tmp = 2; tmp < nList.getLength(); tmp++)
 		{
@@ -428,7 +410,8 @@ public class Model
 			{
 				Element eElement = (Element) nNode;
 				String currentCurrency = eElement.getAttribute("currency");
-				double currentRate = 1.0 / Double.parseDouble(eElement.getAttribute("rate"));
+				BigDecimal currentRate = BigDecimal.ONE.divide(new BigDecimal(eElement.getAttribute("rate")), 300,
+						RoundingMode.HALF_EVEN);
 
 				updateExchangeRateSingleRowInDB(currentCurrency, currentRate);
 				updatedExchangeRates.put(currentCurrency, currentRate);
@@ -436,16 +419,15 @@ public class Model
 		}
 	}
 
-	private void updateExchangeRateSingleRowInDB(String symbol, double rate) throws SQLException
+	private void updateExchangeRateSingleRowInDB(String abbreviation, BigDecimal rate) throws SQLException
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("update Unit set unitRatio = ? where unitAbbreviation = ?"))
-		{
-			preparedStatement.setDouble(1, rate);
-			preparedStatement.setString(2, symbol);
+		@SuppressWarnings("unchecked")
+		Dao<Unit, Integer> dao = (Dao<Unit, Integer>) daoManager.get(DaoKey.UNIT_DAO);
+		UpdateBuilder<Unit, Integer> updateBuilder = dao.updateBuilder();
 
-			preparedStatement.executeUpdate();
-		}
+		updateBuilder.updateColumnValue("unitRatio", rate);
+		updateBuilder.where().eq("unitAbbreviation", abbreviation);
+		updateBuilder.update();
 	}
 
 	public void updateExchangeRatesInRam()
@@ -453,7 +435,7 @@ public class Model
 		String currenFirstUnitAbbreviation = units.get(UnitKey.CURRENT_FIRST_UNIT).getUnitAbbreviation();
 		String currentSecondUnitAbbreviation = units.get(UnitKey.CURRENT_SECOND_UNIT).getUnitAbbreviation();
 		String unitAbbreviation;
-		double newValue;
+		BigDecimal newValue;
 
 		for (Unit unit : allUnits)
 		{
@@ -486,22 +468,12 @@ public class Model
 
 	public boolean updatePreferencesInDB(Preferences newPreferences)
 	{
-		try (PreparedStatement preparedStatement = connection
-				.prepareStatement("update Preferences set defaultNumberOfDecimalPlacesId = ?, defaultUnitTypeId = ?, "
-						+ "defaultFirstUnitId = ?, defaultSecondUnitId = ?, defaultAppLanguageId = ?, "
-						+ "defaultUnitsLanguageId = ?, defaultAppSkinId = ? where preferencesId = ?"))
+		@SuppressWarnings("unchecked")
+		Dao<Preferences, Integer> dao = (Dao<Preferences, Integer>) daoManager.get(DaoKey.PREFERENCES_DAO);
+
+		try
 		{
-			preparedStatement.setInt(1, newPreferences.getDefaultNumberOfDecimalPlacesId());
-			preparedStatement.setInt(2, newPreferences.getDefaultUnitTypeId());
-			preparedStatement.setInt(3, newPreferences.getDefaultFirstUnitId());
-			preparedStatement.setInt(4, newPreferences.getDefaultSecondUnitId());
-			preparedStatement.setInt(5, newPreferences.getDefaultAppLanguageId());
-			preparedStatement.setInt(6, newPreferences.getDefaultUnitsLanguageId());
-			preparedStatement.setInt(7, newPreferences.getDefaultAppSkinId());
-			preparedStatement.setInt(8, newPreferences.getPreferencesId());
-
-			preparedStatement.executeUpdate();
-
+			dao.update(newPreferences);
 			return true;
 		}
 		catch (SQLException e)
@@ -540,7 +512,7 @@ public class Model
 
 		for (Unit unit : allUnits)
 		{
-			if (unit.getUnitType_unitTypeId() == typeId)
+			if (unit.getUnitType().getUnitTypeId() == typeId)
 			{
 				addItemToUnitNames(unit, key);
 				unitsL.add(unit);
@@ -643,7 +615,7 @@ public class Model
 		return units.get(key).getUnitAbbreviation();
 	}
 
-	public int getNumberOfDecimalPlaces()
+	public String getNumberOfDecimalPlaces()
 	{
 		return numberOfDecimalPlaces.getNumberOfDecimalPlaces();
 	}
@@ -728,15 +700,8 @@ public class Model
 		return unitTypes.get(key).getUnitTypeName();
 	}
 
-	public boolean dbIsConnected()
+	public void closeConnection()
 	{
-		try
-		{
-			return !connection.isClosed();
-		}
-		catch (SQLException e)
-		{
-			return false;
-		}
+		daoManager.closeConnection();
 	}
 }

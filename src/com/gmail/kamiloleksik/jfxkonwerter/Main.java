@@ -38,6 +38,7 @@ public class Main extends Application
 			{
 				if (controller.canBeShutdown())
 				{
+					controller.closeConnection();
 					controller.shutdownExecutor();
 					Platform.exit();
 				}
