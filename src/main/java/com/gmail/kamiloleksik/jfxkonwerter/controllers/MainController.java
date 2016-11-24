@@ -389,13 +389,10 @@ public class MainController implements Initializable
 		stage = new Stage();
 		stage.setResizable(false);
 		stage.sizeToScene();
-		Parent root = FXMLLoader
-				.load(getClass().getResource("/com/gmail/kamiloleksik/jfxkonwerter/resources/view/Preferences.fxml"));
+		Parent root = FXMLLoader.load(getClass().getResource("/fxml/Preferences.fxml"));
 		Scene scene = new Scene(root);
-		scene.getStylesheets().add(getClass()
-				.getResource("/com/gmail/kamiloleksik/jfxkonwerter/resources/css/application.css").toExternalForm());
-		stage.getIcons().add(new Image(MainController.class
-				.getResourceAsStream("/com/gmail/kamiloleksik/jfxkonwerter/resources/images/icon.png")));
+		scene.getStylesheets().add(getClass().getResource("/styles/application.css").toExternalForm());
+		stage.getIcons().add(new Image(MainController.class.getResourceAsStream("/images/icon.png")));
 		stage.setScene(scene);
 		stage.setTitle("Preferencje");
 		stage.initModality(Modality.APPLICATION_MODAL);
