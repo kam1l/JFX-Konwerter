@@ -1,10 +1,13 @@
 package com.gmail.kamiloleksik.jfxkonwerter.controllers;
 
+import static com.gmail.kamiloleksik.jfxkonwerter.keys.NamesKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitTypeKey.*;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -14,9 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
-import com.gmail.kamiloleksik.jfxkonwerter.model.Model.NamesKey;
-import com.gmail.kamiloleksik.jfxkonwerter.model.Model.UnitKey;
-import com.gmail.kamiloleksik.jfxkonwerter.model.Model.UnitTypeKey;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
@@ -49,16 +49,17 @@ import javafx.stage.Stage;
 
 public class MainController implements Initializable
 {
+	public static final Pattern NUMBER_WITH_TWO_DIGIT_EXPONENT = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
+	public static final Pattern NUMBER_WITH_ONE_DIGIT = Pattern.compile("-?[0-9]?|(-0\\.)");
+
 	private static Stage stage;
-	private static Model model;
-	private Message message = new Message();
+	private Model model;
 	private HostServices hostServices;
+	private ResourceBundle resourceBundle;
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private String userInput;
 	private String resultInFixedNotation;
 
-	private static final Pattern numberWithTwoDigitExponent = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
-	private static final Pattern numberWithOneDigit = Pattern.compile("-?[0-9]?|(-0\\.)");
 	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultAppLanguageWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultUnitsLanguageWasChanged = new SimpleBooleanProperty();
@@ -85,22 +86,23 @@ public class MainController implements Initializable
 	private final Tooltip resultTextFieldTooltip = new Tooltip();
 
 	@Override
-	public void initialize(URL arg0, ResourceBundle arg1)
+	public void initialize(URL url, ResourceBundle resourceBundle)
 	{
-		createModel();
+		this.resourceBundle = resourceBundle;
+		initializeModel(resourceBundle.getObject("model"));
 
-		ObservableList<String> unitTypeNames = model.getNames(NamesKey.ALL_UNIT_TYPE_NAMES);
-		String currentUnitTypeName = model.getUnitTypeName(UnitTypeKey.CURRENT_UNIT_TYPE);
+		ObservableList<String> unitTypeNames = model.getNames(ALL_UNIT_TYPE_NAMES);
+		String currentUnitTypeName = model.getUnitTypeName(CURRENT_UNIT_TYPE);
 		SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
 
 		unitTypeComboBox.setItems(unitTypeNames);
 		unitTypeSel.select(currentUnitTypeName);
 
-		ObservableList<String> unitNames = model.getNames(NamesKey.MAIN_WINDOW_UNIT_NAMES);
+		ObservableList<String> unitNames = model.getNames(MAIN_WINDOW_UNIT_NAMES);
 		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-		String currentFirstUnitName = model.getUnitDisplayName(UnitKey.CURRENT_FIRST_UNIT);
-		String currentSecondUnitName = model.getUnitDisplayName(UnitKey.CURRENT_SECOND_UNIT);
+		String currentFirstUnitName = model.getUnitDisplayName(CURRENT_FIRST_UNIT);
+		String currentSecondUnitName = model.getUnitDisplayName(CURRENT_SECOND_UNIT);
 		boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
 
 		valueTextField.setLettersAreAllowed(lettersAreAllowed);
@@ -121,13 +123,14 @@ public class MainController implements Initializable
 		setAppSkin();
 	}
 
-	private void createModel()
+	private void initializeModel(Object obj)
 	{
 		try
 		{
-			model = new Model();
+			model = (Model) obj;
+			model.initializeRamDataStructures();
 		}
-		catch (SQLException | IOException e)
+		catch (Exception e)
 		{
 			showCriticalErrorMessageAndExitApp();
 		}
@@ -135,7 +138,7 @@ public class MainController implements Initializable
 
 	private void showCriticalErrorMessageAndExitApp()
 	{
-		message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
+		Message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
 
 		Platform.exit();
 		System.exit(-1);
@@ -171,7 +174,7 @@ public class MainController implements Initializable
 
 	private void showNumberIsTooLongErrorMessage(int userInputLength)
 	{
-		message.showMessage(Message.ERROR_TITLE, Message.NUMBER_TOO_LONG_ERROR_MESSAGE + userInputLength + ").");
+		Message.showMessage(Message.ERROR_TITLE, Message.NUMBER_TOO_LONG_ERROR_MESSAGE + userInputLength + ").");
 	}
 
 	private void addListenersToBooleanProperties()
@@ -204,7 +207,7 @@ public class MainController implements Initializable
 			SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 			int firstUnitSelectedIndex = firstUnitSel.getSelectedIndex();
 
-			model.setUnit(firstUnitSelectedIndex, UnitKey.CURRENT_FIRST_UNIT);
+			model.setUnit(firstUnitSelectedIndex, CURRENT_FIRST_UNIT);
 
 			getAndSetResult();
 		};
@@ -214,7 +217,7 @@ public class MainController implements Initializable
 			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
 
-			model.setUnit(secondUnitSelectedIndex, UnitKey.CURRENT_SECOND_UNIT);
+			model.setUnit(secondUnitSelectedIndex, CURRENT_SECOND_UNIT);
 
 			getAndSetResult();
 		};
@@ -241,7 +244,7 @@ public class MainController implements Initializable
 
 	private boolean userInputCanBeLonger()
 	{
-		return !numberWithTwoDigitExponent.matcher(userInput).matches();
+		return !NUMBER_WITH_TWO_DIGIT_EXPONENT.matcher(userInput).matches();
 	}
 
 	private boolean currentUserInputIsEqualZero()
@@ -323,7 +326,7 @@ public class MainController implements Initializable
 
 	private boolean currentUserInputCanBeShortened()
 	{
-		return !numberWithOneDigit.matcher(userInput).matches();
+		return !NUMBER_WITH_ONE_DIGIT.matcher(userInput).matches();
 	}
 
 	public void swapUnits(ActionEvent event)
@@ -339,8 +342,8 @@ public class MainController implements Initializable
 		firstUnitSel.select(secondUnitIndex);
 		secondUnitSel.select(firstUnitIndex);
 
-		model.setUnit(secondUnitIndex, UnitKey.CURRENT_FIRST_UNIT);
-		model.setUnit(firstUnitIndex, UnitKey.CURRENT_SECOND_UNIT);
+		model.setUnit(secondUnitIndex, CURRENT_FIRST_UNIT);
+		model.setUnit(firstUnitIndex, CURRENT_SECOND_UNIT);
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
@@ -365,13 +368,13 @@ public class MainController implements Initializable
 				if (taskSucceeded)
 				{
 					model.updateExchangeRatesInRam();
-					message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
+					Message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
 
 					getAndSetResult();
 				}
 				else
 				{
-					message.showMessage(Message.ERROR_TITLE, Message.UPDATE_ERROR_MESSAGE);
+					Message.showMessage(Message.ERROR_TITLE, Message.UPDATE_ERROR_MESSAGE);
 				}
 
 				updateInfoAnchorPane.setVisible(false);
@@ -389,7 +392,7 @@ public class MainController implements Initializable
 		stage = new Stage();
 		stage.setResizable(false);
 		stage.sizeToScene();
-		Parent root = FXMLLoader.load(getClass().getResource("/fxml/Preferences.fxml"));
+		Parent root = FXMLLoader.load(getClass().getResource("/fxml/Preferences.fxml"), resourceBundle);
 		Scene scene = new Scene(root);
 		scene.getStylesheets().add(getClass().getResource("/styles/application.css").toExternalForm());
 		stage.getIcons().add(new Image(MainController.class.getResourceAsStream("/images/icon.png")));
@@ -426,17 +429,17 @@ public class MainController implements Initializable
 		firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 
-		ObservableList<String> unitNames = model.getNames(NamesKey.MAIN_WINDOW_UNIT_NAMES);
+		ObservableList<String> unitNames = model.getNames(MAIN_WINDOW_UNIT_NAMES);
 		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
 		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
 
 		firstUnitComboBox.setItems(unitNames);
 		firstUnitSel.select(0);
-		model.setUnit(0, UnitKey.CURRENT_FIRST_UNIT);
+		model.setUnit(0, CURRENT_FIRST_UNIT);
 
 		secondUnitComboBox.setItems(unitNames);
 		secondUnitSel.select(0);
-		model.setUnit(0, UnitKey.CURRENT_SECOND_UNIT);
+		model.setUnit(0, CURRENT_SECOND_UNIT);
 
 		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
 		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
@@ -563,7 +566,6 @@ public class MainController implements Initializable
 	{
 		if (canBeShutdown())
 		{
-			closeConnection();
 			shutdownExecutor();
 			Platform.exit();
 		}
@@ -571,11 +573,6 @@ public class MainController implements Initializable
 		{
 			event.consume();
 		}
-	}
-
-	public void closeConnection()
-	{
-		model.closeConnection();
 	}
 
 	public void showAppInfo(ActionEvent event)
@@ -638,10 +635,5 @@ public class MainController implements Initializable
 	public void setHostServices(HostServices hostServices)
 	{
 		this.hostServices = hostServices;
-	}
-
-	public static Model getModel()
-	{
-		return model;
 	}
 }

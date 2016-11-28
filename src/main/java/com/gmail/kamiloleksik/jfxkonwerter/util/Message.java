@@ -20,7 +20,7 @@ public class Message
 	public static final String NUMBER_TOO_LONG_ERROR_MESSAGE = "Obliczenia nie mog³y zostaæ wykonane. "
 			+ "Liczba wejœciowa mo¿e mieæ maksymalnie 1000 znaków (aktualna ma ";
 
-	public void showMessage(String title, String content)
+	public static void showMessage(String title, String content)
 	{
 		Alert alert;
 
@@ -41,7 +41,7 @@ public class Message
 		alert.showAndWait();
 	}
 
-	private boolean alertTypeIsError(String title)
+	private static boolean alertTypeIsError(String title)
 	{
 		return title.equals(ERROR_TITLE);
 	}

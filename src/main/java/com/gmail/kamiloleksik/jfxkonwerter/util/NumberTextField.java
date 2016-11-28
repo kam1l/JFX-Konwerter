@@ -6,13 +6,15 @@ import javafx.scene.control.TextField;
 
 public class NumberTextField extends TextField
 {
+	public static final Pattern NUMBER_WITH_LETTERS = Pattern.compile("(-)?([0-9A-Za-z]+(\\.[0-9A-Za-z]*)?)?");
+	public static final Pattern NUMBER_WITHOUT_DECIMAL_MARK = Pattern
+			.compile("(-)?([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?");
+	public static final Pattern NUMBER_WITH_DECIMAL_MARK = Pattern
+			.compile("(-)?([0-9]+(\\.([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?)?)?");
+
 	private int start, end;
 	private String typedText;
 	private boolean lettersAreAllowed;
-	private static final Pattern numberWithLetters = Pattern.compile("(-)?([0-9A-Za-z]+(\\.[0-9A-Za-z]*)?)?");
-	private static final Pattern numberWithoutDecimalMark = Pattern.compile("(-)?([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?");
-	private static final Pattern numberWithDecimalMark = Pattern
-			.compile("(-)?([0-9]+(\\.([0-9]+((e|E)(\\+|-)?[0-9]{0,2})?)?)?)?");
 
 	@Override
 	public void replaceText(int start, int end, String typedText)
@@ -34,12 +36,12 @@ public class NumberTextField extends TextField
 
 		if (lettersAreAllowed)
 		{
-			return numberWithLetters.matcher(newText).matches();
+			return NUMBER_WITH_LETTERS.matcher(newText).matches();
 		}
 		else
 		{
-			return typedText.isEmpty() || numberWithoutDecimalMark.matcher(newText).matches()
-					|| numberWithDecimalMark.matcher(newText).matches();
+			return typedText.isEmpty() || NUMBER_WITHOUT_DECIMAL_MARK.matcher(newText).matches()
+					|| NUMBER_WITH_DECIMAL_MARK.matcher(newText).matches();
 		}
 	}
 
