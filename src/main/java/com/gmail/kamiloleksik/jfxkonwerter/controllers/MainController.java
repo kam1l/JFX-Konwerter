@@ -1,8 +1,8 @@
 package com.gmail.kamiloleksik.jfxkonwerter.controllers;
 
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.NamesKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitTypeKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;

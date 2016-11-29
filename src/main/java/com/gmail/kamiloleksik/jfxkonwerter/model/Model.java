@@ -1,9 +1,9 @@
 package com.gmail.kamiloleksik.jfxkonwerter.model;
 
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.DaoKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.NamesKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitTypeKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -29,13 +29,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.gmail.kamiloleksik.jfxkonwerter.keys.DaoKey;
-import com.gmail.kamiloleksik.jfxkonwerter.keys.NamesKey;
-import com.gmail.kamiloleksik.jfxkonwerter.keys.UnitKey;
-import com.gmail.kamiloleksik.jfxkonwerter.keys.UnitTypeKey;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.dto.*;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey;
 import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.UpdateBuilder;

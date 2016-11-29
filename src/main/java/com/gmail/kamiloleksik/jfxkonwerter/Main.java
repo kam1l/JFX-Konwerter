@@ -1,6 +1,6 @@
 package com.gmail.kamiloleksik.jfxkonwerter;
 
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.DaoKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey.*;
 import static com.j256.ormlite.dao.DaoManager.createDao;
 
 import java.math.BigDecimal;
@@ -19,10 +19,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import com.gmail.kamiloleksik.jfxkonwerter.controllers.MainController;
-import com.gmail.kamiloleksik.jfxkonwerter.keys.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.dto.*;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.*;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;

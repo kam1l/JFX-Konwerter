@@ -1,9 +1,9 @@
 package com.gmail.kamiloleksik.jfxkonwerter.controllers;
 
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.IdKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.NamesKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitKey.*;
-import static com.gmail.kamiloleksik.jfxkonwerter.keys.UnitTypeKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.IdKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey.*;
+import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey.*;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -13,10 +13,10 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.gmail.kamiloleksik.jfxkonwerter.keys.IdKey;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.dto.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.IdKey;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;

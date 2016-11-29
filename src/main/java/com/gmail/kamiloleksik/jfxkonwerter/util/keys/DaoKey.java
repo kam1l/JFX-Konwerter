@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.jfxkonwerter.keys;
+package com.gmail.kamiloleksik.jfxkonwerter.util.keys;
 
 public enum DaoKey
 {
