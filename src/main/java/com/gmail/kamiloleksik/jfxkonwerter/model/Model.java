@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -43,6 +44,7 @@ import com.j256.ormlite.stmt.UpdateBuilder;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+@Service
 public class Model
 {
 	private Map<DaoKey, Dao<?, ?>> daos;

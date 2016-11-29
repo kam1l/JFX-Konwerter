@@ -74,12 +74,6 @@ public class Main extends Application
 		}
 
 		@Bean
-		public Model model(Map<DaoKey, Dao<?, ?>> daos)
-		{
-			return new Model(daos);
-		}
-
-		@Bean
 		public ResourceBundle resourceBundle(Model model)
 		{
 			return new ResourceBundle()
