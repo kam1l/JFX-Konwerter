@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import com.gmail.kamiloleksik.jfxkonwerter.controller.MainController;
-import com.gmail.kamiloleksik.jfxkonwerter.dto.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
+import com.gmail.kamiloleksik.jfxkonwerter.model.entity.*;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.*;
 import com.j256.ormlite.dao.Dao;

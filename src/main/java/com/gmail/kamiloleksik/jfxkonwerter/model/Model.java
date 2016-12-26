@@ -30,9 +30,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.gmail.kamiloleksik.jfxkonwerter.dto.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.*;
+import com.gmail.kamiloleksik.jfxkonwerter.model.entity.*;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey;
