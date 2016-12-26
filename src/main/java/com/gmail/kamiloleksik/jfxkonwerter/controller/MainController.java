@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.jfxkonwerter.controllers;
+package com.gmail.kamiloleksik.jfxkonwerter.controller;
 
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey.*;
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey.*;

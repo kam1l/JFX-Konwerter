@@ -16,7 +16,7 @@
 	prefWidth="486.0"
 	xmlns="http://javafx.com/javafx/8.0.60"
 	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="com.gmail.kamiloleksik.jfxkonwerter.controllers.PreferencesController">
+	fx:controller="com.gmail.kamiloleksik.jfxkonwerter.controller.PreferencesController">
 	<children>
 		<Label
 			alignment="CENTER_RIGHT"
@@ -29,21 +29,21 @@
 			alignment="CENTER_RIGHT"
 			layoutX="148.0"
 			layoutY="70.0"
-			text="DomyÅ›lny typ:"
+			text="Domyœlny typ:"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Label
 			alignment="CENTER_RIGHT"
 			layoutX="103.0"
 			layoutY="112.0"
-			text="DomyÅ›lna jednostka 1:"
+			text="Domyœlna jednostka 1:"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Label
 			alignment="CENTER_RIGHT"
 			layoutX="103.0"
 			layoutY="154.0"
-			text="DomyÅ›lna jednostka 2:"
+			text="Domyœlna jednostka 2:"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Separator
@@ -104,7 +104,7 @@
 			alignment="CENTER_RIGHT"
 			layoutX="145.0"
 			layoutY="206.0"
-			text="JÄ™zyk aplikacji:"
+			text="Jêzyk aplikacji:"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
@@ -118,7 +118,7 @@
 			alignment="CENTER_RIGHT"
 			layoutX="137.0"
 			layoutY="248.0"
-			text="JÄ™zyk jednostek:"
+			text="Jêzyk jednostek:"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<ComboBox

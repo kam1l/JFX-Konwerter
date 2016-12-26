@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.jfxkonwerter.controllers;
+package com.gmail.kamiloleksik.jfxkonwerter.controller;
 
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.IdKey.*;
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey.*;
@@ -13,8 +13,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.gmail.kamiloleksik.jfxkonwerter.dto.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
-import com.gmail.kamiloleksik.jfxkonwerter.model.dto.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.IdKey;
 

@@ -22,7 +22,7 @@
 	prefWidth="595.0"
 	xmlns="http://javafx.com/javafx/8.0.60"
 	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="com.gmail.kamiloleksik.jfxkonwerter.controllers.MainController">
+	fx:controller="com.gmail.kamiloleksik.jfxkonwerter.controller.MainController">
 	<children>
 		<MenuBar
 			layoutY="2.0"
@@ -171,7 +171,7 @@
 		<Label
 			layoutX="14.0"
 			layoutY="146.0"
-			text="Wartość:"
+			text="WartoĹ›Ä‡:"
 			AnchorPane.leftAnchor="14.0"
 			AnchorPane.rightAnchor="512.0" />
 		<NumberTextField
@@ -357,7 +357,7 @@
 			onAction="#processSign"
 			prefHeight="32.0"
 			prefWidth="32.0"
-			text="±">
+			text="Â±">
 			<font>
 				<Font size="14.0" />
 			</font>
@@ -381,7 +381,7 @@
 			onAction="#processDeletionKey"
 			prefHeight="80.0"
 			prefWidth="32.0"
-			text="←" />
+			text="â†�" />
 		<AnchorPane
 			fx:id="appInfoAnchorPane"
 			layoutX="128.0"

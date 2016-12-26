@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.jfxkonwerter.model.dto;
+package com.gmail.kamiloleksik.jfxkonwerter.dto;
 
 import java.math.BigDecimal;
 
