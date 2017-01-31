@@ -19,31 +19,35 @@
 	fx:controller="com.gmail.kamiloleksik.jfxkonwerter.controller.PreferencesController">
 	<children>
 		<Label
+			fx:id="labelNumOfDecPlaces"
 			alignment="CENTER_RIGHT"
 			layoutX="10.0"
 			layoutY="20.0"
-			text="Liczba miejsc po przecinku:"
+			text="%labelNumOfDecPlaces"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Label
+			fx:id="labelDefaultType"
 			alignment="CENTER_RIGHT"
 			layoutX="148.0"
 			layoutY="70.0"
-			text="Domyœlny typ:"
+			text="%labelDefaultType"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Label
+			fx:id="labelDefaultFirstUnit"
 			alignment="CENTER_RIGHT"
 			layoutX="103.0"
 			layoutY="112.0"
-			text="Domyœlna jednostka 1:"
+			text="%labelDefaultFirstUnit"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Label
+			fx:id="labelDefaultSecondUnit"
 			alignment="CENTER_RIGHT"
 			layoutX="103.0"
 			layoutY="154.0"
-			text="Domyœlna jednostka 2:"
+			text="%labelDefaultSecondUnit"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<Separator
@@ -87,10 +91,11 @@
 			prefHeight="3.0"
 			prefWidth="459.0" />
 		<Label
+			fx:id="labelAppSkin"
 			alignment="CENTER_RIGHT"
 			layoutX="185.0"
 			layoutY="290.0"
-			text="SkÃ³rka:"
+			text="%labelAppSkin"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
@@ -101,10 +106,11 @@
 			prefWidth="241.0">
 		</ComboBox>
 		<Label
+			fx:id="labelAppLanguage"
 			alignment="CENTER_RIGHT"
 			layoutX="145.0"
 			layoutY="206.0"
-			text="Jêzyk aplikacji:"
+			text="%labelAppLanguage"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
@@ -115,10 +121,11 @@
 			prefWidth="241.0">
 		</ComboBox>
 		<Label
+			fx:id="labelUnitsLanguage"
 			alignment="CENTER_RIGHT"
 			layoutX="137.0"
 			layoutY="248.0"
-			text="Jêzyk jednostek:"
+			text="%labelUnitsLanguage"
 			AnchorPane.leftAnchor="10.0"
 			AnchorPane.rightAnchor="263.0" />
 		<ComboBox
@@ -137,12 +144,13 @@
 			AnchorPane.rightAnchor="10.0">
 			<children>
 				<Button
+					fx:id="buttonSave"
 					alignment="CENTER"
 					contentDisplay="CENTER"
 					mnemonicParsing="false"
 					onAction="#savePreferences"
 					prefHeight="25.0"
-					text="Zapisz"
+					text="%buttonSave"
 					StackPane.alignment="CENTER" />
 			</children>
 		</StackPane>

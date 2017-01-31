@@ -10,12 +10,15 @@ import java.math.RoundingMode;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
+import com.gmail.kamiloleksik.jfxkonwerter.Main;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
@@ -38,10 +41,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
@@ -78,9 +84,20 @@ public class MainController implements Initializable
 	private ComboBox<String> unitTypeComboBox, firstUnitComboBox, secondUnitComboBox;
 
 	@FXML
-	private MenuItem resultFormattingMenuItem;
+	private MenuItem resultFormattingMenuItem, menuItemClose, menuItemSwapUnits, menuItemPreferences, menuItemUpdate,
+			menuItemAbout;
 
-	private EventHandler<ActionEvent> firstUnitComboBoxHandler, secondUnitComboBoxHandler;
+	@FXML
+	private Menu menuEdit, menuFile;
+
+	@FXML
+	private Label labelType, labelFirstUnit, labelInputValue, labelSecondUnit, labelResult, labelApplicationVersion,
+			labelOngoingUpdate, labelSourceCode, labelContact, labelCopyrightInfo;
+
+	@FXML
+	private Button buttonCloseInfo;
+
+	private EventHandler<ActionEvent> firstUnitComboBoxHandler, secondUnitComboBoxHandler, unitTypeComboBoxHandler;
 
 	private final Tooltip valueTextFieldTooltip = new Tooltip();
 	private final Tooltip resultTextFieldTooltip = new Tooltip();
@@ -121,6 +138,7 @@ public class MainController implements Initializable
 		addListenersToBooleanProperties();
 
 		setAppSkin();
+		labelCopyrightInfo.setText("Copyright © " + new SimpleDateFormat("yyyy").format(new Date()) + " Kamil Oleksik");
 	}
 
 	private void initializeModel(Object obj)
@@ -138,8 +156,10 @@ public class MainController implements Initializable
 
 	private void showCriticalErrorMessageAndExitApp()
 	{
-		Message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
+		String errorTitle = resourceBundle.getString("errorTitle");
+		String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
 
+		Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
 		Platform.exit();
 		System.exit(-1);
 	}
@@ -160,7 +180,7 @@ public class MainController implements Initializable
 					{
 						if (userInputLength == 0)
 						{
-							valueTextFieldTooltip.setText("pusty");
+							valueTextFieldTooltip.setText(resourceBundle.getString("emptyField"));
 						}
 						else
 						{
@@ -174,21 +194,101 @@ public class MainController implements Initializable
 
 	private void showNumberIsTooLongErrorMessage(int userInputLength)
 	{
-		Message.showMessage(Message.ERROR_TITLE, Message.NUMBER_TOO_LONG_ERROR_MESSAGE + userInputLength + ").");
+		String errorTitle = resourceBundle.getString("errorTitle");
+		String numberTooLongErrorMessage = resourceBundle.getString("numberTooLongErrorMessage");
+
+		Message.showMessage(errorTitle, numberTooLongErrorMessage + userInputLength + ").", AlertType.ERROR);
 	}
 
 	private void addListenersToBooleanProperties()
 	{
-		numberOfDecimalPlacesWasChanged
+		addListenerToNumOfDecPlacesBoolProperty();
+		addListenerToSkinNameBoolProperty();
+		addListenerToAppLangBoolProperty();
+		addListenerToUnitsLangBoolProperty();
+	}
+
+	private void addListenerToUnitsLangBoolProperty()
+	{
+		defaultUnitsLanguageWasChanged
 				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
 				{
 					if (newValue == true)
 					{
-						getAndSetResult();
-						numberOfDecimalPlacesWasChanged.set(false);
+						unitTypeComboBox.removeEventHandler(ActionEvent.ACTION, unitTypeComboBoxHandler);
+						firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+						secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+
+						model.updateUnitsLanguage();
+						ObservableList<String> unitTypeNames = model.getNames(ALL_UNIT_TYPE_NAMES);
+						String currentUnitTypeName = model.getUnitTypeName(CURRENT_UNIT_TYPE);
+						SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
+
+						unitTypeComboBox.setItems(unitTypeNames);
+						unitTypeSel.select(currentUnitTypeName);
+
+						ObservableList<String> unitNames = model.getNames(MAIN_WINDOW_UNIT_NAMES);
+						SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
+						SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
+						String currentFirstUnitName = model.getUnitDisplayName(CURRENT_FIRST_UNIT);
+						String currentSecondUnitName = model.getUnitDisplayName(CURRENT_SECOND_UNIT);
+
+						firstUnitComboBox.setItems(unitNames);
+						secondUnitComboBox.setItems(unitNames);
+						firstUnitSel.select(currentFirstUnitName);
+						secondUnitSel.select(currentSecondUnitName);
+
+						unitTypeComboBox.addEventHandler(ActionEvent.ACTION, unitTypeComboBoxHandler);
+						firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+						secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+						defaultUnitsLanguageWasChanged.set(false);
 					}
 				});
+	}
 
+	private void addListenerToAppLangBoolProperty()
+	{
+		defaultAppLanguageWasChanged
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+				{
+					if (newValue == true)
+					{
+						resourceBundle = Main.getBundle(model);
+						menuFile.setText(resourceBundle.getString("menuFile"));
+						menuEdit.setText(resourceBundle.getString("menuEdit"));
+						menuItemClose.setText(resourceBundle.getString("menuItemClose"));
+						menuItemSwapUnits.setText(resourceBundle.getString("menuItemSwapUnits"));
+						menuItemPreferences.setText(resourceBundle.getString("menuItemPreferences"));
+						menuItemUpdate.setText(resourceBundle.getString("menuItemUpdate"));
+						menuItemAbout.setText(resourceBundle.getString("menuItemAbout"));
+						labelType.setText(resourceBundle.getString("labelType"));
+						labelFirstUnit.setText(resourceBundle.getString("labelFirstUnit"));
+						labelInputValue.setText(resourceBundle.getString("labelInputValue"));
+						labelSecondUnit.setText(resourceBundle.getString("labelSecondUnit"));
+						labelResult.setText(resourceBundle.getString("labelResult"));
+						labelApplicationVersion.setText(resourceBundle.getString("labelApplicationVersion"));
+						labelContact.setText(resourceBundle.getString("labelContact"));
+						labelSourceCode.setText(resourceBundle.getString("labelSourceCode"));
+						labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
+						buttonCloseInfo.setText(resourceBundle.getString("buttonCloseInfo"));
+
+						if (resultInFixedNotation == null)
+						{
+							resultFormattingMenuItem.setText(resourceBundle.getString("resultFormattingMenuItem"));
+						}
+						else
+						{
+							resultFormattingMenuItem
+									.setText(resourceBundle.getString("resultFormattingMenuItemFixedNotation"));
+						}
+
+						defaultAppLanguageWasChanged.set(false);
+					}
+				});
+	}
+
+	private void addListenerToSkinNameBoolProperty()
+	{
 		defaultSkinNameWasChanged
 				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
 				{
@@ -200,7 +300,84 @@ public class MainController implements Initializable
 				});
 	}
 
+	private void addListenerToNumOfDecPlacesBoolProperty()
+	{
+		numberOfDecimalPlacesWasChanged
+				.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
+				{
+					if (newValue == true)
+					{
+						getAndSetResult();
+						numberOfDecimalPlacesWasChanged.set(false);
+					}
+				});
+	}
+
 	private void addEventHandlersToComboBoxes()
+	{
+		createFirstUnitComboBoxHandler();
+		createSecondUnitComboBoxHandler();
+		createUnitTypeComboBoxHandler();
+
+		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+		unitTypeComboBox.addEventHandler(ActionEvent.ACTION, unitTypeComboBoxHandler);
+	}
+
+	private void createUnitTypeComboBoxHandler()
+	{
+		unitTypeComboBoxHandler = (ActionEvent event) ->
+		{
+			firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+			secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+
+			firstUnitComboBox.getItems().clear();
+			secondUnitComboBox.getItems().clear();
+
+			SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
+			int unitTypeIndex = unitTypeSel.getSelectedIndex();
+
+			model.changeMainWindowSetOfUnits(unitTypeIndex);
+
+			firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+			secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+
+			ObservableList<String> unitNames = model.getNames(MAIN_WINDOW_UNIT_NAMES);
+			SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
+			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
+
+			firstUnitComboBox.setItems(unitNames);
+			firstUnitSel.select(0);
+			model.setUnit(0, CURRENT_FIRST_UNIT);
+
+			secondUnitComboBox.setItems(unitNames);
+			secondUnitSel.select(0);
+			model.setUnit(0, CURRENT_SECOND_UNIT);
+
+			firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
+			secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
+
+			boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
+
+			valueTextField.setLettersAreAllowed(lettersAreAllowed);
+			getAndSetResult();
+		};
+	}
+
+	private void createSecondUnitComboBoxHandler()
+	{
+		secondUnitComboBoxHandler = (ActionEvent event) ->
+		{
+			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
+			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
+
+			model.setUnit(secondUnitSelectedIndex, CURRENT_SECOND_UNIT);
+
+			getAndSetResult();
+		};
+	}
+
+	private void createFirstUnitComboBoxHandler()
 	{
 		firstUnitComboBoxHandler = (ActionEvent event) ->
 		{
@@ -211,19 +388,6 @@ public class MainController implements Initializable
 
 			getAndSetResult();
 		};
-
-		secondUnitComboBoxHandler = (ActionEvent event) ->
-		{
-			SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-			int secondUnitSelectedIndex = secondUnitSel.getSelectedIndex();
-
-			model.setUnit(secondUnitSelectedIndex, CURRENT_SECOND_UNIT);
-
-			getAndSetResult();
-		};
-
-		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
-		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
 	}
 
 	public void processDigit(ActionEvent event)
@@ -367,14 +531,20 @@ public class MainController implements Initializable
 			{
 				if (taskSucceeded)
 				{
+					String informationTitle = resourceBundle.getString("informationTitle");
+					String updateSuccessMessage = resourceBundle.getString("updateSuccessMessage");
+
 					model.updateExchangeRatesInRam();
-					Message.showMessage(Message.INFORMATION_TITLE, Message.UPDATE_SUCCESS_MESSAGE);
+					Message.showMessage(informationTitle, updateSuccessMessage, AlertType.INFORMATION);
 
 					getAndSetResult();
 				}
 				else
 				{
-					Message.showMessage(Message.ERROR_TITLE, Message.UPDATE_ERROR_MESSAGE);
+					String errorTitle = resourceBundle.getString("errorTitle");
+					String updateErrorMessage = resourceBundle.getString("updateErrorMessage");
+
+					Message.showMessage(errorTitle, updateErrorMessage, AlertType.ERROR);
 				}
 
 				updateInfoAnchorPane.setVisible(false);
@@ -413,50 +583,13 @@ public class MainController implements Initializable
 		stage.show();
 	}
 
-	public void changeUnitSet(ActionEvent event)
-	{
-		firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
-		secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
-
-		firstUnitComboBox.getItems().clear();
-		secondUnitComboBox.getItems().clear();
-
-		SingleSelectionModel<String> unitTypeSel = unitTypeComboBox.getSelectionModel();
-		int unitTypeIndex = unitTypeSel.getSelectedIndex();
-
-		model.changeMainWindowSetOfUnits(unitTypeIndex);
-
-		firstUnitComboBox.removeEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
-		secondUnitComboBox.removeEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
-
-		ObservableList<String> unitNames = model.getNames(MAIN_WINDOW_UNIT_NAMES);
-		SingleSelectionModel<String> firstUnitSel = firstUnitComboBox.getSelectionModel();
-		SingleSelectionModel<String> secondUnitSel = secondUnitComboBox.getSelectionModel();
-
-		firstUnitComboBox.setItems(unitNames);
-		firstUnitSel.select(0);
-		model.setUnit(0, CURRENT_FIRST_UNIT);
-
-		secondUnitComboBox.setItems(unitNames);
-		secondUnitSel.select(0);
-		model.setUnit(0, CURRENT_SECOND_UNIT);
-
-		firstUnitComboBox.addEventHandler(ActionEvent.ACTION, firstUnitComboBoxHandler);
-		secondUnitComboBox.addEventHandler(ActionEvent.ACTION, secondUnitComboBoxHandler);
-
-		boolean lettersAreAllowed = model.currentUnitsAreNumberBases();
-
-		valueTextField.setLettersAreAllowed(lettersAreAllowed);
-		getAndSetResult();
-	}
-
 	public void getAndSetResult()
 	{
 		String result = getResult();
 
 		resultTextField.setText(result);
 		resultTextFieldTooltip.setText(result);
-		resultFormattingMenuItem.setText("Poka¿ wynik w notacji naukowej");
+		resultFormattingMenuItem.setText(resourceBundle.getString("resultFormattingMenuItem"));
 		resultInFixedNotation = null;
 
 		if (model.currentUnitsAreNumberBases())
@@ -479,7 +612,7 @@ public class MainController implements Initializable
 		}
 		catch (InvalidNumberFormatException e)
 		{
-			result = Message.INVALID_NUMBER_FORMAT_MESSAGE;
+			result = resourceBundle.getString("invalidNumberFormatMessage");
 		}
 		catch (InvalidNumberBaseException e)
 		{
@@ -487,11 +620,11 @@ public class MainController implements Initializable
 
 			if (numberBase == 0)
 			{
-				result = Message.NUMBER_BASE_CONVERSION_ERROR_MESSAGE;
+				result = resourceBundle.getString("numberBaseConversionErrorMessage");
 			}
 			else
 			{
-				result = Message.INVALID_NUMBER_BASE_MESSAGE + numberBase + ".";
+				result = resourceBundle.getString("invalidNumberBaseMessage") + numberBase + ".";
 			}
 		}
 
@@ -509,8 +642,7 @@ public class MainController implements Initializable
 		{
 			resultTextFieldTooltip.setText(resultInFixedNotation);
 			resultTextField.setText(resultInFixedNotation);
-			resultFormattingMenuItem.setText("Poka¿ wynik w notacji naukowej");
-
+			resultFormattingMenuItem.setText(resourceBundle.getString("resultFormattingMenuItem"));
 			resultInFixedNotation = null;
 		}
 		else
@@ -526,7 +658,7 @@ public class MainController implements Initializable
 
 			resultTextFieldTooltip.setText(resultInScientificNotation);
 			resultTextField.setText(resultInScientificNotation);
-			resultFormattingMenuItem.setText("Wróæ do notacji sta³opozycyjnej");
+			resultFormattingMenuItem.setText(resourceBundle.getString("resultFormattingMenuItemFixedNotation"));
 		}
 	}
 

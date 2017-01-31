@@ -34,13 +34,15 @@
 			prefWidth="595.0">
 			<menus>
 				<Menu
+					fx:id="menuFile"
 					mnemonicParsing="false"
-					text="Plik">
+					text="%menuFile">
 					<items>
 						<MenuItem
+							fx:id="menuItemClose"
 							mnemonicParsing="false"
 							onAction="#closeApp"
-							text="Zamknij">
+							text="%menuItemClose">
 							<accelerator>
 								<KeyCodeCombination
 									alt="UP"
@@ -54,14 +56,15 @@
 					</items>
 				</Menu>
 				<Menu
+					fx:id="menuEdit"
 					mnemonicParsing="false"
-					text="Edycja">
+					text="%menuEdit">
 					<items>
 						<MenuItem
 							fx:id="resultFormattingMenuItem"
 							mnemonicParsing="false"
 							onAction="#changeResultFormatting"
-							text="Pokaż wynik w notacji naukowej">
+							text="%resultFormattingMenuItem">
 							<accelerator>
 								<KeyCodeCombination
 									alt="UP"
@@ -73,9 +76,10 @@
 							</accelerator>
 						</MenuItem>
 						<MenuItem
+							fx:id="menuItemSwapUnits"
 							mnemonicParsing="false"
 							onAction="#swapUnits"
-							text="Zamień jednostki">
+							text="%menuItemSwapUnits">
 							<accelerator>
 								<KeyCodeCombination
 									alt="UP"
@@ -88,9 +92,10 @@
 						</MenuItem>
 						<SeparatorMenuItem mnemonicParsing="false" />
 						<MenuItem
+							fx:id="menuItemPreferences"
 							mnemonicParsing="false"
 							onAction="#showPreferences"
-							text="Preferencje">
+							text="%menuItemPreferences">
 							<accelerator>
 								<KeyCodeCombination
 									alt="UP"
@@ -108,9 +113,10 @@
 					text="?">
 					<items>
 						<MenuItem
+							fx:id="menuItemUpdate"
 							mnemonicParsing="false"
 							onAction="#runUpdateThread"
-							text="Aktualizuj kursy walut">
+							text="%menuItemUpdate">
 							<accelerator>
 								<KeyCodeCombination
 									alt="UP"
@@ -123,9 +129,10 @@
 						</MenuItem>
 						<SeparatorMenuItem mnemonicParsing="false" />
 						<MenuItem
+							fx:id="menuItemAbout"
 							mnemonicParsing="false"
 							onAction="#showAppInfo"
-							text="O programie">
+							text="%menuItemAbout">
 							<accelerator>
 								<KeyCodeCombination
 									alt="ANY"
@@ -144,22 +151,23 @@
 			fx:id="unitTypeComboBox"
 			layoutX="88.0"
 			layoutY="64.0"
-			onAction="#changeUnitSet"
 			prefHeight="25.0"
 			prefWidth="241.0"
 			AnchorPane.topAnchor="64.0" />
 		<Label
+			fx:id="labelType"
 			layoutX="14.0"
 			layoutY="68.0"
-			text="Typ:"
+			text="%labelType"
 			AnchorPane.leftAnchor="14.0"
 			AnchorPane.rightAnchor="512.0" />
 		<Label
+			fx:id="labelFirstUnit"
 			layoutX="14.0"
 			layoutY="107.0"
 			prefHeight="17.0"
 			prefWidth="79.0"
-			text="Jednostka 1:"
+			text="%labelFirstUnit"
 			AnchorPane.leftAnchor="14.0"
 			AnchorPane.rightAnchor="512.0" />
 		<ComboBox
@@ -169,9 +177,10 @@
 			prefHeight="25.0"
 			prefWidth="241.0" />
 		<Label
+			fx:id="labelInputValue"
 			layoutX="14.0"
 			layoutY="146.0"
-			text="WartoĹ›Ä‡:"
+			text="%labelInputValue"
 			AnchorPane.leftAnchor="14.0"
 			AnchorPane.rightAnchor="512.0" />
 		<NumberTextField
@@ -181,11 +190,12 @@
 			prefHeight="25.0"
 			prefWidth="241.0" />
 		<Label
+			fx:id="labelSecondUnit"
 			layoutX="14.0"
 			layoutY="185.0"
 			prefHeight="17.0"
 			prefWidth="66.0"
-			text="Jednostka 2:"
+			text="%labelSecondUnit"
 			AnchorPane.leftAnchor="14.0"
 			AnchorPane.rightAnchor="512.0" />
 		<ComboBox
@@ -195,9 +205,10 @@
 			prefHeight="25.0"
 			prefWidth="241.0" />
 		<Label
+			fx:id="labelResult"
 			layoutX="14.0"
 			layoutY="224.0"
-			text="Wynik:"
+			text="%labelResult"
 			AnchorPane.leftAnchor="14.0"
 			AnchorPane.rightAnchor="512.0" />
 		<TextField
@@ -357,7 +368,7 @@
 			onAction="#processSign"
 			prefHeight="32.0"
 			prefWidth="32.0"
-			text="Â±">
+			text="±">
 			<font>
 				<Font size="14.0" />
 			</font>
@@ -381,7 +392,7 @@
 			onAction="#processDeletionKey"
 			prefHeight="80.0"
 			prefWidth="32.0"
-			text="â†�" />
+			text="←" />
 		<AnchorPane
 			fx:id="appInfoAnchorPane"
 			layoutX="128.0"
@@ -395,11 +406,12 @@
 			AnchorPane.rightAnchor="128.0">
 			<children>
 				<Label
+					fx:id="labelApplicationVersion"
 					alignment="CENTER"
 					layoutX="-1.0"
 					layoutY="22.0"
 					style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #4ED0F1;"
-					text="JFX Konwerter, wersja 0.6a"
+					text="%labelApplicationVersion"
 					textFill="WHITE"
 					AnchorPane.leftAnchor="1.0"
 					AnchorPane.rightAnchor="1.0" />
@@ -412,10 +424,11 @@
 					AnchorPane.rightAnchor="1.0">
 					<children>
 						<Button
+							fx:id="buttonCloseInfo"
 							alignment="CENTER"
 							mnemonicParsing="false"
 							onAction="#closeAppInfo"
-							text="Zamknij"
+							text="%buttonCloseInfo"
 							textAlignment="CENTER" />
 					</children>
 				</StackPane>
@@ -428,16 +441,17 @@
 					AnchorPane.rightAnchor="1.0">
 					<children>
 						<Label
+							fx:id="labelCopyrightInfo"
 							alignment="CENTER"
 							prefHeight="23.0"
 							prefWidth="337.0"
-							text="Copyright © 2016 Kamil Oleksik"
 							textFill="WHITE" />
 						<HBox alignment="CENTER">
 							<children>
 								<Label
+									fx:id="labelContact"
 									alignment="CENTER"
-									text="Kontakt: "
+									text="%labelContact"
 									textFill="WHITE" />
 								<Hyperlink
 									alignment="CENTER"
@@ -448,8 +462,9 @@
 						<HBox alignment="CENTER">
 							<children>
 								<Label
+									fx:id="labelSourceCode"
 									alignment="CENTER"
-									text="Kod źródłowy: "
+									text="%labelSourceCode"
 									textFill="WHITE" />
 								<Hyperlink
 									alignment="CENTER"
@@ -473,10 +488,11 @@
 			AnchorPane.leftAnchor="128.0"
 			AnchorPane.rightAnchor="128.0">
 			<Label
+				fx:id="labelOngoingUpdate"
 				layoutX="-2.0"
 				layoutY="15.0"
 				style="-fx-alignment: center;"
-				text="Trwa aktualizacja kursów walut. Proszę czekać..."
+				text="%labelOngoingUpdate"
 				textFill="WHITE"
 				AnchorPane.bottomAnchor="17.0"
 				AnchorPane.leftAnchor="1.0"

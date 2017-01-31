@@ -25,10 +25,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
+import javafx.scene.control.Alert.AlertType;
 
 public class PreferencesController implements Initializable
 {
 	private Model model;
+	private ResourceBundle resourceBundle;
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private Preferences currentPreferences;
 	private Map<IdKey, Integer> currentIds = new EnumMap<IdKey, Integer>(IdKey.class);
@@ -44,6 +46,7 @@ public class PreferencesController implements Initializable
 	@Override
 	public void initialize(URL url, ResourceBundle resourceBundle)
 	{
+		this.resourceBundle = resourceBundle;
 		model = (Model) resourceBundle.getObject("model");
 		currentPreferences = model.getPreferences();
 
@@ -138,7 +141,11 @@ public class PreferencesController implements Initializable
 					}
 					else
 					{
-						Message.showMessage(Message.ERROR_TITLE, Message.SAVING_PREFERENCES_ERROR_MESSAGE);
+						String errorTitle = resourceBundle.getString("errorTitle");
+						String savingPreferencesErrorMessage = resourceBundle
+								.getString("savingPreferencesErrorMessage");
+
+						Message.showMessage(errorTitle, savingPreferencesErrorMessage, AlertType.ERROR);
 					}
 				});
 			});

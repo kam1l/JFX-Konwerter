@@ -9,6 +9,7 @@ import java.util.EnumMap;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -17,7 +18,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-
 import com.gmail.kamiloleksik.jfxkonwerter.controller.MainController;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.entity.*;
@@ -33,6 +33,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
@@ -64,6 +65,45 @@ public class Main extends Application
 		Application.launch(Main.class, args);
 	}
 
+	public static ResourceBundle getBundle(Model model)
+	{
+		String appLanguageName = model.getAppLanguageName();
+		Locale locale;
+
+		if (appLanguageName.equals("Polski"))
+		{
+			locale = new Locale("pl");
+		}
+		else
+		{
+			locale = new Locale("en");
+		}
+
+		return new ResourceBundle()
+		{
+			ResourceBundle rb = ResourceBundle.getBundle("bundles.lang", locale);
+
+			@Override
+			protected Object handleGetObject(String key)
+			{
+				if (key.equals("model"))
+				{
+					return model;
+				}
+				else
+				{
+					return rb.getString(key);
+				}
+			}
+
+			@Override
+			public Enumeration<String> getKeys()
+			{
+				return rb.getKeys();
+			}
+		};
+	}
+
 	@Configuration
 	public static class Config
 	{
@@ -76,20 +116,7 @@ public class Main extends Application
 		@Bean
 		public ResourceBundle resourceBundle(Model model)
 		{
-			return new ResourceBundle()
-			{
-				@Override
-				protected Object handleGetObject(String key)
-				{
-					return model;
-				}
-
-				@Override
-				public Enumeration<String> getKeys()
-				{
-					return null;
-				}
-			};
+			return getBundle(model);
 		}
 
 		@Bean
@@ -101,7 +128,11 @@ public class Main extends Application
 			}
 			catch (Exception e)
 			{
-				Message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
+				ResourceBundle resourceBundle = ResourceBundle.getBundle("bundles.lang", new Locale("en"));
+				String errorTitle = resourceBundle.getString("errorTitle");
+				String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
+
+				Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
 				System.exit(-1);
 			}
 
@@ -116,7 +147,9 @@ public class Main extends Application
 			try
 			{
 				map.put(UNIT_TYPE_DAO, createDao(connection, UnitType.class));
+				map.put(UNIT_TYPE_EN_DAO, createDao(connection, UnitType_en.class));
 				map.put(UNIT_DAO, createDao(connection, Unit.class));
+				map.put(UNIT_EN_DAO, createDao(connection, Unit_en.class));
 				map.put(UNITS_LANGUAGE_DAO, createDao(connection, UnitsLanguage.class));
 				map.put(APP_LANGUAGE_DAO, createDao(connection, AppLanguage.class));
 				map.put(PREFERENCES_DAO, createDao(connection, Preferences.class));
@@ -127,7 +160,11 @@ public class Main extends Application
 			}
 			catch (Exception e)
 			{
-				Message.showMessage(Message.ERROR_TITLE, Message.CRITICAL_ERROR_MESSAGE);
+				ResourceBundle resourceBundle = ResourceBundle.getBundle("bundles.lang", new Locale("en"));
+				String errorTitle = resourceBundle.getString("errorTitle");
+				String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
+
+				Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
 				System.exit(-1);
 			}
 

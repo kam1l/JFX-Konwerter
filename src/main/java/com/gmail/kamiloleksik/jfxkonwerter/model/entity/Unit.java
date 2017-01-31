@@ -102,4 +102,9 @@ public class Unit implements Comparable<Unit>
 	{
 		return unitName.compareToIgnoreCase(o.unitName);
 	}
+
+	public void setName(String unitName)
+	{
+		this.unitName = unitName;
+	}
 }

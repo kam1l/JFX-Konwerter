@@ -52,4 +52,9 @@ public class UnitType implements Comparable<UnitType>
 	{
 		return unitTypeName.compareToIgnoreCase(o.unitTypeName);
 	}
+
+	public void setUnitTypeName(String unitTypeName)
+	{
+		this.unitTypeName = unitTypeName;
+	}
 }

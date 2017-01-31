@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -279,14 +278,38 @@ public class Model
 		{
 			ObservableList<String> nameList = FXCollections.observableArrayList();
 			EnumMap<UnitTypeKey, UnitType> uTypes = new EnumMap<UnitTypeKey, UnitType>(UnitTypeKey.class);
+			String unitTypeName;
 			UnitType uType;
+			Object uTypeLang;
+			CloseableIterator<?> itLang;
+
+			if (unitsLanguage.getUnitsLanguageName().equals("Polski"))
+			{
+				itLang = daos.get(UNIT_TYPE_DAO).closeableIterator();
+			}
+			else
+			{
+				itLang = daos.get(UNIT_TYPE_EN_DAO).closeableIterator();
+			}
 
 			while (it.hasNext())
 			{
 				uType = (UnitType) it.next();
+				uTypeLang = itLang.next();
 
+				if (uTypeLang instanceof UnitType)
+				{
+					unitTypeName = ((UnitType) uTypeLang).getUnitTypeName();
+					nameList.add(unitTypeName);
+				}
+				else
+				{
+					unitTypeName = ((UnitType_en) uTypeLang).getUnitTypeName();
+					nameList.add(unitTypeName);
+				}
+
+				uType.setUnitTypeName(unitTypeName);
 				allUnitTypes.add(uType);
-				nameList.add(uType.getUnitTypeName());
 
 				if (uType.getUnitTypeId() == defaultUnitTypeId)
 				{
@@ -314,10 +337,28 @@ public class Model
 			names.put(MAIN_WINDOW_UNIT_NAMES, FXCollections.observableArrayList());
 			names.put(PREFERENCES_UNIT_NAMES, FXCollections.observableArrayList());
 			Unit unit;
+			Object uLang;
+			CloseableIterator<?> itLang;
+
+			if (unitsLanguage.getUnitsLanguageName().equals("Polski"))
+			{
+				itLang = daos.get(UNIT_DAO).closeableIterator();
+			}
+			else
+			{
+				itLang = daos.get(UNIT_EN_DAO).closeableIterator();
+			}
 
 			while (it.hasNext())
 			{
 				unit = (Unit) it.next();
+				uLang = itLang.next();
+
+				if (uLang instanceof Unit_en)
+				{
+					unit.setName(((Unit_en) uLang).getUnitName());
+				}
+
 				unit.setDisplayName(getDisplayName(unit.getUnitName(), unit.getUnitAbbreviation()));
 				aUnits.add(unit);
 
@@ -360,6 +401,215 @@ public class Model
 			setUnit(unit, CURRENT_SECOND_UNIT);
 			setUnit(unit, DEFAULT_SECOND_UNIT);
 		}
+	}
+
+	public void updateUnitsLanguage()
+	{
+		updateUnitTypeLanguage();
+		updateAllUnitsListLanguage();
+		updateMainWindowUnitsLanguage();
+		updatePreferencesUnitsLanguage();
+	}
+
+	@SuppressWarnings("unchecked")
+	private void updatePreferencesUnitsLanguage()
+	{
+		ObservableList<String> nameList = FXCollections.observableArrayList();
+		String unitName = null;
+
+		for (Unit unit : preferencesUnits)
+		{
+			if (unitsLanguage.getUnitsLanguageName().equals("Polski"))
+			{
+				try
+				{
+					unitName = ((Dao<Unit, Integer>) daos.get(UNIT_DAO)).queryForId(unit.getUnitId()).getUnitName();
+
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				try
+				{
+					unitName = ((Dao<Unit_en, Integer>) daos.get(UNIT_EN_DAO)).queryForId(unit.getUnitId())
+							.getUnitName();
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			unit.setName(unitName);
+			unit.setDisplayName(getDisplayName(unitName, unit.getUnitAbbreviation()));
+			nameList.add(unit.getUnitDisplayName());
+		}
+
+		names.put(PREFERENCES_UNIT_NAMES, nameList);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void updateMainWindowUnitsLanguage()
+	{
+		ObservableList<String> nameList = FXCollections.observableArrayList();
+		String unitName = null;
+
+		for (Unit unit : mainWindowUnits)
+		{
+			if (unitsLanguage.getUnitsLanguageName().equals("Polski"))
+			{
+				try
+				{
+					unitName = ((Dao<Unit, Integer>) daos.get(UNIT_DAO)).queryForId(unit.getUnitId()).getUnitName();
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				try
+				{
+					unitName = ((Dao<Unit_en, Integer>) daos.get(UNIT_EN_DAO)).queryForId(unit.getUnitId())
+							.getUnitName();
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			unit.setName(unitName);
+			unit.setDisplayName(getDisplayName(unitName, unit.getUnitAbbreviation()));
+			nameList.add(unit.getUnitDisplayName());
+		}
+
+		names.put(MAIN_WINDOW_UNIT_NAMES, nameList);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void updateAllUnitsListLanguage()
+	{
+		String unitName = null;
+
+		for (Unit unit : allUnits)
+		{
+			if (unitsLanguage.getUnitsLanguageName().equals("Polski"))
+			{
+				try
+				{
+					unitName = ((Dao<Unit, Integer>) daos.get(UNIT_DAO)).queryForId(unit.getUnitId()).getUnitName();
+
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				try
+				{
+					unitName = ((Dao<Unit_en, Integer>) daos.get(UNIT_EN_DAO)).queryForId(unit.getUnitId())
+							.getUnitName();
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			unit.setName(unitName);
+			unit.setDisplayName(getDisplayName(unitName, unit.getUnitAbbreviation()));
+			Unit u = units.get(CURRENT_FIRST_UNIT);
+
+			if (u.getUnitId() == unit.getUnitId())
+			{
+				u.setName(unitName);
+				u.setDisplayName(getDisplayName(unitName, u.getUnitAbbreviation()));
+			}
+
+			u = units.get(CURRENT_SECOND_UNIT);
+
+			if (u.getUnitId() == unit.getUnitId())
+			{
+				u.setName(unitName);
+				u.setDisplayName(getDisplayName(unitName, u.getUnitAbbreviation()));
+			}
+
+			u = units.get(DEFAULT_FIRST_UNIT);
+
+			if (u.getUnitId() == unit.getUnitId())
+			{
+				u.setName(unitName);
+				u.setDisplayName(getDisplayName(unitName, u.getUnitAbbreviation()));
+			}
+
+			u = units.get(DEFAULT_SECOND_UNIT);
+
+			if (u.getUnitId() == unit.getUnitId())
+			{
+				u.setName(unitName);
+				u.setDisplayName(getDisplayName(unitName, u.getUnitAbbreviation()));
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void updateUnitTypeLanguage()
+	{
+		ObservableList<String> nameList = FXCollections.observableArrayList();
+		String unitTypeName = null;
+
+		for (UnitType type : allUnitTypes)
+		{
+			if (unitsLanguage.getUnitsLanguageName().equals("Polski"))
+			{
+				try
+				{
+					unitTypeName = ((Dao<UnitType, Integer>) daos.get(UNIT_TYPE_DAO)).queryForId(type.getUnitTypeId())
+							.getUnitTypeName();
+
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				try
+				{
+					unitTypeName = ((Dao<UnitType_en, Integer>) daos.get(UNIT_TYPE_EN_DAO))
+							.queryForId(type.getUnitTypeId()).getUnitTypeName();
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			type.setUnitTypeName(unitTypeName);
+
+			if (unitTypes.get(CURRENT_UNIT_TYPE).getUnitTypeId() == type.getUnitTypeId())
+			{
+				unitTypes.get(CURRENT_UNIT_TYPE).setUnitTypeName(unitTypeName);
+			}
+
+			if (unitTypes.get(DEFAULT_UNIT_TYPE).getUnitTypeId() == type.getUnitTypeId())
+			{
+				unitTypes.get(DEFAULT_UNIT_TYPE).setUnitTypeName(unitTypeName);
+			}
+
+			nameList.add(unitTypeName);
+		}
+
+		names.put(ALL_UNIT_TYPE_NAMES, nameList);
 	}
 
 	public boolean updateExchangeRates()
@@ -623,6 +873,25 @@ public class Model
 
 	public String getAppLanguageName()
 	{
+		if (appLanguage == null)
+		{
+			try (CloseableIterator<?> it = daos.get(PREFERENCES_DAO).closeableIterator())
+			{
+				Preferences prefs = (Preferences) it.next();
+				if (prefs.getAppLanguage().getAppLanguageId() == 1)
+				{
+					return "English";
+				}
+				else
+				{
+					return "Polski";
+				}
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 		return appLanguage.getAppLanguageName();
 	}
 
