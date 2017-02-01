@@ -7,14 +7,23 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumb
 
 public class TemperatureConverter implements Converter
 {
-	public static final RoundingMode roundingMode = RoundingMode.HALF_EVEN;
-	private String firstScaleAbbreviation;
-	private String secondScaleAbbreviation;
+	public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_EVEN;
+	private static final int NEWTON_SCALE_CODE = 1;
+	private static final int DELISLE_SCALE_CODE = 2;
+	private static final int ROMER_SCALE_CODE = 3;
+	private static final int REAUMUR_SCALE_CODE = 4;
+	private static final int RANKINE_SCALE_CODE = 5;
+	private static final int KELVIN_SCALE_CODE = 6;
+	private static final int FARENHEIT_SCALE_CODE = 7;
+	private static final int CELSIUS_SCALE_CODE = 8;
 
-	public TemperatureConverter(String firstScaleAbbreviation, String secondScaleAbbreviation)
+	private int firstScaleCode;
+	private int secondScaleCode;
+
+	public TemperatureConverter(int firstScaleCode, int secondScaleCode)
 	{
-		this.firstScaleAbbreviation = firstScaleAbbreviation;
-		this.secondScaleAbbreviation = secondScaleAbbreviation;
+		this.firstScaleCode = firstScaleCode;
+		this.secondScaleCode = secondScaleCode;
 	}
 
 	@Override
@@ -22,7 +31,7 @@ public class TemperatureConverter implements Converter
 	{
 		BigDecimal result;
 
-		if (firstScaleAbbreviation.equals("°C"))
+		if (firstScaleCode == CELSIUS_SCALE_CODE)
 		{
 			result = convertFromCelsiusToOther((BigDecimal) inputValue.get()[0], numberOfDecimalPlaces);
 		}
@@ -31,7 +40,7 @@ public class TemperatureConverter implements Converter
 			result = convertFromOtherToOther((BigDecimal) inputValue.get()[0], numberOfDecimalPlaces);
 		}
 
-		result = result.setScale(numberOfDecimalPlaces, roundingMode);
+		result = result.setScale(numberOfDecimalPlaces, ROUNDING_MODE);
 
 		return result.stripTrailingZeros().toPlainString();
 	}
@@ -55,47 +64,47 @@ public class TemperatureConverter implements Converter
 
 	private BigDecimal convertFromOtherToOther(BigDecimal value, int numberOfDecimalPlaces)
 	{
-		if (firstScaleAbbreviation.equals(secondScaleAbbreviation))
+		if (firstScaleCode == secondScaleCode)
 		{
 			return value;
 		}
 
 		BigDecimal result = BigDecimal.ZERO;
 
-		switch (firstScaleAbbreviation)
+		switch (firstScaleCode)
 		{
-		case "°F":
-			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), 300, roundingMode);
+		case FARENHEIT_SCALE_CODE:
+			result = (value.subtract(new BigDecimal(32))).divide(new BigDecimal(1.8), 300, ROUNDING_MODE);
 			break;
 
-		case "°K":
+		case KELVIN_SCALE_CODE:
 			result = value.subtract(new BigDecimal(273.15));
 			break;
 
-		case "°R":
-			result = value.divide(new BigDecimal(1.8), 300, roundingMode).subtract(new BigDecimal(273.15));
+		case RANKINE_SCALE_CODE:
+			result = value.divide(new BigDecimal(1.8), 300, ROUNDING_MODE).subtract(new BigDecimal(273.15));
 			break;
 
-		case "°Ré":
-			result = value.divide(new BigDecimal(0.8), 300, roundingMode);
+		case REAUMUR_SCALE_CODE:
+			result = value.divide(new BigDecimal(0.8), 300, ROUNDING_MODE);
 			break;
 
-		case "°Rø":
+		case ROMER_SCALE_CODE:
 			result = (value.subtract(new BigDecimal(7.5))).multiply(new BigDecimal(40)).divide(new BigDecimal(21), 300,
-					roundingMode);
+					ROUNDING_MODE);
 			break;
 
-		case "°D":
+		case DELISLE_SCALE_CODE:
 			result = new BigDecimal(100)
-					.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 300, roundingMode)));
+					.subtract((value.multiply(new BigDecimal(2)).divide(new BigDecimal(3), 300, ROUNDING_MODE)));
 			break;
 
-		case "°N":
-			result = value.divide(new BigDecimal(0.33), 300, roundingMode);
+		case NEWTON_SCALE_CODE:
+			result = value.divide(new BigDecimal(0.33), 300, ROUNDING_MODE);
 			break;
 		}
 
-		if (secondScaleAbbreviation.equals("°C"))
+		if (secondScaleCode == CELSIUS_SCALE_CODE)
 		{
 			return result;
 		}
@@ -108,32 +117,32 @@ public class TemperatureConverter implements Converter
 
 	private BigDecimal convertFromCelsiusToOther(BigDecimal value, int numberOfDecimalPlaces)
 	{
-		switch (secondScaleAbbreviation)
+		switch (secondScaleCode)
 		{
-		case "°C":
+		case CELSIUS_SCALE_CODE:
 			return value;
 
-		case "°F":
+		case FARENHEIT_SCALE_CODE:
 			return value.multiply(new BigDecimal(1.8)).add(new BigDecimal(32));
 
-		case "°K":
+		case KELVIN_SCALE_CODE:
 			return value.add(new BigDecimal(273.15));
 
-		case "°R":
+		case RANKINE_SCALE_CODE:
 			return (value.add(new BigDecimal(273.15))).multiply(new BigDecimal(1.8));
 
-		case "°Ré":
+		case REAUMUR_SCALE_CODE:
 			return value.multiply(new BigDecimal(0.8));
 
-		case "°Rø":
-			return value.multiply(new BigDecimal(21)).divide(new BigDecimal(40), 300, roundingMode)
+		case ROMER_SCALE_CODE:
+			return value.multiply(new BigDecimal(21)).divide(new BigDecimal(40), 300, ROUNDING_MODE)
 					.add(new BigDecimal(7.5));
 
-		case "°D":
+		case DELISLE_SCALE_CODE:
 			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2), 300,
-					roundingMode);
+					ROUNDING_MODE);
 
-		case "°N":
+		case NEWTON_SCALE_CODE:
 			return value.multiply(new BigDecimal(0.33));
 
 		default:

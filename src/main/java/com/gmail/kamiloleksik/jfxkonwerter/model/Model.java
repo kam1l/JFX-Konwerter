@@ -110,10 +110,10 @@ public class Model
 		}
 		else
 		{
-			String firstScaleAbbreviation = getUnitAbbreviation(CURRENT_FIRST_UNIT);
-			String secondScaleAbbreviation = getUnitAbbreviation(CURRENT_SECOND_UNIT);
+			int firstScaleCode = units.get(CURRENT_FIRST_UNIT).getUnitRatio().intValue();
+			int secondScaleCode = units.get(CURRENT_SECOND_UNIT).getUnitRatio().intValue();
 
-			converter = new TemperatureConverter(firstScaleAbbreviation, secondScaleAbbreviation);
+			converter = new TemperatureConverter(firstScaleCode, secondScaleCode);
 		}
 
 		InputValue<?> value = converter.preprocessUserInput(userInput);
@@ -849,11 +849,6 @@ public class Model
 	public int getPreferencesId()
 	{
 		return preferences.getPreferencesId();
-	}
-
-	private String getUnitAbbreviation(UnitKey key)
-	{
-		return units.get(key).getUnitAbbreviation();
 	}
 
 	public String getNumberOfDecimalPlaces()
