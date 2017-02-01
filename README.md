@@ -14,7 +14,7 @@ JFX Konwerter is very easy to use JavaFX-based unit converter.
 
 ## Installing
 
-You can download an ``JFX.Konwerter.zip`` file from the [releases page](https://github.com/kam1l/JFX-Konwerter/releases) which contains version for Windows operating sytem family. The application require Java 8 or above to run and is ready to use after unpacking it into your disk directory of choice.
+You can download an ``JFX.Konwerter.zip`` file from the [releases page](https://github.com/kam1l/JFX-Konwerter/releases) which contains version for Windows operating system family. The application require Java 8 or above to run and is ready to use after unpacking it into your disk directory of choice.
 
 ## Main window
 
