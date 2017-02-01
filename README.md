@@ -1,6 +1,6 @@
 # JFX Konwerter
 
-[![][https://img.shields.io/badge/License-Apache%202-blue.svg]][LICENSE]
+[![][license img]][license]
 JavaFX-based unit converter which utilises SQLite database management system. "units.db" file currently stores information about 217 units, exchange rates and number bases.
 
 ## Installing
@@ -39,3 +39,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+[license]:LICENSE
+[license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
