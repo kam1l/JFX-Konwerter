@@ -2,11 +2,19 @@
 
 [![][license img]][license]
 
-JavaFX-based unit converter which utilises SQLite database management system. "units.db" file currently stores information about 217 units, exchange rates and number bases.
+JFX Konwerter is very easy to use JavaFX-based unit converter. 
+
+**Core features:**
+ - 234 different units, currencies and number bases
+ - On-demand updates of exchange rates from European Central Bank
+ - Very high accuracy (the maximum number of decimal places is 100)
+ - 2 different languages of user interface and unit database: English and Polish
+ - User-defined default units which are automatically selected on application startup
+ - 3 different application skins
 
 ## Installing
 
-You can download an ``JFX-Konwerter.zip`` file from the [releases page](https://github.com/kam1l/JFX-Konwerter/releases). It contains runnable JAR file and units.db file.
+You can download an ``JFX.Konwerter.zip`` file from the [releases page](https://github.com/kam1l/JFX-Konwerter/releases) which is version for Windows operating sytem family. The application require Java 8 or above to run and is ready to use after unpacking it into a user's disk directory of choice.
 
 ## Main window
 
