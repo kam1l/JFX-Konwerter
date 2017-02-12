@@ -14,6 +14,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,8 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.entity.*;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.NumberBaseComparator;
+import com.gmail.kamiloleksik.jfxkonwerter.util.keys.NumberBaseNameComparator;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey;
 import com.j256.ormlite.dao.CloseableIterator;
@@ -368,12 +371,24 @@ public class Model
 				}
 			}
 
-			Collections.sort(names.get(MAIN_WINDOW_UNIT_NAMES), String.CASE_INSENSITIVE_ORDER);
-			Collections.sort(names.get(PREFERENCES_UNIT_NAMES), String.CASE_INSENSITIVE_ORDER);
-			Collections.sort(mainWindowUnits);
-			Collections.sort(preferencesUnits);
-			Collections.sort(aUnits);
-
+			if (currentUnitsAreNumberBases())
+			{
+				Comparator<String> numberBaseNameComparator = new NumberBaseNameComparator();
+				Comparator<Unit> numberBaseComparator = new NumberBaseComparator();
+				
+				Collections.sort(names.get(MAIN_WINDOW_UNIT_NAMES), numberBaseNameComparator);
+				Collections.sort(names.get(PREFERENCES_UNIT_NAMES), numberBaseNameComparator);
+				Collections.sort(mainWindowUnits, numberBaseComparator);
+				Collections.sort(preferencesUnits, numberBaseComparator);
+			}
+			else
+			{
+				Collections.sort(names.get(MAIN_WINDOW_UNIT_NAMES), String.CASE_INSENSITIVE_ORDER);
+				Collections.sort(names.get(PREFERENCES_UNIT_NAMES), String.CASE_INSENSITIVE_ORDER);
+				Collections.sort(mainWindowUnits);
+				Collections.sort(preferencesUnits);
+			}
+			
 			return aUnits;
 		}
 	}
@@ -758,6 +773,20 @@ public class Model
 				addItemToUnitNames(unit, key);
 				unitsL.add(unit);
 			}
+		}
+		
+		if (currentUnitsAreNumberBases())
+		{
+			Comparator<String> numberBaseNameComparator = new NumberBaseNameComparator();
+			Comparator<Unit> numberBaseComparator = new NumberBaseComparator();
+			
+			Collections.sort(names.get(key), numberBaseNameComparator);
+			Collections.sort(unitsL, numberBaseComparator);
+		}
+		else
+		{
+			Collections.sort(names.get(key), String.CASE_INSENSITIVE_ORDER);
+			Collections.sort(unitsL);
 		}
 
 		return unitsL;

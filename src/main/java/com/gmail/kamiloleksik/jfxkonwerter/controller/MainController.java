@@ -567,7 +567,7 @@ public class MainController implements Initializable
 		scene.getStylesheets().add(getClass().getResource("/styles/application.css").toExternalForm());
 		stage.getIcons().add(new Image(MainController.class.getResourceAsStream("/images/icon.png")));
 		stage.setScene(scene);
-		stage.setTitle("Preferencje");
+		stage.setTitle(resourceBundle.getString("preferencesTitle"));
 		stage.initModality(Modality.APPLICATION_MODAL);
 		stage.initOwner(appInfoAnchorPane.getScene().getWindow());
 		stage.setOnCloseRequest(e ->
