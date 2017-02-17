@@ -16,6 +16,11 @@ public class NumberTextField extends TextField
 	private String typedText;
 	private boolean lettersAreAllowed;
 
+	public NumberTextField()
+	{
+		super();
+	}
+	
 	@Override
 	public void replaceText(int start, int end, String typedText)
 	{
@@ -29,7 +34,7 @@ public class NumberTextField extends TextField
 		}
 	}
 
-	private boolean validate()
+	public boolean validate()
 	{
 		String currentText = getCharacters().toString();
 		String newText = getNewText(currentText);
@@ -45,13 +50,43 @@ public class NumberTextField extends TextField
 		}
 	}
 
-	private String getNewText(String currentText)
-	{
-		return currentText.substring(0, start) + typedText + currentText.substring(end);
-	}
-
 	public void setLettersAreAllowed(boolean lettersAreAllowed)
 	{
 		this.lettersAreAllowed = lettersAreAllowed;
+	}
+	
+	public int getStart()
+	{
+		return start;
+	}
+
+	public void setStart(int start)
+	{
+		this.start = start;
+	}
+
+	public int getEnd()
+	{
+		return end;
+	}
+
+	public void setEnd(int end)
+	{
+		this.end = end;
+	}
+	
+	public String getTypedText()
+	{
+		return typedText;
+	}
+
+	public void setTypedText(String typedText)
+	{
+		this.typedText = typedText;
+	}
+	
+	private String getNewText(String currentText)
+	{
+		return currentText.substring(0, start) + typedText + currentText.substring(end);
 	}
 }
