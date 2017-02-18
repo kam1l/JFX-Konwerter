@@ -17,17 +17,9 @@ public class NumberBaseConverter implements Converter
 	private boolean isDecimalFraction;
 
 	public NumberBaseConverter(BigInteger firstNumberBase, BigInteger secondNumberBase)
-			throws InvalidNumberBaseException
 	{
-		try
-		{
-			this.firstNumberBase = firstNumberBase;
-			this.secondNumberBase = secondNumberBase;
-		}
-		catch (NumberFormatException e)
-		{
-			throw new InvalidNumberBaseException();
-		}
+		this.firstNumberBase = firstNumberBase;
+		this.secondNumberBase = secondNumberBase;
 	}
 
 	@Override
