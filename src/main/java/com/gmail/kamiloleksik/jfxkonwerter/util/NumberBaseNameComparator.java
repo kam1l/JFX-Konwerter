@@ -1,4 +1,4 @@
-package com.gmail.kamiloleksik.jfxkonwerter.util.keys;
+package com.gmail.kamiloleksik.jfxkonwerter.util;
 
 import java.util.Comparator;
 

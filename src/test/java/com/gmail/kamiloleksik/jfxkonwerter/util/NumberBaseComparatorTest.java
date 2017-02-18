@@ -1,10 +1,11 @@
-package com.gmail.kamiloleksik.jfxkonwerter.util.keys;
+package com.gmail.kamiloleksik.jfxkonwerter.util;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
 import com.gmail.kamiloleksik.jfxkonwerter.model.entity.Unit;
+import com.gmail.kamiloleksik.jfxkonwerter.util.NumberBaseComparator;
 
 public class NumberBaseComparatorTest
 {
