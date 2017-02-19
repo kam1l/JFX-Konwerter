@@ -724,12 +724,12 @@ public class MainController implements Initializable
 
 	public void openEmailClient(ActionEvent event)
 	{
-		hostServices.showDocument("mailto:kamiloleksik@gmail.com");
+		hostServices.showDocument(resourceBundle.getString("authorEmailAddress"));
 	}
 
 	public void openWebBrowser(ActionEvent event)
 	{
-		hostServices.showDocument("https://github.com/kam1l/JFX-Konwerter");
+		hostServices.showDocument(resourceBundle.getString("applicationWebsite"));
 	}
 
 	public void setAppSkin()
