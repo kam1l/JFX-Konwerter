@@ -8,14 +8,14 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumb
 public class TemperatureConverter implements Converter
 {
 	public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_EVEN;
-	private static final int NEWTON_SCALE_CODE = 1;
-	private static final int DELISLE_SCALE_CODE = 2;
-	private static final int ROMER_SCALE_CODE = 3;
-	private static final int REAUMUR_SCALE_CODE = 4;
-	private static final int RANKINE_SCALE_CODE = 5;
-	private static final int KELVIN_SCALE_CODE = 6;
-	private static final int FARENHEIT_SCALE_CODE = 7;
-	private static final int CELSIUS_SCALE_CODE = 8;
+	public static final int NEWTON_SCALE_CODE = 1;
+	public static final int DELISLE_SCALE_CODE = 2;
+	public static final int ROMER_SCALE_CODE = 3;
+	public static final int REAUMUR_SCALE_CODE = 4;
+	public static final int RANKINE_SCALE_CODE = 5;
+	public static final int KELVIN_SCALE_CODE = 6;
+	public static final int FARENHEIT_SCALE_CODE = 7;
+	public static final int CELSIUS_SCALE_CODE = 8;
 
 	private int firstScaleCode;
 	private int secondScaleCode;
@@ -33,7 +33,7 @@ public class TemperatureConverter implements Converter
 
 		if (firstScaleCode == CELSIUS_SCALE_CODE)
 		{
-			result = convertFromCelsiusToOther((BigDecimal) inputValue.get()[0], numberOfDecimalPlaces);
+			result = convertFromCelsiusToOther((BigDecimal) inputValue.get()[0]);
 		}
 		else
 		{
@@ -86,7 +86,7 @@ public class TemperatureConverter implements Converter
 			break;
 
 		case REAUMUR_SCALE_CODE:
-			result = value.divide(new BigDecimal(0.8), 300, ROUNDING_MODE);
+			result = value.multiply(new BigDecimal(1.25));
 			break;
 
 		case ROMER_SCALE_CODE:
@@ -110,12 +110,11 @@ public class TemperatureConverter implements Converter
 		}
 		else
 		{
-			value = result;
-			return convertFromCelsiusToOther(value, numberOfDecimalPlaces);
+			return convertFromCelsiusToOther(result);
 		}
 	}
 
-	private BigDecimal convertFromCelsiusToOther(BigDecimal value, int numberOfDecimalPlaces)
+	private BigDecimal convertFromCelsiusToOther(BigDecimal value)
 	{
 		switch (secondScaleCode)
 		{
@@ -135,12 +134,10 @@ public class TemperatureConverter implements Converter
 			return value.multiply(new BigDecimal(0.8));
 
 		case ROMER_SCALE_CODE:
-			return value.multiply(new BigDecimal(21)).divide(new BigDecimal(40), 300, ROUNDING_MODE)
-					.add(new BigDecimal(7.5));
+			return value.multiply(new BigDecimal(0.525)).add(new BigDecimal(7.5));
 
 		case DELISLE_SCALE_CODE:
-			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(3)).divide(new BigDecimal(2), 300,
-					ROUNDING_MODE);
+			return (new BigDecimal(100).subtract(value)).multiply(new BigDecimal(1.5));
 
 		case NEWTON_SCALE_CODE:
 			return value.multiply(new BigDecimal(0.33));

@@ -44,5 +44,11 @@ public class NumberBaseConverterTest
 		conversionResult = numberBaseConverter.doValueConversion(value, 4);
 		
 		assertEquals("1C4", conversionResult);
+		
+		numberBaseConverter = new NumberBaseConverter(new BigInteger("10"), new BigInteger("20"));
+		value = numberBaseConverter.preprocessUserInput("345.8527");
+		conversionResult = numberBaseConverter.doValueConversion(value, 4);
+		
+		assertEquals("H5.H11C", conversionResult);
 	}
 }

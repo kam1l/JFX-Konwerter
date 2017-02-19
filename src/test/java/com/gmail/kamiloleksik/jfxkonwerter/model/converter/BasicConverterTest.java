@@ -10,7 +10,7 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumb
 
 public class BasicConverterTest
 {
-	private BasicConverter basicConverter = new BasicConverter(new BigDecimal("2"), new BigDecimal("1"));
+	private BasicConverter basicConverter = new BasicConverter(new BigDecimal("2"), new BigDecimal("1.245"));
 	
 	@Test(expected = InvalidNumberFormatException.class)
 	public void preprocessingShouldThrowExceptionIfInputContainsInvalidCharacters() throws InvalidNumberFormatException
@@ -25,6 +25,11 @@ public class BasicConverterTest
 		InputValue<?> value = basicConverter.preprocessUserInput("2");
 		String conversionResult = basicConverter.doValueConversion(value, 4);
 		
-		assertEquals("4", conversionResult);
+		assertEquals("3.2129", conversionResult);
+		
+		value = basicConverter.preprocessUserInput("27.432");
+		conversionResult = basicConverter.doValueConversion(value, 30);
+		
+		assertEquals("44.067469879518072289156626506024", conversionResult);
 	}
 }
