@@ -20,7 +20,7 @@ public class NumberBaseConverterTest
 		numberBaseConverter = new NumberBaseConverter(new BigInteger("4"), new BigInteger("16"));
 		numberBaseConverter.preprocessUserInput("");
 	}
-	
+
 	@Test(expected = InvalidNumberBaseException.class)
 	public void ifUserInputContainsInvalidCharactersRegardingInputNumberBaseExceptionShouldBeThrown()
 			throws InvalidNumberFormatException, InvalidNumberBaseException
@@ -28,27 +28,26 @@ public class NumberBaseConverterTest
 		numberBaseConverter = new NumberBaseConverter(new BigInteger("2"), new BigInteger("10"));
 		numberBaseConverter.preprocessUserInput("1002");
 	}
-	
+
 	@Test
-	public void numberBasesShouldBeConvertProperly()
-			throws InvalidNumberFormatException, InvalidNumberBaseException
+	public void numberBasesShouldBeConvertProperly() throws InvalidNumberFormatException, InvalidNumberBaseException
 	{
 		numberBaseConverter = new NumberBaseConverter(new BigInteger("10"), new BigInteger("2"));
 		InputValue<?> value = numberBaseConverter.preprocessUserInput("452");
 		String conversionResult = numberBaseConverter.doValueConversion(value, 4);
-		
+
 		assertEquals("111000100", conversionResult);
-		
+
 		numberBaseConverter = new NumberBaseConverter(new BigInteger("8"), new BigInteger("16"));
 		value = numberBaseConverter.preprocessUserInput("704");
 		conversionResult = numberBaseConverter.doValueConversion(value, 4);
-		
+
 		assertEquals("1C4", conversionResult);
-		
+
 		numberBaseConverter = new NumberBaseConverter(new BigInteger("10"), new BigInteger("20"));
 		value = numberBaseConverter.preprocessUserInput("345.8527");
 		conversionResult = numberBaseConverter.doValueConversion(value, 4);
-		
+
 		assertEquals("H5.H11C", conversionResult);
 	}
 }

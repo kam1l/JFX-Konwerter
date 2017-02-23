@@ -39,6 +39,19 @@
 					text="%menuFile">
 					<items>
 						<MenuItem
+							fx:id="menuItemImportPreferences"
+							mnemonicParsing="false"
+							onAction="#importPreferences"
+							text="%menuItemImportPreferences">
+						</MenuItem>
+						<MenuItem
+							fx:id="menuItemExportPreferences"
+							mnemonicParsing="false"
+							onAction="#exportPreferences"
+							text="%menuItemExportPreferences">
+						</MenuItem>
+						<SeparatorMenuItem mnemonicParsing="false" />
+						<MenuItem
 							fx:id="menuItemClose"
 							mnemonicParsing="false"
 							onAction="#closeApp"
@@ -92,6 +105,68 @@
 						</MenuItem>
 						<SeparatorMenuItem mnemonicParsing="false" />
 						<MenuItem
+							fx:id="menuItemQuickCopy"
+							mnemonicParsing="false"
+							onAction="#quickCopy"
+							text="%menuItemQuickCopy">
+							<accelerator>
+								<KeyCodeCombination
+									alt="UP"
+									code="C"
+									control="DOWN"
+									meta="UP"
+									shift="DOWN"
+									shortcut="UP" />
+							</accelerator>
+						</MenuItem>
+						<MenuItem
+							fx:id="menuItemQuickPaste"
+							mnemonicParsing="false"
+							onAction="#quickPaste"
+							text="%menuItemQuickPaste">
+							<accelerator>
+								<KeyCodeCombination
+									alt="UP"
+									code="V"
+									control="DOWN"
+									meta="UP"
+									shift="DOWN"
+									shortcut="UP" />
+							</accelerator>
+						</MenuItem>
+						<SeparatorMenuItem mnemonicParsing="false" />
+						<MenuItem
+							fx:id="menuItemIncreaseNumOfDecPlaces"
+							mnemonicParsing="false"
+							onAction="#increaseNumberOfDecimalPlaces"
+							text="%menuItemIncreaseNumOfDecPlaces">
+							<accelerator>
+								<KeyCodeCombination
+									alt="UP"
+									code="CLOSE_BRACKET"
+									control="DOWN"
+									meta="UP"
+									shift="UP"
+									shortcut="UP" />
+							</accelerator>
+						</MenuItem>
+						<MenuItem
+							fx:id="menuItemDecreaseNumOfDecPlaces"
+							mnemonicParsing="false"
+							onAction="#decreaseNumberOfDecimalPlaces"
+							text="%menuItemDecreaseNumOfDecPlaces">
+							<accelerator>
+								<KeyCodeCombination
+									alt="UP"
+									code="OPEN_BRACKET"
+									control="DOWN"
+									meta="UP"
+									shift="UP"
+									shortcut="UP" />
+							</accelerator>
+						</MenuItem>
+						<SeparatorMenuItem mnemonicParsing="false" />
+						<MenuItem
 							fx:id="menuItemPreferences"
 							mnemonicParsing="false"
 							onAction="#showPreferences"
@@ -121,6 +196,21 @@
 								<KeyCodeCombination
 									alt="UP"
 									code="A"
+									control="DOWN"
+									meta="UP"
+									shift="UP"
+									shortcut="UP" />
+							</accelerator>
+						</MenuItem>
+						<MenuItem
+							fx:id="menuItemCheckUpdate"
+							mnemonicParsing="false"
+							onAction="#checkApplicationUpdate"
+							text="%menuItemCheckUpdate">
+							<accelerator>
+								<KeyCodeCombination
+									alt="UP"
+									code="U"
 									control="DOWN"
 									meta="UP"
 									shift="UP"

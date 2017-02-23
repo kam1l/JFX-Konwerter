@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
@@ -12,7 +13,7 @@
 	maxWidth="-Infinity"
 	minHeight="-Infinity"
 	minWidth="-Infinity"
-	prefHeight="380.0"
+	prefHeight="529.0"
 	prefWidth="486.0"
 	xmlns="http://javafx.com/javafx/8.0.60"
 	xmlns:fx="http://javafx.com/fxml/1"
@@ -86,7 +87,7 @@
 			prefWidth="65.0">
 		</ComboBox>
 		<Separator
-			layoutX="14.0"
+			layoutX="13.0"
 			layoutY="324.0"
 			prefHeight="3.0"
 			prefWidth="459.0" />
@@ -136,8 +137,8 @@
 			prefWidth="241.0">
 		</ComboBox>
 		<StackPane
-			layoutX="6.0"
-			layoutY="330.0"
+			layoutX="10.0"
+			layoutY="478.0"
 			prefHeight="45.0"
 			prefWidth="257.0"
 			AnchorPane.leftAnchor="10.0"
@@ -154,5 +155,33 @@
 					StackPane.alignment="CENTER" />
 			</children>
 		</StackPane>
+		<CheckBox
+			fx:id="applicationUpdateCheckBox"
+			layoutX="232.0"
+			layoutY="342.0"
+			mnemonicParsing="false"
+			text="%applicationUpdateCheckBox" />
+		<CheckBox
+			fx:id="exchangeRatesUpdateCheckbox"
+			layoutX="232.0"
+			layoutY="384.0"
+			mnemonicParsing="false"
+			text="%exchangeRatesUpdateCheckbox" />
+		<Separator
+			layoutX="13.0"
+			layoutY="418.0"
+			prefHeight="3.0"
+			prefWidth="459.0" />
+		<CheckBox
+			fx:id="logHistoryCheckbox"
+			layoutX="232.0"
+			layoutY="436.0"
+			mnemonicParsing="false"
+			text="%logHistoryCheckbox" />
+		<Separator
+			layoutX="13.0"
+			layoutY="470.0"
+			prefHeight="3.0"
+			prefWidth="459.0" />
 	</children>
 </AnchorPane>

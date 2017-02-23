@@ -4254,7 +4254,7 @@ to the top and bottom -fx-padding values of the parent toolbar. */
 .alert.confirmation.dialog-pane,
 .text-input-dialog.dialog-pane,
 .choice-dialog.dialog-pane {
-    -fx-graphic: url("dialog-confirm.png");
+    -fx-graphic: url("../images/dialog-confirm.png");
 }
 
 .alert.information.dialog-pane {

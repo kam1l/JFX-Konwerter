@@ -22,6 +22,12 @@ public class Preferences
 	private UnitsLanguage unitsLanguage;
 	@DatabaseField(canBeNull = false, foreign = true, columnName = "defaultAppSkinId")
 	private AppSkin appSkin;
+	@DatabaseField(canBeNull = false)
+	private boolean updateExchangeRatesOnStartup;
+	@DatabaseField(canBeNull = false)
+	private boolean checkForApplicationUpdatesOnStartup;
+	@DatabaseField(canBeNull = false)
+	private boolean logHistory;
 
 	public Preferences()
 	{
@@ -29,7 +35,8 @@ public class Preferences
 	}
 
 	public Preferences(int preferencesId, NumberOfDecimalPlaces numberOfDecimalPlaces, UnitType unitType,
-			Unit firstUnit, Unit secondUnit, AppLanguage appLanguage, UnitsLanguage unitsLanguage, AppSkin appSkin)
+			Unit firstUnit, Unit secondUnit, AppLanguage appLanguage, UnitsLanguage unitsLanguage, AppSkin appSkin,
+			boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup, boolean logHistory)
 	{
 		this.preferencesId = preferencesId;
 		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
@@ -39,11 +46,15 @@ public class Preferences
 		this.appLanguage = appLanguage;
 		this.unitsLanguage = unitsLanguage;
 		this.appSkin = appSkin;
+		this.updateExchangeRatesOnStartup = updateExchangeRatesOnStartup;
+		this.checkForApplicationUpdatesOnStartup = checkForApplicationUpdatesOnStartup;
+		this.logHistory = logHistory;
 	}
 
 	public Preferences(int preferencesId, int defaultNumberOfDecimalPlacesId, int defaultUnitTypeId,
 			int defaultFirstUnitId, int defaultSecondUnitId, int defaultAppLanguageId, int defaultUnitsLanguageId,
-			int defaultAppSkinId)
+			int defaultAppSkinId, boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup,
+			boolean logHistory)
 	{
 		this.preferencesId = preferencesId;
 		numberOfDecimalPlaces = new NumberOfDecimalPlaces(defaultNumberOfDecimalPlacesId, null);
@@ -53,6 +64,9 @@ public class Preferences
 		appLanguage = new AppLanguage(defaultAppLanguageId, null);
 		unitsLanguage = new UnitsLanguage(defaultUnitsLanguageId, null);
 		appSkin = new AppSkin(defaultAppSkinId, null, null);
+		this.updateExchangeRatesOnStartup = updateExchangeRatesOnStartup;
+		this.checkForApplicationUpdatesOnStartup = checkForApplicationUpdatesOnStartup;
+		this.logHistory = logHistory;
 	}
 
 	public int getPreferencesId()
@@ -63,6 +77,11 @@ public class Preferences
 	public NumberOfDecimalPlaces getNumberOfDecimalPlaces()
 	{
 		return numberOfDecimalPlaces;
+	}
+
+	public void setNumberOfDecimalPlaces(NumberOfDecimalPlaces numberOfDecimalPlaces)
+	{
+		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
 	}
 
 	public UnitType getUnitType()
@@ -93,5 +112,35 @@ public class Preferences
 	public AppSkin getAppSkin()
 	{
 		return appSkin;
+	}
+
+	public boolean getUpdateExchangeRatesOnStartup()
+	{
+		return updateExchangeRatesOnStartup;
+	}
+
+	public void setUpdateExchangeRatesOnStartup(boolean updateExchangeRatesOnStartup)
+	{
+		this.updateExchangeRatesOnStartup = updateExchangeRatesOnStartup;
+	}
+
+	public boolean getCheckForApplicationUpdatesOnStartup()
+	{
+		return checkForApplicationUpdatesOnStartup;
+	}
+
+	public void setCheckForApplicationUpdatesOnStartup(boolean checkForApplicationUpdatesOnStartup)
+	{
+		this.checkForApplicationUpdatesOnStartup = checkForApplicationUpdatesOnStartup;
+	}
+
+	public boolean getLogHistory()
+	{
+		return logHistory;
+	}
+
+	public void setLogHistory(boolean logHistory)
+	{
+		this.logHistory = logHistory;
 	}
 }

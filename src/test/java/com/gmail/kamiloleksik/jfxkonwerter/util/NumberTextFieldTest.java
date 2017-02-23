@@ -29,7 +29,7 @@ public class NumberTextFieldTest
 
 		assertFalse(validationResult);
 	}
-	
+
 	@Test
 	public void onlyAlphaNumeric_MinusAndPointCharactersShouldBeAccepted()
 	{
@@ -42,20 +42,20 @@ public class NumberTextFieldTest
 		validationResult = ntf.validate();
 
 		assertFalse(validationResult);
-		
+
 		ntf.setTypedText("<");
 
 		validationResult = ntf.validate();
 
 		assertFalse(validationResult);
-		
+
 		ntf.setTypedText(":");
 
 		validationResult = ntf.validate();
 
 		assertFalse(validationResult);
 	}
-	
+
 	@Test
 	public void minusShouldBeAllowedOnlyAtTheVeryBeginningOfTheNumber()
 	{
@@ -68,7 +68,7 @@ public class NumberTextFieldTest
 
 		assertFalse(validationResult);
 	}
-	
+
 	@Test
 	public void decimalPointShouldBeAllowedOnlyAfterDigit()
 	{
@@ -81,7 +81,7 @@ public class NumberTextFieldTest
 
 		assertFalse(validationResult);
 	}
-	
+
 	@Test
 	public void onlyOneMinusShouldBeAllowed()
 	{
@@ -94,7 +94,7 @@ public class NumberTextFieldTest
 
 		assertFalse(validationResult);
 	}
-	
+
 	@Test
 	public void onlyOneDecimalPointShouldBeAllowed()
 	{

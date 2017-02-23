@@ -26,6 +26,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.CheckBox;
 
 public class PreferencesController implements Initializable
 {
@@ -39,6 +40,9 @@ public class PreferencesController implements Initializable
 	@FXML
 	private ComboBox<String> defaultNumberOfDecimalPlacesComboBox, defaultUnitTypeComboBox, defaultFirstUnitComboBox,
 			defaultSecondUnitComboBox, defaultAppLanguageComboBox, defaultUnitsLanguageComboBox, defaultAppSkinComboBox;
+
+	@FXML
+	private CheckBox applicationUpdateCheckBox, exchangeRatesUpdateCheckbox, logHistoryCheckbox;
 
 	private int defaultNumberOfDecimalPlacesIndex, defaultUnitTypeIndex, defaultFirstUnitIndex, defaultSecondUnitIndex,
 			defaultAppLanguageIndex, defaultUnitsLanguageIndex, defaultAppSkinIndex;
@@ -99,6 +103,18 @@ public class PreferencesController implements Initializable
 
 		defaultAppSkinComboBox.setItems(appSkinNames);
 		defaultAppSkinSel.select(model.getAppSkinName());
+
+		boolean checkForApplicationUpdatesOnStartup = currentPreferences.getCheckForApplicationUpdatesOnStartup();
+		currentIds.put(CHECK_APP_UPDATE_ID, checkForApplicationUpdatesOnStartup ? 1 : 0);
+		applicationUpdateCheckBox.setSelected(checkForApplicationUpdatesOnStartup);
+
+		boolean updateExchangeRatesOnStartup = currentPreferences.getUpdateExchangeRatesOnStartup();
+		currentIds.put(UPDATE_EXCHANGE_RATES_ID, updateExchangeRatesOnStartup ? 1 : 0);
+		exchangeRatesUpdateCheckbox.setSelected(updateExchangeRatesOnStartup);
+
+		boolean logHistory = currentPreferences.getLogHistory();
+		currentIds.put(LOG_HISTORY_ID, logHistory ? 1 : 0);
+		logHistoryCheckbox.setSelected(logHistory);
 	}
 
 	public void changeUnitSet(ActionEvent event)
@@ -173,6 +189,9 @@ public class PreferencesController implements Initializable
 		selectedIds.put(APP_LANGUAGE_ID, model.getAppLanguages(defaultAppLanguageIndex).getAppLanguageId());
 		selectedIds.put(UNITS_LANGUAGE_ID, model.getUnitsLanguages(defaultUnitsLanguageIndex).getUnitsLanguageId());
 		selectedIds.put(APP_SKIN_ID, model.getAppSkins(defaultAppSkinIndex).getAppSkinId());
+		selectedIds.put(CHECK_APP_UPDATE_ID, applicationUpdateCheckBox.isSelected() ? 1 : 0);
+		selectedIds.put(UPDATE_EXCHANGE_RATES_ID, exchangeRatesUpdateCheckbox.isSelected() ? 1 : 0);
+		selectedIds.put(LOG_HISTORY_ID, logHistoryCheckbox.isSelected() ? 1 : 0);
 
 		return !Arrays.equals(currentIds.values().toArray(), selectedIds.values().toArray());
 	}
@@ -181,7 +200,10 @@ public class PreferencesController implements Initializable
 	{
 		return new Preferences(currentPreferences.getPreferencesId(), selectedIds.get(NUMBER_OF_DECIMAL_PLACES_ID),
 				selectedIds.get(UNIT_TYPE_ID), selectedIds.get(FIRST_UNIT_ID), selectedIds.get(SECOND_UNIT_ID),
-				selectedIds.get(APP_LANGUAGE_ID), selectedIds.get(UNITS_LANGUAGE_ID), selectedIds.get(APP_SKIN_ID));
+				selectedIds.get(APP_LANGUAGE_ID), selectedIds.get(UNITS_LANGUAGE_ID), selectedIds.get(APP_SKIN_ID),
+				selectedIds.get(UPDATE_EXCHANGE_RATES_ID) == 1 ? true : false,
+				selectedIds.get(CHECK_APP_UPDATE_ID) == 1 ? true : false,
+				selectedIds.get(LOG_HISTORY_ID) == 1 ? true : false);
 	}
 
 	private void updatePreferencesRamDataStructures(Preferences newPreferences)

@@ -20,7 +20,7 @@ public class NumberTextField extends TextField
 	{
 		super();
 	}
-	
+
 	@Override
 	public void replaceText(int start, int end, String typedText)
 	{
@@ -54,7 +54,7 @@ public class NumberTextField extends TextField
 	{
 		this.lettersAreAllowed = lettersAreAllowed;
 	}
-	
+
 	public int getStart()
 	{
 		return start;
@@ -74,7 +74,7 @@ public class NumberTextField extends TextField
 	{
 		this.end = end;
 	}
-	
+
 	public String getTypedText()
 	{
 		return typedText;
@@ -84,7 +84,7 @@ public class NumberTextField extends TextField
 	{
 		this.typedText = typedText;
 	}
-	
+
 	private String getNewText(String currentText)
 	{
 		return currentText.substring(0, start) + typedText + currentText.substring(end);

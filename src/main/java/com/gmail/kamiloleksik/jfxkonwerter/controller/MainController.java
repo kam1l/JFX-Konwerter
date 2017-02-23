@@ -4,10 +4,26 @@ import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.NamesKey.*;
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitKey.*;
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey.*;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -18,13 +34,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import com.gmail.kamiloleksik.jfxkonwerter.Main;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
+import com.gmail.kamiloleksik.jfxkonwerter.model.entity.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
 import com.gmail.kamiloleksik.jfxkonwerter.util.NumberTextField;
-
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -50,6 +72,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -57,6 +81,7 @@ public class MainController implements Initializable
 {
 	public static final Pattern NUMBER_WITH_TWO_DIGIT_EXPONENT = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
 	public static final Pattern NUMBER_WITH_ONE_DIGIT = Pattern.compile("-?[0-9]?|(-0\\.)");
+	public static final DefaultArtifactVersion APP_VERSION = new DefaultArtifactVersion("1.1.0");
 
 	private static Stage stage;
 	private Model model;
@@ -85,7 +110,8 @@ public class MainController implements Initializable
 
 	@FXML
 	private MenuItem resultFormattingMenuItem, menuItemClose, menuItemSwapUnits, menuItemPreferences, menuItemUpdate,
-			menuItemAbout;
+			menuItemAbout, menuItemCheckUpdate, menuItemImportPreferences, menuItemExportPreferences, menuItemQuickCopy,
+			menuItemQuickPaste, menuItemIncreaseNumOfDecPlaces, menuItemDecreaseNumOfDecPlaces;
 
 	@FXML
 	private Menu menuEdit, menuFile;
@@ -139,6 +165,16 @@ public class MainController implements Initializable
 
 		setAppSkin();
 		labelCopyrightInfo.setText("Copyright © " + new SimpleDateFormat("yyyy").format(new Date()) + " Kamil Oleksik");
+
+		if (model.getPreferences().getCheckForApplicationUpdatesOnStartup() == true)
+		{
+			checkUpdatesInTheBackground();
+		}
+
+		if (model.getPreferences().getUpdateExchangeRatesOnStartup() == true)
+		{
+			updateExchangeRatesInTheBackground();
+		}
 	}
 
 	private void initializeModel(Object obj)
@@ -255,11 +291,20 @@ public class MainController implements Initializable
 					{
 						resourceBundle = Main.getBundle(model);
 						menuFile.setText(resourceBundle.getString("menuFile"));
+						menuItemImportPreferences.setText(resourceBundle.getString("menuItemImportPreferences"));
+						menuItemExportPreferences.setText(resourceBundle.getString("menuItemExportPreferences"));
 						menuEdit.setText(resourceBundle.getString("menuEdit"));
 						menuItemClose.setText(resourceBundle.getString("menuItemClose"));
 						menuItemSwapUnits.setText(resourceBundle.getString("menuItemSwapUnits"));
+						menuItemQuickCopy.setText(resourceBundle.getString("menuItemQuickCopy"));
+						menuItemQuickPaste.setText(resourceBundle.getString("menuItemQuickPaste"));
+						menuItemIncreaseNumOfDecPlaces
+								.setText(resourceBundle.getString("menuItemIncreaseNumOfDecPlaces"));
+						menuItemDecreaseNumOfDecPlaces
+								.setText(resourceBundle.getString("menuItemDecreaseNumOfDecPlaces"));
 						menuItemPreferences.setText(resourceBundle.getString("menuItemPreferences"));
 						menuItemUpdate.setText(resourceBundle.getString("menuItemUpdate"));
+						menuItemCheckUpdate.setText(resourceBundle.getString("menuItemCheckUpdate"));
 						menuItemAbout.setText(resourceBundle.getString("menuItemAbout"));
 						labelType.setText(resourceBundle.getString("labelType"));
 						labelFirstUnit.setText(resourceBundle.getString("labelFirstUnit"));
@@ -537,7 +582,11 @@ public class MainController implements Initializable
 					model.updateExchangeRatesInRam();
 					Message.showMessage(informationTitle, updateSuccessMessage, AlertType.INFORMATION);
 
-					getAndSetResult();
+					if (model.getExchangeRatesAbbreviations()
+							.contains(model.getUnit(CURRENT_FIRST_UNIT).getUnitAbbreviation()))
+					{
+						getAndSetResult();
+					}
 				}
 				else
 				{
@@ -548,6 +597,34 @@ public class MainController implements Initializable
 				}
 
 				updateInfoAnchorPane.setVisible(false);
+			});
+		});
+	}
+
+	private void updateExchangeRatesInTheBackground()
+	{
+		executor.execute(() ->
+		{
+			boolean taskSucceeded = model.updateExchangeRates();
+			Platform.runLater(() ->
+			{
+				if (taskSucceeded)
+				{
+					model.updateExchangeRatesInRam();
+
+					if (model.getExchangeRatesAbbreviations()
+							.contains(model.getUnit(CURRENT_FIRST_UNIT).getUnitAbbreviation()))
+					{
+						getAndSetResult();
+					}
+				}
+				else
+				{
+					String errorTitle = resourceBundle.getString("errorTitle");
+					String updateErrorMessage = resourceBundle.getString("updateErrorMessage");
+
+					Message.showMessage(errorTitle, updateErrorMessage, AlertType.ERROR);
+				}
 			});
 		});
 	}
@@ -599,6 +676,25 @@ public class MainController implements Initializable
 		else
 		{
 			resultFormattingMenuItem.setDisable(false);
+		}
+
+		if (model.getPreferences().getLogHistory() == true)
+		{
+			try (BufferedWriter bw = new BufferedWriter(new FileWriter("history.log", true)))
+			{
+				bw.write(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date()) + ", "
+						+ model.getUnitTypeName(CURRENT_UNIT_TYPE) + ", " + model.getUnitDisplayName(CURRENT_FIRST_UNIT)
+						+ " -> " + model.getUnitDisplayName(CURRENT_SECOND_UNIT) + ", " + valueTextField.getText()
+						+ " -> " + result);
+				bw.newLine();
+			}
+			catch (IOException e)
+			{
+				String errorTitle = resourceBundle.getString("errorTitle");
+				String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
+
+				Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
+			}
 		}
 	}
 
@@ -715,6 +811,372 @@ public class MainController implements Initializable
 		}
 
 		appInfoAnchorPane.setVisible(true);
+	}
+
+	public void importPreferences(ActionEvent event)
+	{
+		FileChooser fc = new FileChooser();
+		fc.getExtensionFilters().add(new ExtensionFilter("Preferences Files", "*.dat"));
+		File file = fc.showOpenDialog(null);
+
+		if (file != null)
+		{
+			Preferences prefs = model.getPreferences();
+
+			try (DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(file))))
+			{
+				int preferencesId = is.readInt();
+				int numberOfDecimalPlacesId = is.readInt();
+				int unitTypeId = is.readInt();
+				int firstUnitId = is.readInt();
+				int secondUnitId = is.readInt();
+				int appSkinId = is.readInt();
+				int appLanguageId = is.readInt();
+				int unitsLanguageId = is.readInt();
+				boolean updateExchangeRatesOnStartup = is.readBoolean();
+				boolean checkForApplicationUpdatesOnStartup = is.readBoolean();
+				boolean logHistory = is.readBoolean();
+
+				validateDataFromFile(prefs, preferencesId, numberOfDecimalPlacesId, unitTypeId, firstUnitId,
+						secondUnitId, appSkinId, appLanguageId, unitsLanguageId);
+
+				if (preferencesAreDifferent(prefs, numberOfDecimalPlacesId, unitTypeId, firstUnitId, secondUnitId,
+						appSkinId, appLanguageId, unitsLanguageId, updateExchangeRatesOnStartup,
+						checkForApplicationUpdatesOnStartup, logHistory))
+				{
+					executor.execute(() ->
+					{
+						Preferences newPrefs = new Preferences(preferencesId, numberOfDecimalPlacesId, unitTypeId,
+								firstUnitId, secondUnitId, appLanguageId, unitsLanguageId, appSkinId,
+								updateExchangeRatesOnStartup, checkForApplicationUpdatesOnStartup, logHistory);
+						boolean taskSucceeded = model.updatePreferencesInDB(newPrefs);
+
+						Platform.runLater(() ->
+						{
+							if (taskSucceeded)
+							{
+								updateModel(prefs, numberOfDecimalPlacesId, unitTypeId, firstUnitId, secondUnitId,
+										appSkinId, appLanguageId, unitsLanguageId, newPrefs);
+							}
+							else
+							{
+								String errorTitle = resourceBundle.getString("errorTitle");
+								String savingPreferencesErrorMessage = resourceBundle
+										.getString("savingPreferencesErrorMessage");
+
+								Message.showMessage(errorTitle, savingPreferencesErrorMessage, AlertType.ERROR);
+							}
+						});
+					});
+				}
+			}
+			catch (IOException e)
+			{
+				String errorTitle = resourceBundle.getString("errorTitle");
+				String readingFileErrorMessage = resourceBundle.getString("readingFileErrorMessage");
+
+				Message.showMessage(errorTitle, readingFileErrorMessage, AlertType.ERROR);
+			}
+		}
+	}
+
+	private void updateModel(Preferences prefs, int numberOfDecimalPlacesId, int unitTypeId, int firstUnitId,
+			int secondUnitId, int appSkinId, int appLanguageId, int unitsLanguageId, Preferences newPrefs)
+	{
+		model.setPreferences(newPrefs);
+
+		if (unitTypeId != prefs.getUnitType().getUnitTypeId())
+		{
+			int unitTypeIndex = model.getUnitTypeIndex(unitTypeId);
+			model.setPreferencesUnitTypeIndex(unitTypeIndex);
+			model.changePreferencesSetOfUnits(unitTypeIndex);
+			model.setDefaultUnitTypeIndex(unitTypeIndex);
+			model.setDefaultUnitType(unitTypeIndex);
+		}
+
+		if (firstUnitId != prefs.getFirstUnit().getUnitId())
+		{
+			model.setUnit(model.getPreferencesUnitIndex(firstUnitId), DEFAULT_FIRST_UNIT);
+		}
+
+		if (secondUnitId != prefs.getSecondUnit().getUnitId())
+		{
+			model.setUnit(model.getPreferencesUnitIndex(secondUnitId), DEFAULT_SECOND_UNIT);
+		}
+
+		if (numberOfDecimalPlacesId != prefs.getNumberOfDecimalPlaces().getNumberOfDecimalPlacesId())
+		{
+			model.setNumberOfDecimalPlaces(model.getNumberOfDecimalPlacesIndex(numberOfDecimalPlacesId));
+			MainController.numberOfDecimalPlacesWasChanged.setValue(true);
+		}
+
+		if (appLanguageId != prefs.getAppLanguage().getAppLanguageId())
+		{
+			model.setAppLanguage(model.getAppLanguageIndex(appLanguageId));
+			MainController.defaultAppLanguageWasChanged.setValue(true);
+		}
+
+		if (unitsLanguageId != prefs.getUnitsLanguage().getUnitsLanguageId())
+		{
+			model.setUnitsLanguage(model.getUnitsLanguageIndex(unitsLanguageId));
+			MainController.defaultUnitsLanguageWasChanged.setValue(true);
+		}
+
+		if (appSkinId != prefs.getAppSkin().getAppSkinId())
+		{
+			model.setAppSkin(model.getAppSkinIndex(appSkinId));
+			MainController.defaultSkinNameWasChanged.setValue(true);
+		}
+	}
+
+	private void validateDataFromFile(Preferences prefs, int preferencesId, int numberOfDecimalPlacesId, int unitTypeId,
+			int firstUnitId, int secondUnitId, int appSkinId, int appLanguageId, int unitsLanguageId) throws IOException
+	{
+		if (prefs.getPreferencesId() != preferencesId || !model.numberOfDecimalPlacesExistsInDB(numberOfDecimalPlacesId)
+				|| !model.unitTypeExistsInDB(unitTypeId) || !model.unitExistsInDB(firstUnitId)
+				|| !model.unitExistsInDB(secondUnitId) || !model.appSkinExistsInDB(appSkinId)
+				|| !model.appLanguageExistsInDB(appLanguageId) || !model.appUnitsLanguageExistsInDB(unitsLanguageId))
+		{
+			throw new IOException();
+		}
+	}
+
+	private boolean preferencesAreDifferent(Preferences prefs, int numberOfDecimalPlacesId, int unitTypeId,
+			int firstUnitId, int secondUnitId, int appSkinId, int appLanguageId, int unitsLanguageId,
+			boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup, boolean logHistory)
+	{
+		return numberOfDecimalPlacesId != prefs.getNumberOfDecimalPlaces().getNumberOfDecimalPlacesId()
+				|| unitTypeId != prefs.getUnitType().getUnitTypeId() || firstUnitId != prefs.getFirstUnit().getUnitId()
+				|| secondUnitId != prefs.getSecondUnit().getUnitId() || appSkinId != prefs.getAppSkin().getAppSkinId()
+				|| appLanguageId != prefs.getAppLanguage().getAppLanguageId()
+				|| unitsLanguageId != prefs.getUnitsLanguage().getUnitsLanguageId()
+				|| updateExchangeRatesOnStartup != prefs.getUpdateExchangeRatesOnStartup()
+				|| checkForApplicationUpdatesOnStartup != prefs.getCheckForApplicationUpdatesOnStartup()
+				|| logHistory != prefs.getLogHistory();
+	}
+
+	public void exportPreferences(ActionEvent event)
+	{
+		FileChooser fc = new FileChooser();
+		fc.getExtensionFilters().add(new ExtensionFilter("Preferences Files", "*.dat"));
+		File file = fc.showSaveDialog(null);
+
+		if (file != null)
+		{
+			try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file))))
+			{
+				Preferences preferences = model.getPreferences();
+				dos.writeInt(preferences.getPreferencesId());
+				dos.writeInt(preferences.getNumberOfDecimalPlaces().getNumberOfDecimalPlacesId());
+				dos.writeInt(preferences.getUnitType().getUnitTypeId());
+				dos.writeInt(preferences.getFirstUnit().getUnitId());
+				dos.writeInt(preferences.getSecondUnit().getUnitId());
+				dos.writeInt(preferences.getAppSkin().getAppSkinId());
+				dos.writeInt(preferences.getAppLanguage().getAppLanguageId());
+				dos.writeInt(preferences.getUnitsLanguage().getUnitsLanguageId());
+				dos.writeBoolean(preferences.getUpdateExchangeRatesOnStartup());
+				dos.writeBoolean(preferences.getCheckForApplicationUpdatesOnStartup());
+				dos.writeBoolean(preferences.getLogHistory());
+			}
+			catch (IOException e)
+			{
+				String errorTitle = resourceBundle.getString("errorTitle");
+				String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
+
+				Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
+			}
+		}
+	}
+
+	public void quickCopy(ActionEvent event)
+	{
+		StringSelection selection = new StringSelection(resultTextField.getText());
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(selection, selection);
+	}
+
+	public void quickPaste(ActionEvent event)
+	{
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable contents = clipboard.getContents(null);
+		boolean hasText = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+
+		if (hasText)
+		{
+			String clipboardText = "";
+
+			try
+			{
+				clipboardText = (String) contents.getTransferData(DataFlavor.stringFlavor);
+			}
+			catch (UnsupportedFlavorException | IOException e)
+			{
+				e.printStackTrace();
+				return;
+			}
+
+			valueTextField.setStart(0);
+			valueTextField.setEnd(valueTextField.getText().length());
+			valueTextField.setTypedText(clipboardText);
+
+			if (valueTextField.validate())
+			{
+				valueTextField.setText(clipboardText);
+			}
+		}
+	}
+
+	public void increaseNumberOfDecimalPlaces(ActionEvent event)
+	{
+		if (!model.getNumberOfDecimalPlaces().equals("100"))
+		{
+			int numberOfDecimalPlaces = Integer.valueOf(model.getNumberOfDecimalPlaces());
+			changeDefaultNumberOfDecimalPlaces("" + ++numberOfDecimalPlaces);
+		}
+	}
+
+	public void decreaseNumberOfDecimalPlaces(ActionEvent event)
+	{
+		if (!model.getNumberOfDecimalPlaces().equals("2"))
+		{
+			int numberOfDecimalPlaces = Integer.valueOf(model.getNumberOfDecimalPlaces());
+			changeDefaultNumberOfDecimalPlaces("" + --numberOfDecimalPlaces);
+		}
+	}
+
+	private void changeDefaultNumberOfDecimalPlaces(String numOfDecPlacesString)
+	{
+		try
+		{
+			model.changeDefaultNumberOfDecimalPlaces(numOfDecPlacesString);
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+
+		numberOfDecimalPlacesWasChanged.setValue(true);
+	}
+
+	public void checkApplicationUpdate(ActionEvent event)
+	{
+		if (updateIsPerforming() || appInfoIsShowing())
+		{
+			return;
+		}
+
+		updateInfoAnchorPane.setVisible(true);
+		labelOngoingUpdate.setText(resourceBundle.getString("labelCheckingForUpdate"));
+
+		executor.execute(() ->
+		{
+			Document doc = null;
+
+			try
+			{
+				doc = Jsoup.connect("https://github.com/kam1l/JFX-Konwerter/releases").get();
+			}
+			catch (IOException e)
+			{
+				Platform.runLater(() ->
+				{
+					String errorTitle = resourceBundle.getString("errorTitle");
+					String checkingUpdateErrorMessage = resourceBundle.getString("checkingUpdateErrorMessage");
+
+					Message.showMessage(errorTitle, checkingUpdateErrorMessage, AlertType.ERROR);
+
+					updateInfoAnchorPane.setVisible(false);
+					labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
+				});
+
+				return;
+			}
+
+			Elements elementsByClass = doc.getElementsByClass("release-title");
+
+			for (Element element : elementsByClass)
+			{
+				String text = element.text();
+				DefaultArtifactVersion availableVersion = new DefaultArtifactVersion(text);
+
+				if (availableVersion.compareTo(APP_VERSION) > 0)
+				{
+					Platform.runLater(() ->
+					{
+						String informationTitle = resourceBundle.getString("informationTitle");
+						String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
+
+						boolean confirmed = Message.showConfirmationMessage(informationTitle,
+								newVersionAvailableMessage, AlertType.CONFIRMATION);
+
+						if (confirmed)
+						{
+							hostServices.showDocument(resourceBundle.getString("applicationDownloadPage"));
+						}
+
+						updateInfoAnchorPane.setVisible(false);
+						labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
+					});
+
+					return;
+				}
+			}
+
+			Platform.runLater(() ->
+			{
+				String informationTitle = resourceBundle.getString("informationTitle");
+				String noUpdatesAvailableMessage = resourceBundle.getString("noUpdatesAvailableMessage");
+
+				Message.showMessage(informationTitle, noUpdatesAvailableMessage, AlertType.INFORMATION);
+
+				updateInfoAnchorPane.setVisible(false);
+				labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
+			});
+		});
+	}
+
+	private void checkUpdatesInTheBackground()
+	{
+		executor.execute(() ->
+		{
+			Document doc = null;
+
+			try
+			{
+				doc = Jsoup.connect("https://github.com/kam1l/JFX-Konwerter/releases").get();
+			}
+			catch (IOException e)
+			{
+				return;
+			}
+
+			Elements elementsByClass = doc.getElementsByClass("release-title");
+
+			for (Element element : elementsByClass)
+			{
+				String text = element.text();
+				DefaultArtifactVersion availableVersion = new DefaultArtifactVersion(text);
+
+				if (availableVersion.compareTo(APP_VERSION) > 0)
+				{
+					Platform.runLater(() ->
+					{
+						String informationTitle = resourceBundle.getString("informationTitle");
+						String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
+
+						boolean confirmed = Message.showConfirmationMessage(informationTitle,
+								newVersionAvailableMessage, AlertType.CONFIRMATION);
+
+						if (confirmed)
+						{
+							hostServices.showDocument(resourceBundle.getString("applicationDownloadPage"));
+						}
+					});
+
+					return;
+				}
+			}
+		});
 	}
 
 	public void closeAppInfo(ActionEvent event)

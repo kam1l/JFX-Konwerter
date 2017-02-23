@@ -16,8 +16,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -58,6 +61,7 @@ public class Model
 	private UnitsLanguage unitsLanguage;
 	private AppSkin appSkin;
 	private NumberOfDecimalPlaces numberOfDecimalPlaces;
+	private Set<String> exchangeRatesAbbreviations;
 
 	@Autowired
 	private List<UnitType> allUnitTypes;
@@ -375,7 +379,7 @@ public class Model
 			{
 				Comparator<String> numberBaseNameComparator = new NumberBaseNameComparator();
 				Comparator<Unit> numberBaseComparator = new NumberBaseComparator();
-				
+
 				Collections.sort(names.get(MAIN_WINDOW_UNIT_NAMES), numberBaseNameComparator);
 				Collections.sort(names.get(PREFERENCES_UNIT_NAMES), numberBaseNameComparator);
 				Collections.sort(mainWindowUnits, numberBaseComparator);
@@ -388,7 +392,7 @@ public class Model
 				Collections.sort(mainWindowUnits);
 				Collections.sort(preferencesUnits);
 			}
-			
+
 			return aUnits;
 		}
 	}
@@ -658,6 +662,8 @@ public class Model
 
 	private void updateExchangeRatesInDB(NodeList nList) throws SQLException
 	{
+		exchangeRatesAbbreviations = new HashSet<>();
+
 		for (int tmp = 2; tmp < nList.getLength(); tmp++)
 		{
 			Node nNode = nList.item(tmp);
@@ -671,6 +677,7 @@ public class Model
 
 				updateExchangeRateSingleRowInDB(currentCurrency, currentRate);
 				updatedExchangeRates.put(currentCurrency, currentRate);
+				exchangeRatesAbbreviations.add(currentCurrency);
 			}
 		}
 	}
@@ -774,12 +781,12 @@ public class Model
 				unitsL.add(unit);
 			}
 		}
-		
+
 		if (currentUnitsAreNumberBases())
 		{
 			Comparator<String> numberBaseNameComparator = new NumberBaseNameComparator();
 			Comparator<Unit> numberBaseComparator = new NumberBaseComparator();
-			
+
 			Collections.sort(names.get(key), numberBaseNameComparator);
 			Collections.sort(unitsL, numberBaseComparator);
 		}
@@ -819,6 +826,28 @@ public class Model
 		unitTypes.put(DEFAULT_UNIT_TYPE, new UnitType(unitType));
 	}
 
+	public int getUnitTypeIndex(int id)
+	{
+		for (int i = 0; i < allUnitTypes.size(); i++)
+		{
+			if (allUnitTypes.get(i).getUnitTypeId() == id)
+			{
+				return i;
+			}
+		}
+
+		return 0;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void changeDefaultNumberOfDecimalPlaces(String numOfDecPlacesString) throws SQLException
+	{
+		numberOfDecimalPlaces = ((Dao<NumberOfDecimalPlaces, Integer>) daos.get(NUMBER_OF_DECIMAL_PLACES_DAO))
+				.queryForEq("numberOfDecimalPlaces", numOfDecPlacesString).get(0);
+		preferences.setNumberOfDecimalPlaces(numberOfDecimalPlaces);
+		((Dao<Preferences, Integer>) daos.get(PREFERENCES_DAO)).update(preferences);
+	}
+
 	public void setUnit(int index, UnitKey key)
 	{
 		Unit unit;
@@ -833,6 +862,19 @@ public class Model
 		}
 
 		setUnit(unit, key);
+	}
+
+	public int getPreferencesUnitIndex(int id)
+	{
+		for (int i = 0; i < preferencesUnits.size(); i++)
+		{
+			if (preferencesUnits.get(i).getUnitId() == id)
+			{
+				return i;
+			}
+		}
+
+		return 0;
 	}
 
 	private void setUnit(Unit unit, UnitKey key)
@@ -863,6 +905,11 @@ public class Model
 	public String getUnitDisplayName(UnitKey key)
 	{
 		return units.get(key).getUnitDisplayName();
+	}
+
+	public Unit getUnit(UnitKey key)
+	{
+		return units.get(key);
 	}
 
 	public UnitType getUnitType(int index)
@@ -982,5 +1029,121 @@ public class Model
 	public String getUnitTypeName(UnitTypeKey key)
 	{
 		return unitTypes.get(key).getUnitTypeName();
+	}
+
+	public Set<String> getExchangeRatesAbbreviations()
+	{
+		return exchangeRatesAbbreviations;
+	}
+
+	public boolean numberOfDecimalPlacesExistsInDB(int numberOfDecimalPlacesId)
+	{
+		@SuppressWarnings("unchecked")
+		Dao<NumberOfDecimalPlaces, Integer> dao = (Dao<NumberOfDecimalPlaces, Integer>) daos
+				.get(NUMBER_OF_DECIMAL_PLACES_DAO);
+		return idExistInDB(numberOfDecimalPlacesId, dao);
+	}
+
+	public boolean unitTypeExistsInDB(int unitTypeId)
+	{
+		@SuppressWarnings("unchecked")
+		Dao<UnitType, Integer> dao = (Dao<UnitType, Integer>) daos.get(UNIT_TYPE_DAO);
+		return idExistInDB(unitTypeId, dao);
+	}
+
+	public boolean unitExistsInDB(int unitId)
+	{
+		@SuppressWarnings("unchecked")
+		Dao<Unit, Integer> dao = (Dao<Unit, Integer>) daos.get(UNIT_DAO);
+		return idExistInDB(unitId, dao);
+	}
+
+	public boolean appSkinExistsInDB(int appSkinId)
+	{
+		@SuppressWarnings("unchecked")
+		Dao<AppSkin, Integer> dao = (Dao<AppSkin, Integer>) daos.get(APP_SKIN_DAO);
+		return idExistInDB(appSkinId, dao);
+	}
+
+	public boolean appLanguageExistsInDB(int appLanguageId)
+	{
+		@SuppressWarnings("unchecked")
+		Dao<AppLanguage, Integer> dao = (Dao<AppLanguage, Integer>) daos.get(APP_LANGUAGE_DAO);
+		return idExistInDB(appLanguageId, dao);
+	}
+
+	public boolean appUnitsLanguageExistsInDB(int unitsLanguageId)
+	{
+		@SuppressWarnings("unchecked")
+		Dao<UnitsLanguage, Integer> dao = (Dao<UnitsLanguage, Integer>) daos.get(UNITS_LANGUAGE_DAO);
+		return idExistInDB(unitsLanguageId, dao);
+	}
+
+	private boolean idExistInDB(int id, Dao<?, Integer> dao)
+	{
+		Object object = null;
+
+		try
+		{
+			object = dao.queryForId(id);
+		}
+		catch (SQLException e)
+		{
+			return false;
+		}
+
+		return object == null ? false : true;
+	}
+
+	public int getNumberOfDecimalPlacesIndex(int id)
+	{
+		for (int i = 0; i < numbersOfDecimalPlaces.size(); i++)
+		{
+			if (numbersOfDecimalPlaces.get(i).getNumberOfDecimalPlacesId() == id)
+			{
+				return i;
+			}
+		}
+
+		return 0;
+	}
+
+	public int getAppLanguageIndex(int id)
+	{
+		for (int i = 0; i < appLanguages.size(); i++)
+		{
+			if (appLanguages.get(i).getAppLanguageId() == id)
+			{
+				return i;
+			}
+		}
+
+		return 0;
+	}
+
+	public int getUnitsLanguageIndex(int id)
+	{
+		for (int i = 0; i < unitsLanguages.size(); i++)
+		{
+			if (unitsLanguages.get(i).getUnitsLanguageId() == id)
+			{
+				return i;
+			}
+		}
+
+		return 0;
+	}
+
+	public int getAppSkinIndex(int id)
+	{
+		for (int i = 0; i < appSkins.size(); i++)
+		{
+			if (appSkins.get(i).getAppSkinId() == id)
+			{
+				return i;
+			}
+		}
+
+		return 0;
 	}
 }
