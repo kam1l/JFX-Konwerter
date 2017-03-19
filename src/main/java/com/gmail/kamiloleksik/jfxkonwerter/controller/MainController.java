@@ -45,8 +45,11 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberBaseException;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.InvalidNumberFormatException;
 import com.gmail.kamiloleksik.jfxkonwerter.model.entity.Preferences;
+import com.gmail.kamiloleksik.jfxkonwerter.util.HistoryWriter;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
 import com.gmail.kamiloleksik.jfxkonwerter.util.NumberTextField;
+import com.gmail.kamiloleksik.jfxkonwerter.util.UpdateChecker;
+
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -81,7 +84,6 @@ public class MainController implements Initializable
 {
 	public static final Pattern NUMBER_WITH_TWO_DIGIT_EXPONENT = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
 	public static final Pattern NUMBER_WITH_ONE_DIGIT = Pattern.compile("-?[0-9]?|(-0\\.)");
-	public static final DefaultArtifactVersion APP_VERSION = new DefaultArtifactVersion("1.1.0");
 
 	private static Stage stage;
 	private Model model;
@@ -680,21 +682,25 @@ public class MainController implements Initializable
 
 		if (model.getPreferences().getLogHistory() == true)
 		{
-			try (BufferedWriter bw = new BufferedWriter(new FileWriter("history.log", true)))
-			{
-				bw.write(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date()) + ", "
-						+ model.getUnitTypeName(CURRENT_UNIT_TYPE) + ", " + model.getUnitDisplayName(CURRENT_FIRST_UNIT)
-						+ " -> " + model.getUnitDisplayName(CURRENT_SECOND_UNIT) + ", " + valueTextField.getText()
-						+ " -> " + result);
-				bw.newLine();
-			}
-			catch (IOException e)
-			{
-				String errorTitle = resourceBundle.getString("errorTitle");
-				String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
+			writeEntryToHistoryFile(result);
+		}
+	}
 
-				Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
-			}
+	private void writeEntryToHistoryFile(String result)
+	{
+		try
+		{
+			HistoryWriter.Entry entry = new HistoryWriter.Entry(model.getUnitTypeName(CURRENT_UNIT_TYPE),
+					model.getUnitDisplayName(CURRENT_FIRST_UNIT), model.getUnitDisplayName(CURRENT_SECOND_UNIT),
+					valueTextField.getText(), result);
+			HistoryWriter.write(entry);
+		}
+		catch (IOException e)
+		{
+			String errorTitle = resourceBundle.getString("errorTitle");
+			String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
+
+			Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
 		}
 	}
 
@@ -1070,11 +1076,11 @@ public class MainController implements Initializable
 
 		executor.execute(() ->
 		{
-			Document doc = null;
+			boolean updateIsAvailable = false;
 
 			try
 			{
-				doc = Jsoup.connect("https://github.com/kam1l/JFX-Konwerter/releases").get();
+				updateIsAvailable = UpdateChecker.updateIsAvailable();
 			}
 			catch (IOException e)
 			{
@@ -1092,46 +1098,38 @@ public class MainController implements Initializable
 				return;
 			}
 
-			Elements elementsByClass = doc.getElementsByClass("release-title");
-
-			for (Element element : elementsByClass)
+			if (updateIsAvailable)
 			{
-				String text = element.text();
-				DefaultArtifactVersion availableVersion = new DefaultArtifactVersion(text);
-
-				if (availableVersion.compareTo(APP_VERSION) > 0)
+				Platform.runLater(() ->
 				{
-					Platform.runLater(() ->
+					String informationTitle = resourceBundle.getString("informationTitle");
+					String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
+
+					boolean confirmed = Message.showConfirmationMessage(informationTitle, newVersionAvailableMessage,
+							AlertType.CONFIRMATION);
+
+					if (confirmed)
 					{
-						String informationTitle = resourceBundle.getString("informationTitle");
-						String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
+						hostServices.showDocument(resourceBundle.getString("applicationDownloadPage"));
+					}
 
-						boolean confirmed = Message.showConfirmationMessage(informationTitle,
-								newVersionAvailableMessage, AlertType.CONFIRMATION);
-
-						if (confirmed)
-						{
-							hostServices.showDocument(resourceBundle.getString("applicationDownloadPage"));
-						}
-
-						updateInfoAnchorPane.setVisible(false);
-						labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
-					});
-
-					return;
-				}
+					updateInfoAnchorPane.setVisible(false);
+					labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
+				});
 			}
-
-			Platform.runLater(() ->
+			else
 			{
-				String informationTitle = resourceBundle.getString("informationTitle");
-				String noUpdatesAvailableMessage = resourceBundle.getString("noUpdatesAvailableMessage");
+				Platform.runLater(() ->
+				{
+					String informationTitle = resourceBundle.getString("informationTitle");
+					String noUpdatesAvailableMessage = resourceBundle.getString("noUpdatesAvailableMessage");
 
-				Message.showMessage(informationTitle, noUpdatesAvailableMessage, AlertType.INFORMATION);
+					Message.showMessage(informationTitle, noUpdatesAvailableMessage, AlertType.INFORMATION);
 
-				updateInfoAnchorPane.setVisible(false);
-				labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
-			});
+					updateInfoAnchorPane.setVisible(false);
+					labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
+				});
+			}
 		});
 	}
 
@@ -1139,42 +1137,32 @@ public class MainController implements Initializable
 	{
 		executor.execute(() ->
 		{
-			Document doc = null;
+			boolean updateIsAvailable = false;
 
 			try
 			{
-				doc = Jsoup.connect("https://github.com/kam1l/JFX-Konwerter/releases").get();
+				updateIsAvailable = UpdateChecker.updateIsAvailable();
 			}
 			catch (IOException e)
 			{
 				return;
 			}
 
-			Elements elementsByClass = doc.getElementsByClass("release-title");
-
-			for (Element element : elementsByClass)
+			if (updateIsAvailable)
 			{
-				String text = element.text();
-				DefaultArtifactVersion availableVersion = new DefaultArtifactVersion(text);
-
-				if (availableVersion.compareTo(APP_VERSION) > 0)
+				Platform.runLater(() ->
 				{
-					Platform.runLater(() ->
+					String informationTitle = resourceBundle.getString("informationTitle");
+					String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
+
+					boolean confirmed = Message.showConfirmationMessage(informationTitle, newVersionAvailableMessage,
+							AlertType.CONFIRMATION);
+
+					if (confirmed)
 					{
-						String informationTitle = resourceBundle.getString("informationTitle");
-						String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
-
-						boolean confirmed = Message.showConfirmationMessage(informationTitle,
-								newVersionAvailableMessage, AlertType.CONFIRMATION);
-
-						if (confirmed)
-						{
-							hostServices.showDocument(resourceBundle.getString("applicationDownloadPage"));
-						}
-					});
-
-					return;
-				}
+						hostServices.showDocument(resourceBundle.getString("applicationDownloadPage"));
+					}
+				});
 			}
 		});
 	}
