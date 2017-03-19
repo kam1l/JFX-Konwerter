@@ -11,12 +11,12 @@ import org.jsoup.select.Elements;
 public class UpdateChecker
 {
 	private static final DefaultArtifactVersion APP_VERSION = new DefaultArtifactVersion("1.1.0");
-	
+
 	public static boolean updateIsAvailable() throws IOException
 	{
 		Document doc = Jsoup.connect("https://github.com/kam1l/JFX-Konwerter/releases").get();
 		Elements elementsByClass = doc.getElementsByClass("release-title");
-		
+
 		for (Element element : elementsByClass)
 		{
 			String text = element.text();
@@ -27,7 +27,7 @@ public class UpdateChecker
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 }
