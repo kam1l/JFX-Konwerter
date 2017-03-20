@@ -40,7 +40,7 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.entity.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.util.HistoryWriter;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
 import com.gmail.kamiloleksik.jfxkonwerter.util.NumberTextField;
-import com.gmail.kamiloleksik.jfxkonwerter.util.UpdateChecker;
+import com.gmail.kamiloleksik.jfxkonwerter.util.ApplicationUpdateChecker;
 
 import javafx.application.Application;
 import javafx.application.HostServices;
@@ -566,6 +566,7 @@ public class MainController implements Initializable
 		executor.execute(() ->
 		{
 			boolean taskSucceeded = model.updateExchangeRates();
+			
 			Platform.runLater(() ->
 			{
 				if (taskSucceeded)
@@ -573,21 +574,16 @@ public class MainController implements Initializable
 					String informationTitle = resourceBundle.getString("informationTitle");
 					String updateSuccessMessage = resourceBundle.getString("updateSuccessMessage");
 
-					model.updateExchangeRatesInRam();
 					Message.showMessage(informationTitle, updateSuccessMessage, AlertType.INFORMATION);
 
-					if (model.getExchangeRatesAbbreviations()
-							.contains(model.getUnit(CURRENT_FIRST_UNIT).getUnitAbbreviation()))
+					if (model.currentUnitsAreCurrencies())
 					{
 						getAndSetResult();
 					}
 				}
 				else
 				{
-					String errorTitle = resourceBundle.getString("errorTitle");
-					String updateErrorMessage = resourceBundle.getString("updateErrorMessage");
-
-					Message.showMessage(errorTitle, updateErrorMessage, AlertType.ERROR);
+					showUpdatingExchangeRatesErrorMessage();
 				}
 
 				updateInfoAnchorPane.setVisible(false);
@@ -595,32 +591,36 @@ public class MainController implements Initializable
 		});
 	}
 
+
 	private void updateExchangeRatesInTheBackground()
 	{
 		executor.execute(() ->
 		{
 			boolean taskSucceeded = model.updateExchangeRates();
+			
 			Platform.runLater(() ->
 			{
 				if (taskSucceeded)
 				{
-					model.updateExchangeRatesInRam();
-
-					if (model.getExchangeRatesAbbreviations()
-							.contains(model.getUnit(CURRENT_FIRST_UNIT).getUnitAbbreviation()))
+					if (model.currentUnitsAreCurrencies())
 					{
 						getAndSetResult();
 					}
 				}
 				else
 				{
-					String errorTitle = resourceBundle.getString("errorTitle");
-					String updateErrorMessage = resourceBundle.getString("updateErrorMessage");
-
-					Message.showMessage(errorTitle, updateErrorMessage, AlertType.ERROR);
+					showUpdatingExchangeRatesErrorMessage();
 				}
 			});
 		});
+	}
+	
+	private void showUpdatingExchangeRatesErrorMessage()
+	{
+		String errorTitle = resourceBundle.getString("errorTitle");
+		String updateErrorMessage = resourceBundle.getString("updateErrorMessage");
+		
+		Message.showMessage(errorTitle, updateErrorMessage, AlertType.ERROR);
 	}
 
 	public void showPreferences(ActionEvent event) throws IOException
@@ -838,7 +838,7 @@ public class MainController implements Initializable
 				validateDataFromFile(prefs, preferencesId, numberOfDecimalPlacesId, unitTypeId, firstUnitId,
 						secondUnitId, appSkinId, appLanguageId, unitsLanguageId);
 
-				if (preferencesAreDifferent(prefs, numberOfDecimalPlacesId, unitTypeId, firstUnitId, secondUnitId,
+				if (preferencesWereChanged(prefs, numberOfDecimalPlacesId, unitTypeId, firstUnitId, secondUnitId,
 						appSkinId, appLanguageId, unitsLanguageId, updateExchangeRatesOnStartup,
 						checkForApplicationUpdatesOnStartup, logHistory))
 				{
@@ -939,7 +939,7 @@ public class MainController implements Initializable
 		}
 	}
 
-	private boolean preferencesAreDifferent(Preferences prefs, int numberOfDecimalPlacesId, int unitTypeId,
+	private boolean preferencesWereChanged(Preferences prefs, int numberOfDecimalPlacesId, int unitTypeId,
 			int firstUnitId, int secondUnitId, int appSkinId, int appLanguageId, int unitsLanguageId,
 			boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup, boolean logHistory)
 	{
@@ -1072,7 +1072,7 @@ public class MainController implements Initializable
 
 			try
 			{
-				updateIsAvailable = UpdateChecker.updateIsAvailable();
+				updateIsAvailable = ApplicationUpdateChecker.updateIsAvailable();
 			}
 			catch (IOException e)
 			{
@@ -1133,7 +1133,7 @@ public class MainController implements Initializable
 
 			try
 			{
-				updateIsAvailable = UpdateChecker.updateIsAvailable();
+				updateIsAvailable = ApplicationUpdateChecker.updateIsAvailable();
 			}
 			catch (IOException e)
 			{

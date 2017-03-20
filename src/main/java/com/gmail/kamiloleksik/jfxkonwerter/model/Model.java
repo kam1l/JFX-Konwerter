@@ -8,34 +8,23 @@ import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.UnitTypeKey.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.converter.exception.*;
 import com.gmail.kamiloleksik.jfxkonwerter.model.entity.*;
+import com.gmail.kamiloleksik.jfxkonwerter.util.ExchangeRatesDownloader;
 import com.gmail.kamiloleksik.jfxkonwerter.util.NumberBaseComparator;
 import com.gmail.kamiloleksik.jfxkonwerter.util.NumberBaseNameComparator;
 import com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey;
@@ -61,7 +50,6 @@ public class Model
 	private UnitsLanguage unitsLanguage;
 	private AppSkin appSkin;
 	private NumberOfDecimalPlaces numberOfDecimalPlaces;
-	private Set<String> exchangeRatesAbbreviations;
 
 	@Autowired
 	private List<UnitType> allUnitTypes;
@@ -87,8 +75,6 @@ public class Model
 	private Map<UnitKey, Unit> units;
 	@Autowired
 	private Map<NamesKey, ObservableList<String>> names;
-	@Autowired
-	private Map<String, BigDecimal> updatedExchangeRates;
 
 	@Autowired
 	public Model(Map<DaoKey, Dao<?, ?>> daos)
@@ -633,52 +619,28 @@ public class Model
 
 	public boolean updateExchangeRates()
 	{
-		NodeList nList;
-
+		Map<String, BigDecimal> downloadedExchangeRates;
+		
 		try
 		{
-			nList = getExchangeRatesFromServer();
-			updateExchangeRatesInDB(nList);
-
-			return true;
+			downloadedExchangeRates = ExchangeRatesDownloader.getExchangeRatesFromServer();
+			updateExchangeRatesInDB(downloadedExchangeRates);
 		}
 		catch (ParserConfigurationException | SAXException | IOException | SQLException e)
 		{
 			return false;
 		}
+		
+		updateExchangeRatesInRam(downloadedExchangeRates);
+		
+		return true;
 	}
 
-	private NodeList getExchangeRatesFromServer()
-			throws ParserConfigurationException, MalformedURLException, SAXException, IOException
+	private void updateExchangeRatesInDB(Map<String, BigDecimal> downloadedExchangeRates) throws SQLException
 	{
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		Document doc = db.parse(new URL("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml").openStream());
-		doc.getDocumentElement().normalize();
-		NodeList nList = doc.getElementsByTagName("Cube");
-
-		return nList;
-	}
-
-	private void updateExchangeRatesInDB(NodeList nList) throws SQLException
-	{
-		exchangeRatesAbbreviations = new HashSet<>();
-
-		for (int tmp = 2; tmp < nList.getLength(); tmp++)
+		for (String currency : downloadedExchangeRates.keySet())
 		{
-			Node nNode = nList.item(tmp);
-
-			if (nNode.getNodeType() == Node.ELEMENT_NODE)
-			{
-				Element eElement = (Element) nNode;
-				String currentCurrency = eElement.getAttribute("currency");
-				BigDecimal currentRate = BigDecimal.ONE.divide(new BigDecimal(eElement.getAttribute("rate")), 300,
-						RoundingMode.HALF_EVEN);
-
-				updateExchangeRateSingleRowInDB(currentCurrency, currentRate);
-				updatedExchangeRates.put(currentCurrency, currentRate);
-				exchangeRatesAbbreviations.add(currentCurrency);
-			}
+			updateExchangeRateSingleRowInDB(currency, downloadedExchangeRates.get(currency));
 		}
 	}
 
@@ -693,7 +655,7 @@ public class Model
 		updateBuilder.update();
 	}
 
-	public void updateExchangeRatesInRam()
+	private void updateExchangeRatesInRam(Map<String, BigDecimal> downloadedExchangeRates)
 	{
 		String currenFirstUnitAbbreviation = units.get(CURRENT_FIRST_UNIT).getUnitAbbreviation();
 		String currentSecondUnitAbbreviation = units.get(CURRENT_SECOND_UNIT).getUnitAbbreviation();
@@ -704,24 +666,24 @@ public class Model
 		{
 			unitAbbreviation = unit.getUnitAbbreviation();
 
-			if (updatedExchangeRates.get(unitAbbreviation) != null)
+			if (downloadedExchangeRates.get(unitAbbreviation) != null)
 			{
-				newValue = updatedExchangeRates.get(unitAbbreviation);
+				newValue = downloadedExchangeRates.get(unitAbbreviation);
 				unit.setUnitRatio(newValue);
 			}
 		}
 
-		if (updatedExchangeRates.get(currenFirstUnitAbbreviation) != null)
+		if (downloadedExchangeRates.get(currenFirstUnitAbbreviation) != null)
 		{
-			newValue = updatedExchangeRates.get(currenFirstUnitAbbreviation);
+			newValue = downloadedExchangeRates.get(currenFirstUnitAbbreviation);
 			Unit unit = units.get(CURRENT_FIRST_UNIT);
 			unit.setUnitRatio(newValue);
 
 			units.put(UnitKey.CURRENT_FIRST_UNIT, unit);
 		}
-		if (updatedExchangeRates.get(currentSecondUnitAbbreviation) != null)
+		if (downloadedExchangeRates.get(currentSecondUnitAbbreviation) != null)
 		{
-			newValue = updatedExchangeRates.get(currentSecondUnitAbbreviation);
+			newValue = downloadedExchangeRates.get(currentSecondUnitAbbreviation);
 			Unit unit = units.get(CURRENT_SECOND_UNIT);
 			unit.setUnitRatio(newValue);
 
@@ -1031,11 +993,6 @@ public class Model
 		return unitTypes.get(key).getUnitTypeName();
 	}
 
-	public Set<String> getExchangeRatesAbbreviations()
-	{
-		return exchangeRatesAbbreviations;
-	}
-
 	public boolean numberOfDecimalPlacesExistsInDB(int numberOfDecimalPlacesId)
 	{
 		@SuppressWarnings("unchecked")
@@ -1145,5 +1102,10 @@ public class Model
 		}
 
 		return 0;
+	}
+
+	public boolean currentUnitsAreCurrencies()
+	{
+		return units.get(CURRENT_FIRST_UNIT).getUnitType().getUnitTypeId() == 7;
 	}
 }

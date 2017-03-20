@@ -8,7 +8,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class UpdateChecker
+public class ApplicationUpdateChecker
 {
 	private static final DefaultArtifactVersion APP_VERSION = new DefaultArtifactVersion("1.1.0");
 
