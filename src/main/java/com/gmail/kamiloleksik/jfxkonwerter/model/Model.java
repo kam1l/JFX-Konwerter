@@ -620,7 +620,7 @@ public class Model
 	public boolean updateExchangeRates()
 	{
 		Map<String, BigDecimal> downloadedExchangeRates;
-		
+
 		try
 		{
 			downloadedExchangeRates = ExchangeRatesDownloader.getExchangeRatesFromServer();
@@ -630,9 +630,9 @@ public class Model
 		{
 			return false;
 		}
-		
+
 		updateExchangeRatesInRam(downloadedExchangeRates);
-		
+
 		return true;
 	}
 

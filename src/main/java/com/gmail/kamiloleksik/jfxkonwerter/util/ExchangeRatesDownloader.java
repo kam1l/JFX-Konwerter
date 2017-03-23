@@ -21,7 +21,7 @@ import org.xml.sax.SAXException;
 public class ExchangeRatesDownloader
 {
 	private static final String EXCHANGE_RATES_URL = "http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
-	
+
 	public static Map<String, BigDecimal> getExchangeRatesFromServer()
 			throws MalformedURLException, ParserConfigurationException, SAXException, IOException
 	{
@@ -38,11 +38,11 @@ public class ExchangeRatesDownloader
 
 		return doc.getElementsByTagName("Cube");
 	}
-	
+
 	private static Map<String, BigDecimal> parseNodeList(NodeList nodeList)
 	{
 		Map<String, BigDecimal> exchangeRates = new HashMap<>();
-		
+
 		for (int tmp = 2; tmp < nodeList.getLength(); tmp++)
 		{
 			Node nNode = nodeList.item(tmp);
@@ -56,7 +56,7 @@ public class ExchangeRatesDownloader
 				exchangeRates.put(currentCurrency, currentRate);
 			}
 		}
-		
+
 		return exchangeRates;
 	}
 }

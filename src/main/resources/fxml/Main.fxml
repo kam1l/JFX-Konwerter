@@ -190,7 +190,7 @@
 						<MenuItem
 							fx:id="menuItemUpdate"
 							mnemonicParsing="false"
-							onAction="#runUpdateThread"
+							onAction="#runExchangeRatesUpdateThread"
 							text="%menuItemUpdate">
 							<accelerator>
 								<KeyCodeCombination
@@ -205,7 +205,7 @@
 						<MenuItem
 							fx:id="menuItemCheckUpdate"
 							mnemonicParsing="false"
-							onAction="#checkApplicationUpdate"
+							onAction="#checkApplicationUpdateAvailability"
 							text="%menuItemCheckUpdate">
 							<accelerator>
 								<KeyCodeCombination
