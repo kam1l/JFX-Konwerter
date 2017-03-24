@@ -15,14 +15,15 @@ import com.gmail.kamiloleksik.jfxkonwerter.model.entity.Preferences;
 
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
 
 public class PreferencesUtil
 {
-	public static void exportToFile(Preferences preferences) throws IOException
+	public static void exportToFile(Preferences preferences, Window ownerWindow) throws IOException
 	{
 		FileChooser fc = new FileChooser();
 		fc.getExtensionFilters().add(new ExtensionFilter("Preferences Files", "*.dat"));
-		File file = fc.showSaveDialog(null);
+		File file = fc.showSaveDialog(ownerWindow);
 
 		if (file != null)
 		{
@@ -43,11 +44,11 @@ public class PreferencesUtil
 		}
 	}
 
-	public static Preferences importFromFile() throws FileNotFoundException, IOException
+	public static Preferences importFromFile(Window ownerWindow) throws FileNotFoundException, IOException
 	{
 		FileChooser fc = new FileChooser();
 		fc.getExtensionFilters().add(new ExtensionFilter("Preferences Files", "*.dat"));
-		File file = fc.showOpenDialog(null);
+		File file = fc.showOpenDialog(ownerWindow);
 
 		if (file != null)
 		{

@@ -65,19 +65,22 @@ public class MainController implements Initializable
 {
 	public static final Pattern NUMBER_WITH_TWO_DIGIT_EXPONENT = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
 	public static final Pattern NUMBER_WITH_ONE_DIGIT = Pattern.compile("-?[0-9]?|(-0\\.)");
-	
+
 	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultAppLanguageWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultUnitsLanguageWasChanged = new SimpleBooleanProperty();
 	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
-	
+
 	private static Stage preferencesStage;
+	private Stage primaryStage;
 	private Model model;
 	private HostServices hostServices;
 	private ResourceBundle resourceBundle;
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private String userInput;
 	private String resultInFixedNotation;
+	private boolean exchangeRatesAreUpdatingInTheBackground;
+	private boolean applicationUpdatesAreChecking;
 
 	@FXML
 	private TextField resultTextField;
@@ -545,7 +548,7 @@ public class MainController implements Initializable
 
 	public void runExchangeRatesUpdateThread(ActionEvent event)
 	{
-		if (updateIsPerforming() || appInfoIsShowing())
+		if (exchangeRatesAreUpdating() || exchangeRatesAreUpdatingInTheBackground() || appInfoIsVisible())
 		{
 			return;
 		}
@@ -582,9 +585,19 @@ public class MainController implements Initializable
 
 	private void updateExchangeRatesInTheBackground()
 	{
+		exchangeRatesAreUpdatingInTheBackground = true;
+
 		executor.execute(() ->
 		{
 			boolean taskSucceeded = model.updateExchangeRates();
+
+			if (applicationIsSetToBeTerminated())
+			{
+				shutdownExecutor();
+				Platform.exit();
+			}
+
+			exchangeRatesAreUpdatingInTheBackground = false;
 
 			Platform.runLater(() ->
 			{
@@ -603,6 +616,12 @@ public class MainController implements Initializable
 		});
 	}
 
+	private boolean applicationIsSetToBeTerminated()
+	{
+		return updateInfoAnchorPane.isVisible() && exchangeRatesAreUpdatingInTheBackground
+				&& !applicationUpdatesAreChecking;
+	}
+
 	private void showUpdatingExchangeRatesErrorMessage()
 	{
 		String errorTitle = resourceBundle.getString("errorTitle");
@@ -613,7 +632,7 @@ public class MainController implements Initializable
 
 	public void showPreferences(ActionEvent event) throws IOException
 	{
-		if (updateIsPerforming() || appInfoIsShowing())
+		if (exchangeRatesAreUpdating() || appInfoIsVisible())
 		{
 			return;
 		}
@@ -779,7 +798,7 @@ public class MainController implements Initializable
 
 	public void showAppInfo(ActionEvent event)
 	{
-		if (updateIsPerforming())
+		if (exchangeRatesAreUpdating())
 		{
 			return;
 		}
@@ -789,12 +808,17 @@ public class MainController implements Initializable
 
 	public void importPreferences(ActionEvent event)
 	{
+		if (applicationIsSetToBeTerminated())
+		{
+			return;
+		}
+
 		Preferences oldPrefs = model.getPreferences();
 		Preferences newPrefs;
 
 		try
 		{
-			newPrefs = PreferencesUtil.importFromFile();
+			newPrefs = PreferencesUtil.importFromFile(primaryStage);
 
 			if (newPrefs == null)
 			{
@@ -834,6 +858,26 @@ public class MainController implements Initializable
 					}
 				});
 			});
+		}
+	}
+
+	public void exportPreferences(ActionEvent event)
+	{
+		if (applicationIsSetToBeTerminated())
+		{
+			return;
+		}
+
+		try
+		{
+			PreferencesUtil.exportToFile(model.getPreferences(), primaryStage);
+		}
+		catch (IOException e)
+		{
+			String errorTitle = resourceBundle.getString("errorTitle");
+			String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
+
+			Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
 		}
 	}
 
@@ -884,21 +928,6 @@ public class MainController implements Initializable
 		{
 			model.setAppSkin(model.getAppSkinIndex(newPrefs.getAppSkin().getAppSkinId()));
 			MainController.defaultSkinNameWasChanged.setValue(true);
-		}
-	}
-
-	public void exportPreferences(ActionEvent event)
-	{
-		try
-		{
-			PreferencesUtil.exportToFile(model.getPreferences());
-		}
-		catch (IOException e)
-		{
-			String errorTitle = resourceBundle.getString("errorTitle");
-			String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
-
-			Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
 		}
 	}
 
@@ -974,12 +1003,13 @@ public class MainController implements Initializable
 
 	public void checkApplicationUpdateAvailability(ActionEvent event)
 	{
-		if (updateIsPerforming() || appInfoIsShowing())
+		if (exchangeRatesAreUpdating() || appInfoIsVisible())
 		{
 			return;
 		}
 
 		updateInfoAnchorPane.setVisible(true);
+		applicationUpdatesAreChecking = true;
 		labelOngoingUpdate.setText(resourceBundle.getString("labelCheckingForUpdate"));
 
 		executor.execute(() ->
@@ -1000,6 +1030,7 @@ public class MainController implements Initializable
 					Message.showMessage(errorTitle, checkingUpdateErrorMessage, AlertType.ERROR);
 
 					updateInfoAnchorPane.setVisible(false);
+					applicationUpdatesAreChecking = false;
 					labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
 				});
 
@@ -1022,6 +1053,7 @@ public class MainController implements Initializable
 					}
 
 					updateInfoAnchorPane.setVisible(false);
+					applicationUpdatesAreChecking = false;
 					labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
 				});
 			}
@@ -1035,6 +1067,7 @@ public class MainController implements Initializable
 					Message.showMessage(informationTitle, noUpdatesAvailableMessage, AlertType.INFORMATION);
 
 					updateInfoAnchorPane.setVisible(false);
+					applicationUpdatesAreChecking = false;
 					labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
 				});
 			}
@@ -1097,19 +1130,37 @@ public class MainController implements Initializable
 		Application.setUserAgentStylesheet(appSkinPath);
 	}
 
-	private boolean updateIsPerforming()
+	private boolean exchangeRatesAreUpdating()
 	{
 		return updateInfoAnchorPane.isVisible();
 	}
 
-	private boolean appInfoIsShowing()
+	private boolean exchangeRatesAreUpdatingInTheBackground()
+	{
+		return exchangeRatesAreUpdatingInTheBackground;
+	}
+
+	private boolean appInfoIsVisible()
 	{
 		return appInfoAnchorPane.isVisible();
 	}
 
 	public boolean canBeShutdown()
 	{
-		return !updateIsPerforming();
+		if (exchangeRatesAreUpdatingInTheBackground())
+		{
+			if (appInfoAnchorPane.isVisible())
+			{
+				appInfoAnchorPane.setVisible(false);
+			}
+
+			updateInfoAnchorPane.setVisible(true);
+			return false;
+		}
+		else
+		{
+			return !exchangeRatesAreUpdating();
+		}
 	}
 
 	public void shutdownExecutor()
@@ -1125,5 +1176,10 @@ public class MainController implements Initializable
 	public void setHostServices(HostServices hostServices)
 	{
 		this.hostServices = hostServices;
+	}
+
+	public void setStage(Stage primaryStage)
+	{
+		this.primaryStage = primaryStage;
 	}
 }
