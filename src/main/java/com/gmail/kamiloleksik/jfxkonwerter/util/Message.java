@@ -2,9 +2,13 @@ package com.gmail.kamiloleksik.jfxkonwerter.util;
 
 import java.util.Optional;
 
+import com.gmail.kamiloleksik.jfxkonwerter.Main;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 
 public class Message
 {
@@ -12,6 +16,7 @@ public class Message
 	{
 		Alert alert = new Alert(alertType);
 
+		setIcon(alert);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(content);
@@ -23,6 +28,7 @@ public class Message
 	{
 		Alert alert = new Alert(alertType);
 
+		setIcon(alert);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(content);
@@ -37,5 +43,11 @@ public class Message
 		{
 			return false;
 		}
+	}
+
+	private static void setIcon(Alert alert)
+	{
+		Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+		stage.getIcons().add(new Image(Main.class.getResourceAsStream("/images/icon.png")));
 	}
 }

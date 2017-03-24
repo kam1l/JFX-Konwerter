@@ -244,6 +244,9 @@ public class Main extends Application
 
 	public static class App
 	{
+		private static final String WINDOW_POSITION_X = "WinPosX";
+	    private static final String WINDOW_POSITION_Y = "WinPosY";
+	    private static final String WINDOW_POSITION_WAS_SAVED = "WinPosSaved";
 		private ResourceBundle resourceBundle;
 
 		public App(ResourceBundle resourceBundle)
@@ -262,6 +265,16 @@ public class Main extends Application
 				Scene scene = new Scene(root);
 				scene.getStylesheets().add(getClass().getResource("/styles/application.css").toExternalForm());
 
+				java.util.prefs.Preferences savedPreferences = java.util.prefs.Preferences.userRoot();
+				if(savedPreferences.getBoolean(WINDOW_POSITION_WAS_SAVED, false))
+				{
+					double x = savedPreferences.getDouble(WINDOW_POSITION_X, 400);
+					double y = savedPreferences.getDouble(WINDOW_POSITION_Y, 400);
+					
+					primaryStage.setX(x);
+					primaryStage.setY(y);
+				}
+				
 				primaryStage.setTitle("JFX Konwerter");
 				primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("/images/icon.png")));
 				primaryStage.setResizable(false);
@@ -271,6 +284,10 @@ public class Main extends Application
 				{
 					if (controller.canBeShutdown())
 					{
+						java.util.prefs.Preferences preferences = java.util.prefs.Preferences.userRoot();
+			            preferences.putDouble(WINDOW_POSITION_X, primaryStage.getX());
+			            preferences.putDouble(WINDOW_POSITION_Y, primaryStage.getY());
+			            preferences.putBoolean(WINDOW_POSITION_WAS_SAVED, true);
 						controller.shutdownExecutor();
 						Platform.exit();
 					}

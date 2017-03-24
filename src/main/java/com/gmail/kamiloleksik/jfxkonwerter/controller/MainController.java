@@ -65,19 +65,19 @@ public class MainController implements Initializable
 {
 	public static final Pattern NUMBER_WITH_TWO_DIGIT_EXPONENT = Pattern.compile("^.+(e|E)(-|\\+)?[0-9]{2}$");
 	public static final Pattern NUMBER_WITH_ONE_DIGIT = Pattern.compile("-?[0-9]?|(-0\\.)");
-
-	private static Stage stage;
+	
+	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
+	public static BooleanProperty defaultAppLanguageWasChanged = new SimpleBooleanProperty();
+	public static BooleanProperty defaultUnitsLanguageWasChanged = new SimpleBooleanProperty();
+	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
+	
+	private static Stage preferencesStage;
 	private Model model;
 	private HostServices hostServices;
 	private ResourceBundle resourceBundle;
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private String userInput;
 	private String resultInFixedNotation;
-
-	public static BooleanProperty numberOfDecimalPlacesWasChanged = new SimpleBooleanProperty();
-	public static BooleanProperty defaultAppLanguageWasChanged = new SimpleBooleanProperty();
-	public static BooleanProperty defaultUnitsLanguageWasChanged = new SimpleBooleanProperty();
-	public static BooleanProperty defaultSkinNameWasChanged = new SimpleBooleanProperty();
 
 	@FXML
 	private TextField resultTextField;
@@ -618,18 +618,18 @@ public class MainController implements Initializable
 			return;
 		}
 
-		stage = new Stage();
-		stage.setResizable(false);
-		stage.sizeToScene();
+		preferencesStage = new Stage();
+		preferencesStage.setResizable(false);
+		preferencesStage.sizeToScene();
 		Parent root = FXMLLoader.load(getClass().getResource("/fxml/Preferences.fxml"), resourceBundle);
 		Scene scene = new Scene(root);
 		scene.getStylesheets().add(getClass().getResource("/styles/application.css").toExternalForm());
-		stage.getIcons().add(new Image(MainController.class.getResourceAsStream("/images/icon.png")));
-		stage.setScene(scene);
-		stage.setTitle(resourceBundle.getString("preferencesTitle"));
-		stage.initModality(Modality.APPLICATION_MODAL);
-		stage.initOwner(appInfoAnchorPane.getScene().getWindow());
-		stage.setOnCloseRequest(e ->
+		preferencesStage.getIcons().add(new Image(MainController.class.getResourceAsStream("/images/icon.png")));
+		preferencesStage.setScene(scene);
+		preferencesStage.setTitle(resourceBundle.getString("preferencesTitle"));
+		preferencesStage.initModality(Modality.APPLICATION_MODAL);
+		preferencesStage.initOwner(appInfoAnchorPane.getScene().getWindow());
+		preferencesStage.setOnCloseRequest(e ->
 		{
 			int defaultUnitTypeIndex = model.getDefaultUnitTypeIndex();
 
@@ -639,7 +639,7 @@ public class MainController implements Initializable
 				model.changePreferencesSetOfUnits(defaultUnitTypeIndex);
 			}
 		});
-		stage.show();
+		preferencesStage.show();
 	}
 
 	public void getAndSetResult()
@@ -1119,7 +1119,7 @@ public class MainController implements Initializable
 
 	public static Stage getStage()
 	{
-		return stage;
+		return preferencesStage;
 	}
 
 	public void setHostServices(HostServices hostServices)
