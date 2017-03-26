@@ -48,6 +48,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -98,9 +99,12 @@ public class MainController implements Initializable
 	private MenuItem resultFormattingMenuItem, menuItemClose, menuItemSwapUnits, menuItemPreferences, menuItemUpdate,
 			menuItemAbout, menuItemCheckUpdate, menuItemImportPreferences, menuItemExportPreferences, menuItemQuickCopy,
 			menuItemQuickPaste, menuItemIncreaseNumOfDecPlaces, menuItemDecreaseNumOfDecPlaces;
+	
+	@FXML
+	private CheckMenuItem menuItemAlwaysOnTop;
 
 	@FXML
-	private Menu menuEdit, menuFile;
+	private Menu menuEdit, menuFile, menuView;
 
 	@FXML
 	private Label labelType, labelFirstUnit, labelInputValue, labelSecondUnit, labelResult, labelApplicationVersion,
@@ -118,6 +122,7 @@ public class MainController implements Initializable
 	public void initialize(URL url, ResourceBundle resourceBundle)
 	{
 		this.resourceBundle = resourceBundle;
+		primaryStage = Main.getPrimaryStage();
 		initializeModel(resourceBundle.getObject("model"));
 
 		ObservableList<String> unitTypeNames = model.getNames(ALL_UNIT_TYPE_NAMES);
@@ -152,12 +157,18 @@ public class MainController implements Initializable
 		setAppSkin();
 		labelCopyrightInfo.setText("Copyright © " + new SimpleDateFormat("yyyy").format(new Date()) + " Kamil Oleksik");
 
-		if (model.getPreferences().getCheckForApplicationUpdatesOnStartup() == true)
+		if (model.getPreferences().alwaysOnTop())
+		{
+			primaryStage.setAlwaysOnTop(true);
+			menuItemAlwaysOnTop.setSelected(true);
+		}
+		
+		if (model.getPreferences().checkForApplicationUpdatesOnStartup())
 		{
 			checkApplicationUpdateAvailabilityInTheBackground();
 		}
 
-		if (model.getPreferences().getUpdateExchangeRatesOnStartup() == true)
+		if (model.getPreferences().updateExchangeRatesOnStartup())
 		{
 			updateExchangeRatesInTheBackground();
 		}
@@ -292,6 +303,8 @@ public class MainController implements Initializable
 						menuItemUpdate.setText(resourceBundle.getString("menuItemUpdate"));
 						menuItemCheckUpdate.setText(resourceBundle.getString("menuItemCheckUpdate"));
 						menuItemAbout.setText(resourceBundle.getString("menuItemAbout"));
+						menuView.setText(resourceBundle.getString("menuView"));
+						menuItemAlwaysOnTop.setText(resourceBundle.getString("menuItemAlwaysOnTop"));
 						labelType.setText(resourceBundle.getString("labelType"));
 						labelFirstUnit.setText(resourceBundle.getString("labelFirstUnit"));
 						labelInputValue.setText(resourceBundle.getString("labelInputValue"));
@@ -679,7 +692,7 @@ public class MainController implements Initializable
 			resultFormattingMenuItem.setDisable(false);
 		}
 
-		if (model.getPreferences().getLogHistory() == true)
+		if (model.getPreferences().logHistory())
 		{
 			writeEntryToHistoryFile(result);
 		}
@@ -846,7 +859,7 @@ public class MainController implements Initializable
 				{
 					if (taskSucceeded)
 					{
-						updateModel(oldPrefs, newPrefs);
+						updateModelAfterImportingPreferences(oldPrefs, newPrefs);
 					}
 					else
 					{
@@ -881,7 +894,7 @@ public class MainController implements Initializable
 		}
 	}
 
-	private void updateModel(Preferences prefs, Preferences newPrefs)
+	private void updateModelAfterImportingPreferences(Preferences prefs, Preferences newPrefs)
 	{
 		model.setPreferences(newPrefs);
 
@@ -928,6 +941,13 @@ public class MainController implements Initializable
 		{
 			model.setAppSkin(model.getAppSkinIndex(newPrefs.getAppSkin().getAppSkinId()));
 			MainController.defaultSkinNameWasChanged.setValue(true);
+		}
+		
+		if (newPrefs.alwaysOnTop() != prefs.alwaysOnTop())
+		{
+			boolean alwaysOnTop = newPrefs.alwaysOnTop();
+			primaryStage.setAlwaysOnTop(alwaysOnTop);
+			menuItemAlwaysOnTop.setSelected(alwaysOnTop);
 		}
 	}
 
@@ -987,6 +1007,14 @@ public class MainController implements Initializable
 		}
 	}
 
+	public void alwaysOnTop(ActionEvent event)
+	{
+		boolean alwaysOnTop = menuItemAlwaysOnTop.isSelected();
+		
+		primaryStage.setAlwaysOnTop(alwaysOnTop);
+		model.setAlwaysOnTop(alwaysOnTop);
+	}
+	
 	private void changeDefaultNumberOfDecimalPlaces(String numOfDecPlacesString)
 	{
 		try
@@ -1176,10 +1204,5 @@ public class MainController implements Initializable
 	public void setHostServices(HostServices hostServices)
 	{
 		this.hostServices = hostServices;
-	}
-
-	public void setStage(Stage primaryStage)
-	{
-		this.primaryStage = primaryStage;
 	}
 }

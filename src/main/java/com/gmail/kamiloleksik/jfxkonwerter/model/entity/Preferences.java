@@ -28,6 +28,8 @@ public class Preferences
 	private boolean checkForApplicationUpdatesOnStartup;
 	@DatabaseField(canBeNull = false)
 	private boolean logHistory;
+	@DatabaseField(canBeNull = false)
+	private boolean alwaysOnTop;
 
 	public Preferences()
 	{
@@ -36,7 +38,8 @@ public class Preferences
 
 	public Preferences(int preferencesId, NumberOfDecimalPlaces numberOfDecimalPlaces, UnitType unitType,
 			Unit firstUnit, Unit secondUnit, AppLanguage appLanguage, UnitsLanguage unitsLanguage, AppSkin appSkin,
-			boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup, boolean logHistory)
+			boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup, boolean logHistory, 
+			boolean alwaysOnTop)
 	{
 		this.preferencesId = preferencesId;
 		this.numberOfDecimalPlaces = numberOfDecimalPlaces;
@@ -49,24 +52,20 @@ public class Preferences
 		this.updateExchangeRatesOnStartup = updateExchangeRatesOnStartup;
 		this.checkForApplicationUpdatesOnStartup = checkForApplicationUpdatesOnStartup;
 		this.logHistory = logHistory;
+		this.alwaysOnTop = alwaysOnTop;
 	}
 
 	public Preferences(int preferencesId, int defaultNumberOfDecimalPlacesId, int defaultUnitTypeId,
 			int defaultFirstUnitId, int defaultSecondUnitId, int defaultAppLanguageId, int defaultUnitsLanguageId,
 			int defaultAppSkinId, boolean updateExchangeRatesOnStartup, boolean checkForApplicationUpdatesOnStartup,
-			boolean logHistory)
+			boolean logHistory, boolean alwaysOnTop)
 	{
-		this.preferencesId = preferencesId;
-		numberOfDecimalPlaces = new NumberOfDecimalPlaces(defaultNumberOfDecimalPlacesId, null);
-		unitType = new UnitType(defaultUnitTypeId, null, null);
-		firstUnit = new Unit(defaultFirstUnitId, null, null, null, null, null);
-		secondUnit = new Unit(defaultSecondUnitId, null, null, null, null, null);
-		appLanguage = new AppLanguage(defaultAppLanguageId, null);
-		unitsLanguage = new UnitsLanguage(defaultUnitsLanguageId, null);
-		appSkin = new AppSkin(defaultAppSkinId, null, null);
-		this.updateExchangeRatesOnStartup = updateExchangeRatesOnStartup;
-		this.checkForApplicationUpdatesOnStartup = checkForApplicationUpdatesOnStartup;
-		this.logHistory = logHistory;
+		this(preferencesId, new NumberOfDecimalPlaces(defaultNumberOfDecimalPlacesId, null),
+				new UnitType(defaultUnitTypeId, null, null), new Unit(defaultFirstUnitId, null, null, null, null, null),
+				new Unit(defaultSecondUnitId, null, null, null, null, null),
+				new AppLanguage(defaultAppLanguageId, null), new UnitsLanguage(defaultUnitsLanguageId, null),
+				new AppSkin(defaultAppSkinId, null, null), updateExchangeRatesOnStartup,
+				checkForApplicationUpdatesOnStartup, logHistory, alwaysOnTop);
 	}
 
 	public int getPreferencesId()
@@ -114,7 +113,7 @@ public class Preferences
 		return appSkin;
 	}
 
-	public boolean getUpdateExchangeRatesOnStartup()
+	public boolean updateExchangeRatesOnStartup()
 	{
 		return updateExchangeRatesOnStartup;
 	}
@@ -124,7 +123,7 @@ public class Preferences
 		this.updateExchangeRatesOnStartup = updateExchangeRatesOnStartup;
 	}
 
-	public boolean getCheckForApplicationUpdatesOnStartup()
+	public boolean checkForApplicationUpdatesOnStartup()
 	{
 		return checkForApplicationUpdatesOnStartup;
 	}
@@ -134,7 +133,7 @@ public class Preferences
 		this.checkForApplicationUpdatesOnStartup = checkForApplicationUpdatesOnStartup;
 	}
 
-	public boolean getLogHistory()
+	public boolean logHistory()
 	{
 		return logHistory;
 	}
@@ -142,5 +141,15 @@ public class Preferences
 	public void setLogHistory(boolean logHistory)
 	{
 		this.logHistory = logHistory;
+	}
+
+	public boolean alwaysOnTop()
+	{
+		return alwaysOnTop;
+	}
+
+	public void setAlwaysOnTop(boolean alwaysOnTop)
+	{
+		this.alwaysOnTop = alwaysOnTop;
 	}
 }

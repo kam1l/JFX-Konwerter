@@ -810,6 +810,21 @@ public class Model
 		((Dao<Preferences, Integer>) daos.get(PREFERENCES_DAO)).update(preferences);
 	}
 
+	@SuppressWarnings("unchecked")
+	public void setAlwaysOnTop(boolean alwaysOnTop)
+	{
+		preferences.setAlwaysOnTop(alwaysOnTop);
+		
+		try
+		{
+			((Dao<Preferences, Integer>) daos.get(PREFERENCES_DAO)).update(preferences);
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
 	public void setUnit(int index, UnitKey key)
 	{
 		Unit unit;

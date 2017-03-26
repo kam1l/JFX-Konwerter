@@ -37,9 +37,10 @@ public class PreferencesUtil
 				dos.writeInt(preferences.getAppSkin().getAppSkinId());
 				dos.writeInt(preferences.getAppLanguage().getAppLanguageId());
 				dos.writeInt(preferences.getUnitsLanguage().getUnitsLanguageId());
-				dos.writeBoolean(preferences.getUpdateExchangeRatesOnStartup());
-				dos.writeBoolean(preferences.getCheckForApplicationUpdatesOnStartup());
-				dos.writeBoolean(preferences.getLogHistory());
+				dos.writeBoolean(preferences.updateExchangeRatesOnStartup());
+				dos.writeBoolean(preferences.checkForApplicationUpdatesOnStartup());
+				dos.writeBoolean(preferences.logHistory());
+				dos.writeBoolean(preferences.alwaysOnTop());
 			}
 		}
 	}
@@ -65,10 +66,16 @@ public class PreferencesUtil
 				boolean updateExchangeRatesOnStartup = is.readBoolean();
 				boolean checkForApplicationUpdatesOnStartup = is.readBoolean();
 				boolean logHistory = is.readBoolean();
+				boolean alwaysOnTop = false;
+				
+				if(is.available() > 0)
+				{
+					alwaysOnTop = is.readBoolean();
+				}
 
 				return new Preferences(preferencesId, numberOfDecimalPlacesId, unitTypeId, firstUnitId, secondUnitId,
 						appLanguageId, unitsLanguageId, appSkinId, updateExchangeRatesOnStartup,
-						checkForApplicationUpdatesOnStartup, logHistory);
+						checkForApplicationUpdatesOnStartup, logHistory, alwaysOnTop);
 			}
 		}
 
@@ -100,8 +107,8 @@ public class PreferencesUtil
 				|| newPrefs.getAppSkin().getAppSkinId() != prefs.getAppSkin().getAppSkinId()
 				|| newPrefs.getAppLanguage().getAppLanguageId() != prefs.getAppLanguage().getAppLanguageId()
 				|| newPrefs.getUnitsLanguage().getUnitsLanguageId() != prefs.getUnitsLanguage().getUnitsLanguageId()
-				|| newPrefs.getUpdateExchangeRatesOnStartup() != prefs.getUpdateExchangeRatesOnStartup()
-				|| newPrefs.getCheckForApplicationUpdatesOnStartup() != prefs.getCheckForApplicationUpdatesOnStartup()
-				|| newPrefs.getLogHistory() != prefs.getLogHistory();
+				|| newPrefs.updateExchangeRatesOnStartup() != prefs.updateExchangeRatesOnStartup()
+				|| newPrefs.checkForApplicationUpdatesOnStartup() != prefs.checkForApplicationUpdatesOnStartup()
+				|| newPrefs.logHistory() != prefs.logHistory() || newPrefs.alwaysOnTop() != prefs.alwaysOnTop();
 	}
 }

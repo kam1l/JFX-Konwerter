@@ -39,11 +39,13 @@ import javafx.stage.Stage;
 
 public class Main extends Application
 {
+	private static Stage primaryStage;
 	private AnnotationConfigApplicationContext applicationContext;
 
 	@Override
-	public void start(Stage primaryStage)
+	public void start(Stage stage)
 	{
+		primaryStage = stage;
 		applicationContext = new AnnotationConfigApplicationContext();
 		applicationContext.scan("com.gmail.kamiloleksik.jfxkonwerter");
 		applicationContext.refresh();
@@ -104,6 +106,11 @@ public class Main extends Application
 		};
 	}
 
+	public static Stage getPrimaryStage()
+	{
+		return primaryStage;
+	}
+	
 	@Configuration
 	public static class Config
 	{
@@ -262,7 +269,6 @@ public class Main extends Application
 				Parent root = loader.load();
 				MainController controller = loader.getController();
 				controller.setHostServices(main.getHostServices());
-				controller.setStage(primaryStage);
 				Scene scene = new Scene(root);
 				scene.getStylesheets().add(getClass().getResource("/styles/application.css").toExternalForm());
 

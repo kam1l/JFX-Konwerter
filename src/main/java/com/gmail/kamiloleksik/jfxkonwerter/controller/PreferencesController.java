@@ -104,15 +104,15 @@ public class PreferencesController implements Initializable
 		defaultAppSkinComboBox.setItems(appSkinNames);
 		defaultAppSkinSel.select(model.getAppSkinName());
 
-		boolean checkForApplicationUpdatesOnStartup = currentPreferences.getCheckForApplicationUpdatesOnStartup();
+		boolean checkForApplicationUpdatesOnStartup = currentPreferences.checkForApplicationUpdatesOnStartup();
 		currentIds.put(CHECK_APP_UPDATE_ID, checkForApplicationUpdatesOnStartup ? 1 : 0);
 		applicationUpdateCheckBox.setSelected(checkForApplicationUpdatesOnStartup);
 
-		boolean updateExchangeRatesOnStartup = currentPreferences.getUpdateExchangeRatesOnStartup();
+		boolean updateExchangeRatesOnStartup = currentPreferences.updateExchangeRatesOnStartup();
 		currentIds.put(UPDATE_EXCHANGE_RATES_ID, updateExchangeRatesOnStartup ? 1 : 0);
 		exchangeRatesUpdateCheckbox.setSelected(updateExchangeRatesOnStartup);
 
-		boolean logHistory = currentPreferences.getLogHistory();
+		boolean logHistory = currentPreferences.logHistory();
 		currentIds.put(LOG_HISTORY_ID, logHistory ? 1 : 0);
 		logHistoryCheckbox.setSelected(logHistory);
 	}
@@ -203,7 +203,7 @@ public class PreferencesController implements Initializable
 				selectedIds.get(APP_LANGUAGE_ID), selectedIds.get(UNITS_LANGUAGE_ID), selectedIds.get(APP_SKIN_ID),
 				selectedIds.get(UPDATE_EXCHANGE_RATES_ID) == 1 ? true : false,
 				selectedIds.get(CHECK_APP_UPDATE_ID) == 1 ? true : false,
-				selectedIds.get(LOG_HISTORY_ID) == 1 ? true : false);
+				selectedIds.get(LOG_HISTORY_ID) == 1 ? true : false, currentPreferences.alwaysOnTop());
 	}
 
 	private void updatePreferencesRamDataStructures(Preferences newPreferences)
