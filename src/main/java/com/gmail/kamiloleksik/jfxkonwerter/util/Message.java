@@ -14,26 +14,17 @@ public class Message
 {
 	public static void showMessage(String title, String content, AlertType alertType)
 	{
-		Alert alert = new Alert(alertType);
-
-		setIcon(alert);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(content);
-
-		alert.showAndWait();
+		createAlert(title, content, alertType).showAndWait();
+	}
+	
+	public static void showMessage(Stage stage, String title, String content, AlertType alertType)
+	{
+		createAlert(stage, title, content, alertType).showAndWait();
 	}
 
-	public static boolean showConfirmationMessage(String title, String content, AlertType alertType)
+	public static boolean showConfirmationMessage(Stage stage, String title, String content)
 	{
-		Alert alert = new Alert(alertType);
-
-		setIcon(alert);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(content);
-
-		Optional<ButtonType> result = alert.showAndWait();
+		Optional<ButtonType> result = createAlert(stage, title, content, AlertType.CONFIRMATION).showAndWait();
 
 		if (result.get() == ButtonType.OK)
 		{
@@ -44,7 +35,27 @@ public class Message
 			return false;
 		}
 	}
-
+	
+	private static Alert createAlert(String title, String content, AlertType alertType)
+	{
+		Alert alert = new Alert(alertType);
+		
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(content);
+		setIcon(alert);
+		
+		return alert;
+	}
+	
+	private static Alert createAlert(Stage stage, String title, String content, AlertType alertType)
+	{
+		Alert alert = createAlert(title, content, alertType);
+		alert.initOwner(stage);
+		
+		return alert;
+	}
+	
 	private static void setIcon(Alert alert)
 	{
 		Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();

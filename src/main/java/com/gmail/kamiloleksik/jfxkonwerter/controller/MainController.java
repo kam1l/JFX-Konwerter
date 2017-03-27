@@ -15,7 +15,9 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +38,8 @@ import com.gmail.kamiloleksik.jfxkonwerter.util.ApplicationUpdateChecker;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
@@ -50,11 +54,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
@@ -83,6 +90,10 @@ public class MainController implements Initializable
 	private boolean exchangeRatesAreUpdatingInTheBackground;
 	private boolean applicationUpdatesAreChecking;
 
+	private MenuItem valueTextFieldUndo, valueTextFieldRedo, valueTextFieldCut, valueTextFieldPaste,
+			valueTextFieldDelete, valueTextFieldCopy, valueTextFieldSelectAll, resultTextFieldCopy,
+			resultTextFieldSelectAll;
+
 	@FXML
 	private TextField resultTextField;
 
@@ -99,7 +110,7 @@ public class MainController implements Initializable
 	private MenuItem resultFormattingMenuItem, menuItemClose, menuItemSwapUnits, menuItemPreferences, menuItemUpdate,
 			menuItemAbout, menuItemCheckUpdate, menuItemImportPreferences, menuItemExportPreferences, menuItemQuickCopy,
 			menuItemQuickPaste, menuItemIncreaseNumOfDecPlaces, menuItemDecreaseNumOfDecPlaces;
-	
+
 	@FXML
 	private CheckMenuItem menuItemAlwaysOnTop;
 
@@ -157,12 +168,19 @@ public class MainController implements Initializable
 		setAppSkin();
 		labelCopyrightInfo.setText("Copyright © " + new SimpleDateFormat("yyyy").format(new Date()) + " Kamil Oleksik");
 
+		ContextMenu valueTextFieldContextMenu = new ContextMenu();
+		valueTextFieldContextMenu.getItems().addAll(createValueTextFieldContextMenuItems(valueTextField));
+		valueTextField.setContextMenu(valueTextFieldContextMenu);
+		ContextMenu resultTextFieldContextMenu = new ContextMenu();
+		resultTextFieldContextMenu.getItems().addAll(createResultTextFieldContextMenuItems(resultTextField));
+		resultTextField.setContextMenu(resultTextFieldContextMenu);
+
 		if (model.getPreferences().alwaysOnTop())
 		{
 			primaryStage.setAlwaysOnTop(true);
 			menuItemAlwaysOnTop.setSelected(true);
 		}
-		
+
 		if (model.getPreferences().checkForApplicationUpdatesOnStartup())
 		{
 			checkApplicationUpdateAvailabilityInTheBackground();
@@ -192,7 +210,7 @@ public class MainController implements Initializable
 		String errorTitle = resourceBundle.getString("errorTitle");
 		String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
 
-		Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
+		Message.showMessage(primaryStage, errorTitle, criticalErrorMessage, AlertType.ERROR);
 		Platform.exit();
 		System.exit(-1);
 	}
@@ -230,7 +248,59 @@ public class MainController implements Initializable
 		String errorTitle = resourceBundle.getString("errorTitle");
 		String numberTooLongErrorMessage = resourceBundle.getString("numberTooLongErrorMessage");
 
-		Message.showMessage(errorTitle, numberTooLongErrorMessage + userInputLength + ").", AlertType.ERROR);
+		Message.showMessage(primaryStage, errorTitle, numberTooLongErrorMessage + userInputLength + ").",
+				AlertType.ERROR);
+	}
+
+	private List<MenuItem> createValueTextFieldContextMenuItems(TextInputControl textInputControl)
+	{
+		valueTextFieldUndo = new MenuItem(resourceBundle.getString("contextMenuItemUndo"));
+		valueTextFieldRedo = new MenuItem(resourceBundle.getString("contextMenuItemRedo"));
+		valueTextFieldCut = new MenuItem(resourceBundle.getString("contextMenuItemCut"));
+		valueTextFieldCopy = new MenuItem(resourceBundle.getString("contextMenuItemCopy"));
+		valueTextFieldPaste = new MenuItem(resourceBundle.getString("contextMenuItemPaste"));
+		valueTextFieldDelete = new MenuItem(resourceBundle.getString("contextMenuItemDelete"));
+		valueTextFieldSelectAll = new MenuItem(resourceBundle.getString("contextMenuItemSelectAll"));
+
+		valueTextFieldUndo.setOnAction(e -> textInputControl.undo());
+		valueTextFieldRedo.setOnAction(e -> textInputControl.redo());
+		valueTextFieldCut.setOnAction(e -> textInputControl.cut());
+		valueTextFieldCopy.setOnAction(e -> textInputControl.copy());
+		valueTextFieldPaste.setOnAction(e -> textInputControl.paste());
+		valueTextFieldDelete.setOnAction(e -> textInputControl.deleteText(textInputControl.getSelection()));
+		valueTextFieldSelectAll.setOnAction(e -> textInputControl.selectAll());
+
+		BooleanBinding emptySelection = Bindings.createBooleanBinding(
+				() -> textInputControl.getSelection().getLength() == 0, textInputControl.selectionProperty());
+		BooleanBinding nothingToUndo = Bindings.createBooleanBinding(() -> !textInputControl.isUndoable(),
+				textInputControl.undoableProperty());
+		BooleanBinding nothingToRedo = Bindings.createBooleanBinding(() -> !textInputControl.isRedoable(),
+				textInputControl.redoableProperty());
+
+		valueTextFieldUndo.disableProperty().bind(nothingToUndo);
+		valueTextFieldRedo.disableProperty().bind(nothingToRedo);
+		valueTextFieldCut.disableProperty().bind(emptySelection);
+		valueTextFieldCopy.disableProperty().bind(emptySelection);
+		valueTextFieldDelete.disableProperty().bind(emptySelection);
+
+		return Arrays.asList(valueTextFieldUndo, valueTextFieldRedo, valueTextFieldCut, valueTextFieldCopy,
+				valueTextFieldPaste, valueTextFieldDelete, new SeparatorMenuItem(), valueTextFieldSelectAll);
+	}
+
+	private List<MenuItem> createResultTextFieldContextMenuItems(TextInputControl textInputControl)
+	{
+		resultTextFieldCopy = new MenuItem(resourceBundle.getString("contextMenuItemCopy"));
+		resultTextFieldSelectAll = new MenuItem(resourceBundle.getString("contextMenuItemSelectAll"));
+
+		resultTextFieldCopy.setOnAction(e -> textInputControl.copy());
+		resultTextFieldSelectAll.setOnAction(e -> textInputControl.selectAll());
+
+		BooleanBinding emptySelection = Bindings.createBooleanBinding(
+				() -> textInputControl.getSelection().getLength() == 0, textInputControl.selectionProperty());
+
+		resultTextFieldCopy.disableProperty().bind(emptySelection);
+
+		return Arrays.asList(resultTextFieldCopy, new SeparatorMenuItem(), resultTextFieldSelectAll);
 	}
 
 	private void addListenersToBooleanProperties()
@@ -315,6 +385,15 @@ public class MainController implements Initializable
 						labelSourceCode.setText(resourceBundle.getString("labelSourceCode"));
 						labelOngoingUpdate.setText(resourceBundle.getString("labelOngoingUpdate"));
 						buttonCloseInfo.setText(resourceBundle.getString("buttonCloseInfo"));
+						valueTextFieldUndo.setText(resourceBundle.getString("contextMenuItemUndo"));
+						valueTextFieldRedo.setText(resourceBundle.getString("contextMenuItemRedo"));
+						valueTextFieldCut.setText(resourceBundle.getString("contextMenuItemCut"));
+						valueTextFieldCopy.setText(resourceBundle.getString("contextMenuItemCopy"));
+						valueTextFieldPaste.setText(resourceBundle.getString("contextMenuItemPaste"));
+						valueTextFieldDelete.setText(resourceBundle.getString("contextMenuItemDelete"));
+						valueTextFieldSelectAll.setText(resourceBundle.getString("contextMenuItemSelectAll"));
+						resultTextFieldCopy.setText(resourceBundle.getString("contextMenuItemCopy"));
+						resultTextFieldSelectAll.setText(resourceBundle.getString("contextMenuItemSelectAll"));
 
 						if (resultInFixedNotation == null)
 						{
@@ -579,7 +658,7 @@ public class MainController implements Initializable
 					String informationTitle = resourceBundle.getString("informationTitle");
 					String updateSuccessMessage = resourceBundle.getString("updateSuccessMessage");
 
-					Message.showMessage(informationTitle, updateSuccessMessage, AlertType.INFORMATION);
+					Message.showMessage(primaryStage, informationTitle, updateSuccessMessage, AlertType.INFORMATION);
 
 					if (model.currentUnitsAreCurrencies())
 					{
@@ -640,7 +719,7 @@ public class MainController implements Initializable
 		String errorTitle = resourceBundle.getString("errorTitle");
 		String updateErrorMessage = resourceBundle.getString("updateErrorMessage");
 
-		Message.showMessage(errorTitle, updateErrorMessage, AlertType.ERROR);
+		Message.showMessage(primaryStage, errorTitle, updateErrorMessage, AlertType.ERROR);
 	}
 
 	public void showPreferences(ActionEvent event) throws IOException
@@ -660,7 +739,7 @@ public class MainController implements Initializable
 		preferencesStage.setScene(scene);
 		preferencesStage.setTitle(resourceBundle.getString("preferencesTitle"));
 		preferencesStage.initModality(Modality.APPLICATION_MODAL);
-		preferencesStage.initOwner(appInfoAnchorPane.getScene().getWindow());
+		preferencesStage.initOwner(primaryStage);
 		preferencesStage.setOnCloseRequest(e ->
 		{
 			int defaultUnitTypeIndex = model.getDefaultUnitTypeIndex();
@@ -712,7 +791,7 @@ public class MainController implements Initializable
 			String errorTitle = resourceBundle.getString("errorTitle");
 			String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
 
-			Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
+			Message.showMessage(primaryStage, errorTitle, writingFileErrorMessage, AlertType.ERROR);
 		}
 	}
 
@@ -845,7 +924,7 @@ public class MainController implements Initializable
 			String errorTitle = resourceBundle.getString("errorTitle");
 			String readingFileErrorMessage = resourceBundle.getString("readingFileErrorMessage");
 
-			Message.showMessage(errorTitle, readingFileErrorMessage, AlertType.ERROR);
+			Message.showMessage(primaryStage, errorTitle, readingFileErrorMessage, AlertType.ERROR);
 			return;
 		}
 
@@ -867,7 +946,7 @@ public class MainController implements Initializable
 						String savingPreferencesErrorMessage = resourceBundle
 								.getString("savingPreferencesErrorMessage");
 
-						Message.showMessage(errorTitle, savingPreferencesErrorMessage, AlertType.ERROR);
+						Message.showMessage(primaryStage, errorTitle, savingPreferencesErrorMessage, AlertType.ERROR);
 					}
 				});
 			});
@@ -890,7 +969,7 @@ public class MainController implements Initializable
 			String errorTitle = resourceBundle.getString("errorTitle");
 			String writingFileErrorMessage = resourceBundle.getString("writingFileErrorMessage");
 
-			Message.showMessage(errorTitle, writingFileErrorMessage, AlertType.ERROR);
+			Message.showMessage(primaryStage, errorTitle, writingFileErrorMessage, AlertType.ERROR);
 		}
 	}
 
@@ -942,7 +1021,7 @@ public class MainController implements Initializable
 			model.setAppSkin(model.getAppSkinIndex(newPrefs.getAppSkin().getAppSkinId()));
 			MainController.defaultSkinNameWasChanged.setValue(true);
 		}
-		
+
 		if (newPrefs.alwaysOnTop() != prefs.alwaysOnTop())
 		{
 			boolean alwaysOnTop = newPrefs.alwaysOnTop();
@@ -1010,11 +1089,11 @@ public class MainController implements Initializable
 	public void alwaysOnTop(ActionEvent event)
 	{
 		boolean alwaysOnTop = menuItemAlwaysOnTop.isSelected();
-		
+
 		primaryStage.setAlwaysOnTop(alwaysOnTop);
 		model.setAlwaysOnTop(alwaysOnTop);
 	}
-	
+
 	private void changeDefaultNumberOfDecimalPlaces(String numOfDecPlacesString)
 	{
 		try
@@ -1055,7 +1134,7 @@ public class MainController implements Initializable
 					String errorTitle = resourceBundle.getString("errorTitle");
 					String checkingUpdateErrorMessage = resourceBundle.getString("checkingUpdateErrorMessage");
 
-					Message.showMessage(errorTitle, checkingUpdateErrorMessage, AlertType.ERROR);
+					Message.showMessage(primaryStage, errorTitle, checkingUpdateErrorMessage, AlertType.ERROR);
 
 					updateInfoAnchorPane.setVisible(false);
 					applicationUpdatesAreChecking = false;
@@ -1072,8 +1151,8 @@ public class MainController implements Initializable
 					String informationTitle = resourceBundle.getString("informationTitle");
 					String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
 
-					boolean confirmed = Message.showConfirmationMessage(informationTitle, newVersionAvailableMessage,
-							AlertType.CONFIRMATION);
+					boolean confirmed = Message.showConfirmationMessage(primaryStage, informationTitle,
+							newVersionAvailableMessage);
 
 					if (confirmed)
 					{
@@ -1092,7 +1171,8 @@ public class MainController implements Initializable
 					String informationTitle = resourceBundle.getString("informationTitle");
 					String noUpdatesAvailableMessage = resourceBundle.getString("noUpdatesAvailableMessage");
 
-					Message.showMessage(informationTitle, noUpdatesAvailableMessage, AlertType.INFORMATION);
+					Message.showMessage(primaryStage, informationTitle, noUpdatesAvailableMessage,
+							AlertType.INFORMATION);
 
 					updateInfoAnchorPane.setVisible(false);
 					applicationUpdatesAreChecking = false;
@@ -1124,8 +1204,8 @@ public class MainController implements Initializable
 					String informationTitle = resourceBundle.getString("informationTitle");
 					String newVersionAvailableMessage = resourceBundle.getString("newVersionAvailableMessage");
 
-					boolean confirmed = Message.showConfirmationMessage(informationTitle, newVersionAvailableMessage,
-							AlertType.CONFIRMATION);
+					boolean confirmed = Message.showConfirmationMessage(primaryStage, informationTitle,
+							newVersionAvailableMessage);
 
 					if (confirmed)
 					{

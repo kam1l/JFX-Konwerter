@@ -13,6 +13,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.gmail.kamiloleksik.jfxkonwerter.Main;
 import com.gmail.kamiloleksik.jfxkonwerter.model.Model;
 import com.gmail.kamiloleksik.jfxkonwerter.model.entity.Preferences;
 import com.gmail.kamiloleksik.jfxkonwerter.util.Message;
@@ -161,7 +162,8 @@ public class PreferencesController implements Initializable
 						String savingPreferencesErrorMessage = resourceBundle
 								.getString("savingPreferencesErrorMessage");
 
-						Message.showMessage(errorTitle, savingPreferencesErrorMessage, AlertType.ERROR);
+						Message.showMessage(Main.getPrimaryStage(), errorTitle, savingPreferencesErrorMessage,
+								AlertType.ERROR);
 					}
 				});
 			});
