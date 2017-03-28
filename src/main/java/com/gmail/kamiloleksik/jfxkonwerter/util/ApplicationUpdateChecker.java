@@ -10,7 +10,7 @@ import org.jsoup.select.Elements;
 
 public class ApplicationUpdateChecker
 {
-	private static final DefaultArtifactVersion APP_VERSION = new DefaultArtifactVersion("1.1.0");
+	private static final DefaultArtifactVersion APP_VERSION = new DefaultArtifactVersion("1.2.0");
 
 	public static boolean updateIsAvailable() throws IOException
 	{
