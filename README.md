@@ -5,7 +5,7 @@
 JFX Konwerter is very easy to use JavaFX-based unit converter. 
 
 **Core features:**
- - 234 different units, currencies and number bases
+ - 249 different units, currencies and number bases
  - On-demand or automatic updates of exchange rates from European Central Bank
  - Very high accuracy (the maximum number of decimal places is 100)
  - 2 different languages of user interface and unit database: English and Polish
