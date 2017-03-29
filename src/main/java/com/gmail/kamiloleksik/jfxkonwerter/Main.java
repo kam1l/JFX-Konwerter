@@ -3,6 +3,8 @@ package com.gmail.kamiloleksik.jfxkonwerter;
 import static com.gmail.kamiloleksik.jfxkonwerter.util.keys.DaoKey.*;
 import static com.j256.ormlite.dao.DaoManager.createDao;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -39,6 +41,8 @@ import javafx.stage.Stage;
 
 public class Main extends Application
 {
+	private static final String DB_FILE_NAME = "resource.db";
+	
 	private static Stage primaryStage;
 	private AnnotationConfigApplicationContext applicationContext;
 
@@ -69,7 +73,17 @@ public class Main extends Application
 
 	public static ResourceBundle getBundle(Model model)
 	{
-		String appLanguageName = model.getAppLanguageName();
+		String appLanguageName = null;
+		
+		try
+		{
+			appLanguageName = model.getAppLanguageName();
+		}
+		catch (Exception e)
+		{
+			showCriticalErrorMessageAndExitApp();
+		}
+		
 		Locale locale;
 
 		if (appLanguageName.equals("Polski"))
@@ -106,11 +120,21 @@ public class Main extends Application
 		};
 	}
 
+	public static void showCriticalErrorMessageAndExitApp()
+	{
+		ResourceBundle resourceBundle = ResourceBundle.getBundle("bundles.lang", new Locale("en"));
+		String errorTitle = resourceBundle.getString("errorTitle");
+		String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
+
+		Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
+		System.exit(-1);
+	}
+	
 	public static Stage getPrimaryStage()
 	{
 		return primaryStage;
 	}
-	
+
 	@Configuration
 	public static class Config
 	{
@@ -131,16 +155,12 @@ public class Main extends Application
 		{
 			try
 			{
-				return new JdbcConnectionSource("jdbc:sqlite:resource.db");
+				assertDBFileExists();
+				return new JdbcConnectionSource("jdbc:sqlite:" + DB_FILE_NAME);
 			}
 			catch (Exception e)
 			{
-				ResourceBundle resourceBundle = ResourceBundle.getBundle("bundles.lang", new Locale("en"));
-				String errorTitle = resourceBundle.getString("errorTitle");
-				String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
-
-				Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
-				System.exit(-1);
+				showCriticalErrorMessageAndExitApp();
 			}
 
 			return null;
@@ -167,12 +187,7 @@ public class Main extends Application
 			}
 			catch (Exception e)
 			{
-				ResourceBundle resourceBundle = ResourceBundle.getBundle("bundles.lang", new Locale("en"));
-				String errorTitle = resourceBundle.getString("errorTitle");
-				String criticalErrorMessage = resourceBundle.getString("criticalErrorMessage");
-
-				Message.showMessage(errorTitle, criticalErrorMessage, AlertType.ERROR);
-				System.exit(-1);
+				showCriticalErrorMessageAndExitApp();
 			}
 
 			return null;
@@ -247,6 +262,16 @@ public class Main extends Application
 		{
 			return new EnumMap<NamesKey, ObservableList<String>>(NamesKey.class);
 		}
+		
+		private void assertDBFileExists() throws IOException
+		{
+			File dbFile = new File(DB_FILE_NAME);
+			
+			if(!dbFile.exists() || dbFile.length() == 0)
+			{
+				throw new IOException();
+			}
+		}
 	}
 
 	public static class App
@@ -307,7 +332,7 @@ public class Main extends Application
 			}
 			catch (Exception e)
 			{
-				e.printStackTrace();
+				showCriticalErrorMessageAndExitApp();
 			}
 		}
 	}
