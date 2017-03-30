@@ -21,17 +21,17 @@ You can download an ``JFX.Konwerter.zip`` file from the [releases page](https://
 
 <p>Blue caspian skin:</p>
 <p align="center">
-  <img src="http://i65.tinypic.com/2hfuaag.jpg"/>
+  <img src="http://i63.tinypic.com/n15kk2.png"/>
 </p>
 
 <p>Caspian skin:</p>
 <p align="center">
-  <img src="http://i68.tinypic.com/28h1v9g.png"/>
+  <img src="http://i66.tinypic.com/2jfd847.png"/>
 </p>
 
 <p>Modena skin:</p>
 <p align="center">
-  <img src="http://i63.tinypic.com/2hzmts1.png"/>
+  <img src="http://i64.tinypic.com/ht9ye1.png"/>
 </p>
 
 ## License
